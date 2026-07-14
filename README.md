@@ -1,0 +1,154 @@
+# Mindful Blog Workflow
+
+Dự án này dùng các file YAML trong thư mục `skills` để vận hành một workflow viết blog phản tư có hỗ trợ AI.
+
+Triết lý hiện tại: mỗi agent chỉ trung thành với một câu hỏi duy nhất. AI không thay người viết ra quyết định cuối cùng; AI tạo bản nháp, phản hồi, chỉnh sửa tối thiểu, coaching, và phản tư để người viết tự hoàn thiện `final_blog.md` / `production_blog.md`.
+
+## Workflow Hiện Tại
+
+```text
+story_architect
+  -> reflection_engine
+  -> writing_agent
+  -> reader_experience
+  -> editor_agent
+  -> coach_agent
+  -> future_self
+  -> human writer
+```
+
+Outputs chính:
+
+- `story_map.md`: sự thật của câu chuyện.
+- `reflection_notes.md`: sự thật của chuyển biến bên trong.
+- `draft_blog.md`: bản nháp trung thực từ `writing_agent`.
+- `reader_report.md`: nhật ký trải nghiệm đọc lần đầu, không gợi ý sửa.
+- `edited_blog.md`: bản đã được `editor_agent` chỉnh để giảm reader friction.
+- `edit_log.md`: lý do của các chỉnh sửa quan trọng.
+- `coaching_report.md`: câu hỏi coaching về blind spots của người viết.
+- `future_reflection.md`: phản tư từ future self, không rewrite.
+- `final_blog.md`: bản cuối do người viết quyết định.
+- `production_blog.md`: bản đăng thật để learning loop học lại.
+
+## Vai Trò Các Agent
+
+| Agent | Trung thành với | Câu hỏi chính |
+| --- | --- | --- |
+| `story_architect` | Câu chuyện | Điều gì thật sự đã xảy ra? |
+| `reflection_engine` | Nhận thức | Điều gì thay đổi bên trong người viết? |
+| `writing_agent` | Giọng người viết | Nếu có đủ thời gian, tác giả sẽ kể chuyện này thế nào? |
+| `reader_experience` | Trải nghiệm đọc | Độc giả lần đầu đã cảm thấy gì? |
+| `editor_agent` | Kết nối | Cần thay đổi tối thiểu điều gì để giảm ma sát? |
+| `coach_agent` | Sự phát triển | Người viết còn chưa nhìn thấy điều gì? |
+| `future_self` | Con người đang trở thành | 5 năm nữa, tác giả còn muốn đứng tên bài này không? |
+
+## Artifact Và Handoff
+
+Mỗi stage phải trả về:
+
+```markdown
+## Artifact
+
+Nội dung đầy đủ để lưu log, debug, review, hoặc làm output thật.
+
+## Handoff
+
+Bản tóm tắt có cấu trúc khoảng 120-250 từ tiếng Việt cho stage sau.
+```
+
+Engine chỉ truyền những handoff hoặc artifact được khai báo trong `context_policy` của `flow/write_blog.yaml`.
+
+Ví dụ:
+
+- `reader_experience` chỉ nhận `draft_blog.md`, để giữ blind review.
+- `editor_agent` nhận `draft_blog.md` và `reader_report.md`, rồi tạo `edited_blog.md` và `edit_log.md`.
+- `future_self` nhận `edited_blog.md`, `editor_handoff`, `coaching_handoff`, và `reflection_handoff`, nhưng không rewrite bài.
+
+## Chạy Tự Động Bằng OpenAI API
+
+Đặt API key vào biến môi trường:
+
+```powershell
+$env:OPENAI_API_KEY="sk-..."
+```
+
+Nếu cần cấu hình riêng:
+
+```powershell
+Copy-Item engine/config.example.yaml engine/config.local.yaml
+```
+
+Chạy workflow:
+
+```powershell
+python engine/run_workflow.py --input examples/blog_input_template.md
+```
+
+Kiểm tra không gọi API:
+
+```powershell
+python engine/run_workflow.py --input examples/blog_input_template.md --dry-run
+```
+
+Mỗi run tạo thư mục riêng trong `runs/`, gồm:
+
+- `run_log.md`: log artifact đầy đủ.
+- `handoff_log.md`: chuỗi handoff rút gọn.
+- `step_outputs.json`: artifact, handoff, file names, fallback flag, token estimates.
+- `metadata.json`: model, endpoint, context strategy, token metrics.
+
+## Chọn Model Theo Stage
+
+`engine/config.example.yaml` hỗ trợ model mặc định và override từng stage:
+
+```yaml
+openai:
+  model: gpt-4.1
+  stages:
+    story_architect:
+      model: gpt-4.1-mini
+    reader_experience:
+      model: gpt-4.1-mini
+    editor_agent:
+      model: gpt-4.1
+```
+
+Gợi ý:
+
+- Dùng model rẻ hơn cho `story_architect` và `reader_experience`.
+- Dùng model mạnh hơn cho `writing_agent`, `editor_agent`, `coach_agent`, `future_self`.
+- Dùng temperature thấp hơn cho `editor_agent` vì nhiệm vụ là can thiệp tối thiểu, không sáng tạo quá tay.
+
+## Learning Loop
+
+Sau khi bạn tạo `final_blog.md` hoặc `production_blog.md`, chạy learning loop:
+
+```powershell
+python engine/run_workflow.py --learn-from-run runs/<ten-lan-chay>
+```
+
+Nếu production file nằm ngoài run folder:
+
+```powershell
+python engine/run_workflow.py --learn-from-run runs/<ten-lan-chay> --production path/to/production_blog.md
+```
+
+Chạy offline, không cần API:
+
+```powershell
+python engine/run_workflow.py --learn-from-run runs/<ten-lan-chay> --offline-learning
+```
+
+Learning loop dùng full artifact từ `step_outputs.json`, không dùng handoff rút gọn. Điều này giữ đủ evidence để học từ các chỉnh sửa thật của người viết.
+
+## Input Tốt
+
+Input tốt không cần bóng bẩy. Nó nên có:
+
+- một khoảnh khắc thật
+- một cảm giác chưa hiểu hết
+- một mâu thuẫn bên trong
+- một kết luận ban đầu mà bạn còn nghi ngờ
+- một câu hỏi bạn vẫn đang mang theo
+
+Workflow hoạt động tốt nhất khi AI được phép ở lại với sự chưa rõ trước khi cố tạo insight.

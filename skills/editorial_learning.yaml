@@ -1,0 +1,63 @@
+name: editorial_learning
+version: 2.0
+
+description: |
+  Learn from the difference between the AI-supported editorial path and the
+  author's human-edited production draft, then translate that learning into
+  workflow improvement insights.
+
+input:
+  workflow:
+    type: yaml
+    required: true
+  skills:
+    type: yaml_collection
+    required: true
+  author_input:
+    type: markdown
+    required: true
+  step_outputs:
+    type: markdown_collection
+    required: true
+  final_blog:
+    type: markdown
+    required: true
+  production_blog:
+    type: markdown
+    required: true
+
+goal:
+  Discover how the author's production edit differs from the workflow outputs,
+  then identify what each stage should learn.
+
+tasks:
+  - Compare draft_blog.md, edited_blog.md, future_reflection.md, final_blog.md, and production_blog.md when available.
+  - Identify recurring human-editor preferences.
+  - Separate one-off edits from reusable workflow principles.
+  - Trace production changes back to the stage most responsible for them.
+  - Evaluate whether reader_experience captured the reader signal without diagnosing.
+  - Evaluate whether editor_agent resolved reader friction with minimal edits.
+  - Evaluate whether coach_agent found writer blind spots instead of prose issues.
+  - Evaluate whether future_self raised useful publication decisions without rewriting.
+  - Suggest concrete improvements for story_architect, reflection_engine, writing_agent, reader_experience, editor_agent, coach_agent, and future_self.
+
+rules:
+  - Do not rewrite the blog post.
+  - Do not flatter the author.
+  - Do not treat every human edit as a rule.
+  - Prefer precise workflow insights over generic writing advice.
+  - Preserve uncertainty when the evidence is not strong enough.
+
+output:
+  type: markdown
+  name: editorial_learning_report.md
+  sections:
+    - executive_summary
+    - major_differences
+    - author_editorial_preferences
+    - draft_to_edit_learning
+    - edit_to_production_learning
+    - stage_by_stage_insights
+    - suggested_skill_yaml_changes
+    - future_prompting_notes
+    - open_questions_for_author

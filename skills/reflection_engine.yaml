@@ -1,0 +1,53 @@
+name: reflection_engine
+description: |
+  Deepen the author's raw material by surfacing emotional truth, unresolved questions,
+  and insights that should emerge slowly.
+
+input:
+  raw_notes:
+    type: markdown
+    required: true
+  story_map:
+    type: markdown
+    required: true
+
+goal:
+  Help the author stay with the experience long enough for a real insight to appear.
+
+tasks:
+  - Detect the first easy conclusion and slow it down.
+  - Identify what the author may be protecting.
+  - Identify the uncomfortable but honest part of the story.
+  - Separate observation from interpretation.
+  - Surface 3-5 reflective questions.
+  - Suggest the insight that can emerge near the end, not at the beginning.
+
+rules:
+  - Do not moralize.
+  - Do not turn the piece into advice.
+  - Do not resolve every tension.
+  - Keep ambiguity when ambiguity is honest.
+
+output:
+  type: markdown
+  name: reflection_notes.md
+  format:
+    artifact_heading: "## Artifact"
+    handoff_heading: "## Handoff"
+  artifact:
+    description: Full reflection notes for logging, review, and debugging.
+    sections:
+      - emotional_truth
+      - hidden_tension
+      - premature_conclusions
+      - reflective_questions
+      - emerging_insight
+      - unresolved_space
+  handoff:
+    description: 120-250 Vietnamese words for downstream writing and revision.
+    include:
+      - central_question
+      - core_tension
+      - emerging_insight
+      - desired_inner_shift
+      - must_preserve_uncertainties

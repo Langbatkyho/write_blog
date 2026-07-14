@@ -1,0 +1,61 @@
+openai:
+  # Keep the real key outside the repo. Set this environment variable before running.
+  api_key_env: OPENAI_API_KEY
+
+  # You can replace this with a compatible proxy endpoint if needed.
+  endpoint: https://api.openai.com/v1/responses
+
+  # Change this to the model available to your account.
+  model: gpt-4.1
+  temperature: 0.7
+  max_output_tokens: 4096
+
+  # Optional per-stage overrides. Stages not listed here use the defaults above.
+  stages:
+    story_architect:
+      model: gpt-4.1-mini
+      temperature: 0.4
+      max_output_tokens: 2500
+    reflection_engine:
+      model: gpt-4.1
+      temperature: 0.7
+      max_output_tokens: 3500
+    writing_agent:
+      model: gpt-4.1
+      temperature: 0.8
+      max_output_tokens: 5000
+    reader_experience:
+      model: gpt-4.1-mini
+      temperature: 0.3
+      max_output_tokens: 2200
+    editor_agent:
+      model: gpt-4.1
+      temperature: 0.35
+      max_output_tokens: 5000
+    coach_agent:
+      model: gpt-4.1
+      temperature: 0.6
+      max_output_tokens: 2500
+    future_self:
+      model: gpt-4.1
+      temperature: 0.45
+      max_output_tokens: 3000
+
+  learning:
+    editorial_learning:
+      model: gpt-4.1
+      temperature: 0.3
+      max_output_tokens: 5000
+    workflow_tuning:
+      model: gpt-4.1-mini
+      temperature: 0.2
+      max_output_tokens: 3000
+
+workflow:
+  file: flow/write_blog.yaml
+  log_dir: runs
+  stop_on_error: true
+
+runtime:
+  language: Vietnamese
+  save_step_files: true

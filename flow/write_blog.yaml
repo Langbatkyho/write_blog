@@ -1,0 +1,121 @@
+name: mindful_blog_workflow
+description: >
+  A reflective editorial workflow that turns the author's raw lived
+  experience into a faithful draft, captures first-time reader experience,
+  resolves reader friction through minimal editing, and returns final
+  coaching/future-self reflections for the human writer.
+
+input:
+  title:
+    type: string
+    required: false
+  raw_notes:
+    type: markdown
+    required: true
+  optional_context:
+    type: markdown
+    required: false
+  target_reader:
+    type: string
+    required: false
+  desired_length:
+    type: string
+    default: "1200-1800 words"
+
+steps:
+  - id: story_architect
+    skill: skills/story_architect.yaml
+    purpose: Protect the truth of the story before drafting.
+    output: story_map.md
+    handoff_output: story_handoff.md
+    context_policy:
+      handoffs: []
+      artifacts: []
+
+  - id: reflection_engine
+    skill: skills/reflection_engine.yaml
+    purpose: Protect the truth of the writer's inner change.
+    output: reflection_notes.md
+    handoff_output: reflection_handoff.md
+    context_policy:
+      handoffs:
+        - story_architect
+      artifacts: []
+
+  - id: writing_agent
+    skill: skills/writing_agent.yaml
+    purpose: Create a faithful first draft in the writer's voice.
+    output: draft_blog.md
+    handoff_output: draft_handoff.md
+    context_policy:
+      handoffs:
+        - story_architect
+        - reflection_engine
+      artifacts: []
+
+  - id: reader_experience
+    skill: skills/reader_experience.yaml
+    purpose: Record a blind first-time reader diary without editing or diagnosing.
+    output: reader_report.md
+    handoff_output: reader_handoff.md
+    context_policy:
+      handoffs: []
+      artifacts:
+        - writing_agent
+
+  - id: editor_agent
+    skill: skills/editor_agent.yaml
+    purpose: Resolve reader friction with the smallest edit that preserves writer identity.
+    output: edited_blog.md
+    handoff_output: editor_handoff.md
+    context_policy:
+      handoffs:
+        - story_architect
+        - reflection_engine
+        - reader_experience
+      artifacts:
+        - writing_agent
+        - reader_experience
+
+  - id: coach_agent
+    skill: skills/coach_agent.yaml
+    purpose: Challenge the writer's assumptions after the draft has been edited for connection.
+    output: coaching_report.md
+    handoff_output: coaching_handoff.md
+    context_policy:
+      handoffs:
+        - story_architect
+        - reflection_engine
+        - editor_agent
+      artifacts:
+        - editor_agent
+
+  - id: future_self
+    skill: skills/future_self.yaml
+    purpose: Reflect from a wiser future self without rewriting the article.
+    output: future_reflection.md
+    handoff_output: future_handoff.md
+    context_policy:
+      handoffs:
+        - reflection_engine
+        - editor_agent
+        - coach_agent
+      artifacts:
+        - editor_agent
+
+final_output:
+  primary_ai_draft: edited_blog.md
+  reflection: future_reflection.md
+  human_final: final_blog.md
+  production: production_blog.md
+  format: markdown
+
+learning_loop:
+  human_editor_output: production_blog.md
+  purpose: >
+    Compare the AI-supported editorial path with the human-edited production
+    draft, then learn the author's real editorial preferences and suggest
+    improvements for each workflow stage.
+  output:
+    report: editorial_learning_report.md
+    suggestions: workflow_tuning_suggestions.md

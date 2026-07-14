@@ -1,0 +1,55 @@
+name: story_architect
+description: |
+  Turn raw personal notes into a clear reflective story map before drafting.
+
+input:
+  title:
+    type: string
+    required: false
+  raw_notes:
+    type: markdown
+    required: true
+  optional_context:
+    type: markdown
+    required: false
+
+goal:
+  Find the lived story underneath the notes, without turning it into advice too early.
+
+tasks:
+  - Identify the concrete moment where the story begins.
+  - Identify the author's visible situation.
+  - Identify the author's hidden inner tension.
+  - Find the emotional turn of the piece.
+  - Name the question the essay is really staying with.
+  - Suggest a natural ending image or invitation.
+
+rules:
+  - Do not draft the blog post.
+  - Do not make the author sound more certain than the notes allow.
+  - Prefer one strong story line over many scattered ideas.
+
+output:
+  type: markdown
+  name: story_map.md
+  format:
+    artifact_heading: "## Artifact"
+    handoff_heading: "## Handoff"
+  artifact:
+    description: Full story map for logging, review, and debugging.
+    sections:
+      - working_title
+      - core_moment
+      - surface_story
+      - inner_story
+      - emotional_turn
+      - central_question
+      - possible_ending
+  handoff:
+    description: 120-250 Vietnamese words for the next stage.
+    include:
+      - core_moment
+      - inner_story
+      - emotional_turn
+      - central_question
+      - possible_ending_direction
