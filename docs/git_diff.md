@@ -53,3 +53,24 @@
   +     temp_dir = Path(__file__).resolve().parents[1] / "runs" / "temp_llm"
   +     # Vòng lặp chờ file với Timeout 300s
   ```
+
+## 5. Hỗ trợ Client Routing theo Stage
+- **`engine/client_router.py`** (Mới thêm):
+  ```diff
+  + def create_routing_client(client_map: dict[str, str], fallback: str = "openai") -> LlmClient:
+  +     # Lõi định tuyến dispatch request đến các client dựa trên stage_id
+  ```
+- **`engine/run_workflow.py`**:
+  ```diff
+  + parser.add_argument("--client-map", help="Per-stage LLM client mapping. Format: 'stage1=client,stage2=client'")
+  + client_map = build_client_map(args.client_map, fallback_client_name)
+  + llm_client = create_routing_client(client_map, fallback_client_name)
+  ```
+- **`engine/workflow.py`**:
+  ```diff
+  + "client_routing": getattr(llm_client, "__name__", "") == "routing_client",
+  ```
+- **`tests/test_client_router.py`** (Mới thêm):
+  ```diff
+  + # Unit tests kiểm thử build_client_map và resolve_client
+  ```

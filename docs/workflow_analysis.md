@@ -49,3 +49,7 @@ Dự án hiện có 3 lớp kiểm soát chi phí:
 3. Chạy Offline Learning không cần gọi API.
 
 Sự kết hợp nhiều lớp giúp hệ thống mạnh mẽ hơn nhiều so với việc chỉ dựa vào một thủ thuật cắt giảm token duy nhất. Đề xuất tương lai: Đo lường Token Telemetry trước khi gửi API request.
+
+## Bài học 8: Router Pattern thay thế Hardcode Conditional Logic
+
+Ban đầu, tham số `--client` chỉ hoạt động như một fallback đơn giản giữa OpenAI và Antigravity, được quyết định ở tầng ứng dụng (CLI) và cố định xuyên suốt workflow. Tuy nhiên, việc tối ưu chi phí và chất lượng thực tế yêu cầu từng stage sử dụng model (hoặc client) chuyên biệt. Thay vì thay đổi hàm thực thi LLM, sử dụng mô hình Router (với Dependency Injection) và Dictionary Map `--client-map` giúp tách bạch cấu hình khỏi logic workflow. `LlmClient` closure do Router trả về vẫn tuân thủ hoàn toàn signature cũ, đảm bảo tính đóng gói và mở rộng trong tương lai.

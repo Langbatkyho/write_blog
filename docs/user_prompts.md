@@ -25,3 +25,9 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 10. *"Bạn đang hiểu sai yêu cầu của tôi. Tôi muốn sử dụng model quota của chính bạn là model GPT-OSS 120B chạy ở đây mà không cần OpenAI API Key."*
 11. *"Bạn hãy tạo thêm cho tôi một luồng riêng độc lập để chạy được workflow với model quota của Gemini thay vì dùng OpenAI API. /grill-me"*
 12. *"Tôi đồng ý với phân tích và đề xuất của Claude Opus 4.6 (về Dependency Injection). Bạn hãy chỉnh sửa lại kế hoạch. Nếu không có câu hỏi nào khác thì bạn triển khai ngay /goal"*
+
+## Giai đoạn 5: Client Routing theo Stage
+
+29. *"Bạn hãy lập kế hoạch chi tiết theo hướng 1. Mở rộng --client thành --client-map trong run_workflow.py — cho phép gán model per-stage."*
+30. *"Tôi muốn áp dụng cài đặt model theo stage như sau: story_architect (GPT-OSS-120B), reflection_engine (Claude Sonnet 4.6), v.v."*
+31. *"Làm thế nào để tôi xác thực được rằng các thành quả này thực sự do model Claude Sonnet 4.6 (Thinking) tạo ra?"*
