@@ -60,7 +60,10 @@ Mỗi giai đoạn sinh ra 2 loại cấu trúc:
 Codebase hỗ trợ đa dạng LLM Provider. Hàm `run_workflow` nhận một tham số `llm_client: LlmClient = None`. TypeAlias được định nghĩa tại `engine/workflow.py`:
 `LlmClient = Callable[[str, dict[str, Any], str | None], str]`
 
-Thông qua CLI, người dùng có thể kích hoạt các Client khác nhau:
+Hệ thống cung cấp một bộ định tuyến (`engine/client_router.py`) cho phép gán model/client theo từng stage cụ thể:
+- **Client Router (`create_routing_client`)**: Hàm trả về một Callable dispatch requests tới các client khác nhau dựa trên tham số `--client-map`.
+
+Các client cơ sở (Base Clients) bao gồm:
 - **OpenAI API** (`call_openai`): Quản lý qua `engine/openai_client.py`.
 - **Antigravity Quota** (`call_antigravity`): Quản lý qua file-bridge trong `engine/antigravity_bridge.py` với cơ chế timeout 300 giây.
 

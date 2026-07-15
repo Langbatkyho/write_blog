@@ -59,3 +59,18 @@ workflow:
 runtime:
   language: Vietnamese
   save_step_files: true
+
+# ── Client Routing ──────────────────────────────────────────────
+# Khi dùng --client-map, mỗi stage có thể gọi client khác nhau.
+# Config model/temperature/max_output_tokens ở trên vẫn áp dụng
+# cho cả hai client (openai dùng trực tiếp, antigravity dùng model
+# info để ghi vào file bridge).
+#
+# Ví dụ CLI:
+#   python engine/run_workflow.py --input examples/blog_input_template.md \
+#     --client antigravity \
+#     --client-map "writing_agent=antigravity,coach_agent=antigravity"
+#
+# Giải thích:
+#   - --client antigravity  → fallback cho stage không liệt kê
+#   - --client-map          → override cụ thể từng stage

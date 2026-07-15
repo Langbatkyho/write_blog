@@ -97,6 +97,29 @@ Mỗi run tạo thư mục riêng trong `runs/`, gồm:
 - `step_outputs.json`: artifact, handoff, file names, fallback flag, token estimates.
 - `metadata.json`: model, endpoint, context strategy, token metrics.
 
+## Chạy Bằng Native Model (Không Cần API Key)
+
+Dùng Antigravity bridge để tận dụng model quota nội bộ (GPT-OSS-120B, Claude Sonnet 4.6):
+
+```powershell
+python engine/run_workflow.py --input examples/blog_input_template.md --client antigravity
+```
+
+### Phân vai Model theo Stage (Client Map)
+
+Gán client khác nhau cho từng stage:
+
+```powershell
+python engine/run_workflow.py --input examples/blog_input_template.md \
+  --client antigravity \
+  --client-map "story_architect=antigravity,writing_agent=antigravity,reader_experience=antigravity,editor_agent=antigravity,coach_agent=antigravity,future_self=antigravity,reflection_engine=antigravity"
+```
+
+Giải thích:
+- `--client antigravity`: Fallback cho stage không được liệt kê.
+- `--client-map`: Override client cụ thể cho từng stage.
+- Stage không có trong map sẽ dùng `--client` làm mặc định.
+
 ## Chọn Model Theo Stage
 
 `engine/config.example.yaml` hỗ trợ model mặc định và override từng stage:

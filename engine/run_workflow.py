@@ -33,6 +33,14 @@ def main() -> int:
         help="LLM Client to use. 'openai' (default) or 'antigravity'.",
     )
     parser.add_argument(
+        "--client-map",
+        help=(
+            "Per-stage LLM client mapping. Format: 'stage1=client,stage2=client'. "
+            "Valid clients: openai, antigravity. "
+            "Stages not listed use --client as fallback."
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Create run logs without calling the OpenAI endpoint.",
@@ -48,10 +56,11 @@ def main() -> int:
     if not config_path.exists() and args.config == "engine/config.local.yaml":
         config_path = resolve_path("engine/config.example.yaml")
 
-    llm_client = None
-    if args.client == "antigravity":
-        from engine.antigravity_bridge import call_antigravity
-        llm_client = call_antigravity
+    from engine.client_router import build_client_map, create_routing_client
+
+    fallback_client_name = args.client
+    client_map = build_client_map(args.client_map, fallback_client_name)
+    llm_client = create_routing_client(client_map, fallback_client_name)
 
     if args.learn_from_run:
         run_dir = resolve_path(args.learn_from_run)

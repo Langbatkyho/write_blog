@@ -1,5 +1,11 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Phiên bản: Hỗ trợ Client Routing theo Stage (2026-07-15)
+- **Client Router (`engine/client_router.py`)**: Thêm module định tuyến, cho phép gán LLM Client (openai, antigravity) riêng biệt cho từng Stage.
+- **Mở rộng CLI (`run_workflow.py`)**: Bổ sung tham số `--client-map` để override client cho các Stage cụ thể (VD: `--client-map "story_architect=antigravity"`), với `--client` đóng vai trò fallback.
+- **Metadata Logging**: Cập nhật file `metadata.json` thêm trường `client_routing` để theo dõi việc sử dụng Router.
+- **Kiểm thử**: Viết thêm `tests/test_client_router.py` để đảm bảo độ tin cậy của bộ định tuyến mới.
+
 ## Phiên bản: Tích hợp Antigravity & Hoàn thiện Refactoring (2026-07-14)
 - **Dependency Injection (DI)**: Bổ sung khả năng DI `LlmClient` cho hàm `run_workflow.py` và `engine/workflow.py`, giúp cô lập toàn toàn luồng xử lý LLM.
 - **Antigravity Bridge**: Thêm `engine/antigravity_bridge.py` để giao tiếp với model Antigravity cục bộ thông qua cơ chế đọc/ghi file tạm thời (`temp_llm`). Xóa bỏ logic fallback hỗn tạp cũ từ `openai_client.py`.
