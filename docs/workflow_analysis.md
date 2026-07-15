@@ -53,3 +53,11 @@ Sự kết hợp nhiều lớp giúp hệ thống mạnh mẽ hơn nhiều so v�
 ## Bài học 8: Router Pattern thay thế Hardcode Conditional Logic
 
 Ban đầu, tham số `--client` chỉ hoạt động như một fallback đơn giản giữa OpenAI và Antigravity, được quyết định ở tầng ứng dụng (CLI) và cố định xuyên suốt workflow. Tuy nhiên, việc tối ưu chi phí và chất lượng thực tế yêu cầu từng stage sử dụng model (hoặc client) chuyên biệt. Thay vì thay đổi hàm thực thi LLM, sử dụng mô hình Router (với Dependency Injection) và Dictionary Map `--client-map` giúp tách bạch cấu hình khỏi logic workflow. `LlmClient` closure do Router trả về vẫn tuân thủ hoàn toàn signature cũ, đảm bảo tính đóng gói và mở rộng trong tương lai.
+
+## Bài học 9: Hiểu đúng bản chất của Prompt Caching API
+
+Việc tối ưu hóa token không chỉ đơn thuần là rút gọn (compression) văn bản, mà còn là nghệ thuật lợi dụng bộ nhớ đệm (Caching).
+- **Tránh sai lầm "Đứt chuỗi"**: Các LLM API như Anthropic và OpenAI sử dụng **Prefix Hashing** phi trạng thái (stateless) cho Caching. Nếu một stage bất kỳ làm thay đổi prefix, cache của riêng stage đó sẽ miss, nhưng nó hoàn toàn không làm "đứt chuỗi" hay phá hỏng cache của các stage sau (những stage tiếp tục dùng chung prefix ban đầu).
+- **Tối ưu vị trí dữ liệu**: 
+  - Dữ liệu dài và tĩnh (như `author_input`) bắt buộc phải đẩy lên đầu file (Static Prefix) để API nhận dạng được và cache lại. Nếu đặt sai vị trí (ví dụ: ở giữa hoặc cuối prompt), phần dữ liệu này sẽ không bao giờ được cache.
+  - Các chỉ thị mang tính tuân thủ cao (Skill YAML, định dạng đầu ra) nên đặt ở đuôi (Dynamic Suffix) để lợi dụng Recency Bias, giúp LLM không bị lạc lối sau khi đọc hàng ngàn token ngữ cảnh.

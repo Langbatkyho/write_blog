@@ -55,7 +55,12 @@ Mỗi giai đoạn sinh ra 2 loại cấu trúc:
 1. `Artifact`: Bản chi tiết đầy đủ (dùng cho vòng lặp học tập và debug).
 2. `Handoff`: Bản tóm tắt súc tích (truyền cho bước sau để tối ưu lượng token sử dụng).
 
-## 3. Hệ thống Dependency Injection (DI) Client
+## 3. Cấu trúc Prompt và Prompt Caching (Mới)
+Prompt cho từng Agent (`engine/workflow.py`) được thiết kế đặc biệt để tối ưu hóa tính năng **Prompt Caching** (như của Anthropic / OpenAI):
+- **Static Prefix (Phần tĩnh đầu bảng):** Chứa các giới thiệu hệ thống, Author Input (nếu có), và các chỉ thị cố định (Instructions). Phần này chiếm khoảng ~1,700 tokens, không đổi giữa các stage (trừ `reader_experience`), giúp API tự động hit cache và tiết kiệm tới 90% chi phí input token lặp lại.
+- **Dynamic Suffix (Phần động đuôi bảng):** Chứa các dữ liệu thay đổi liên tục (Handoffs, Artifacts, metadata hiện tại) và phần `Skill YAML`. Việc đặt `Skill YAML` ở cuối cùng cũng nhằm tận dụng hiệu ứng **Recency Bias** để ép LLM tuân thủ chặt chẽ định dạng đầu ra.
+
+## 4. Hệ thống Dependency Injection (DI) Client
 
 Codebase hỗ trợ đa dạng LLM Provider. Hàm `run_workflow` nhận một tham số `llm_client: LlmClient = None`. TypeAlias được định nghĩa tại `engine/workflow.py`:
 `LlmClient = Callable[[str, dict[str, Any], str | None], str]`

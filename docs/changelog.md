@@ -1,5 +1,13 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Phiên bản: Prompt Caching & Token Optimization (2026-07-15)
+- **Tối ưu Hóa Token đầu vào (`flow/write_blog.yaml`)**:
+  - Thêm cờ `needs_author_input: false` cho stage `reader_experience`. Điều này cắt bỏ khối lượng lớn bản nháp thô khỏi "độc giả mù", vừa tiết kiệm token, vừa đảm bảo tính chân thực (blind reading).
+- **Cấu trúc Prompt Caching (`engine/workflow.py`)**:
+  - Chia tách `build_step_prompt` thành Static Prefix (Phần tĩnh) và Dynamic Suffix (Phần động).
+  - Tối ưu vị trí của `Instruction` và `Author Input` lên đầu để tận dụng Prefix Hashing trên OpenAI/Anthropic API, có khả năng tiết kiệm lên đến 90% chi phí cho các phần lặp lại.
+  - Tối ưu vị trí của `Skill YAML` xuống phần kết thúc prompt, tận dụng triệt để "Recency Bias" nhằm nâng cao độ tuân thủ của LLM.
+
 ## Phiên bản: Hỗ trợ Client Routing theo Stage (2026-07-15)
 - **Client Router (`engine/client_router.py`)**: Thêm module định tuyến, cho phép gán LLM Client (openai, antigravity) riêng biệt cho từng Stage.
 - **Mở rộng CLI (`run_workflow.py`)**: Bổ sung tham số `--client-map` để override client cho các Stage cụ thể (VD: `--client-map "story_architect=antigravity"`), với `--client` đóng vai trò fallback.

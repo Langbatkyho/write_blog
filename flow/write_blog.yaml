@@ -58,6 +58,7 @@ steps:
     purpose: Record a blind first-time reader diary without editing or diagnosing.
     output: reader_report.md
     handoff_output: reader_handoff.md
+    needs_author_input: false
     context_policy:
       handoffs: []
       artifacts:

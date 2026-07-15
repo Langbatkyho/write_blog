@@ -56,39 +56,15 @@ def build_step_prompt(
     handoff_block = handoff_block or "No handoffs selected for this step."
     artifact_block = artifact_block or "No full artifacts selected for this step."
 
-    return textwrap.dedent(
-        f"""
-        You are running one step of an automated reflective blog workflow.
+    prompt_parts = []
+    prompt_parts.append("You are running one step of an automated reflective blog workflow.")
+    prompt_parts.append(f"Workflow name: {workflow.get('name')}")
+    prompt_parts.append(f"Workflow description: {workflow.get('description')}")
+    
+    if step.get("needs_author_input", True):
+        prompt_parts.append(f"Author input:\n```markdown\n{author_input}\n```")
 
-        Workflow name: {workflow.get("name")}
-        Workflow description: {workflow.get("description")}
-
-        Current step:
-        - id: {step.get("id")}
-        - purpose: {step.get("purpose")}
-        - expected output file: {step.get("output")}
-        - expected handoff file: {step.get("handoff_output")}
-
-        Skill YAML:
-        ```yaml
-        {yaml.safe_dump(skill, allow_unicode=True, sort_keys=False)}
-        ```
-
-        Author input:
-        ```markdown
-        {author_input}
-        ```
-
-        Compact handoffs selected by context_policy:
-        ```markdown
-        {handoff_block}
-        ```
-
-        Full artifacts selected by context_policy:
-        ```markdown
-        {artifact_block}
-        ```
-
+    prompt_parts.append(textwrap.dedent("""
         Instructions:
         - Follow the Skill YAML strictly.
         - Produce exactly two top-level sections: `## Artifact` and `## Handoff`.
@@ -98,8 +74,22 @@ def build_step_prompt(
         - Do not mention that you are an AI.
         - Do not include hidden reasoning or process notes.
         - Keep the writing language Vietnamese unless the author explicitly requests another language.
-        """
-    ).strip()
+    """).strip())
+
+    prompt_parts.append("---")
+    prompt_parts.append("Current step context:")
+    prompt_parts.append(f"- id: {step.get('id')}")
+    prompt_parts.append(f"- purpose: {step.get('purpose')}")
+    prompt_parts.append(f"- expected output file: {step.get('output')}")
+    prompt_parts.append(f"- expected handoff file: {step.get('handoff_output')}")
+    
+    prompt_parts.append(f"Compact handoffs selected by context_policy:\n```markdown\n{handoff_block}\n```")
+    prompt_parts.append(f"Full artifacts selected by context_policy:\n```markdown\n{artifact_block}\n```")
+    
+    skill_yaml = yaml.safe_dump(skill, allow_unicode=True, sort_keys=False)
+    prompt_parts.append(f"Skill YAML:\n```yaml\n{skill_yaml}\n```")
+
+    return "\n\n".join(prompt_parts)
 
 def build_run_dir(log_root: Path, input_markdown: str) -> Path:
     from engine.parser import slugify, extract_title

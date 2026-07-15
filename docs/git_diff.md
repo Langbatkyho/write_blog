@@ -74,3 +74,33 @@
   ```diff
   + # Unit tests kiểm thử build_client_map và resolve_client
   ```
+
+## 6. Prompt Caching & Token Optimization
+- **`flow/write_blog.yaml`**: Loại bỏ input gốc khỏi reader mù.
+  ```diff
+    - id: reader_experience
+      skill: skills/reader_experience.yaml
+      purpose: Record a blind first-time reader diary without editing or diagnosing.
+      output: reader_report.md
+      handoff_output: reader_handoff.md
+  +   needs_author_input: false
+      context_policy:
+  ```
+- **`engine/workflow.py`**: Đẩy toàn bộ cấu trúc tĩnh (author_input, config) lên cực trên tạo thành Static Prefix, tách biệt Dynamic Context để tối đa hóa Prefix Hashing trên API.
+  ```diff
+  - return textwrap.dedent(
+  -     f"""
+  -     You are running one step of an automated reflective blog workflow.
+  -     ...
+  -     """
+  - ).strip()
+  + prompt_parts = []
+  + prompt_parts.append("You are running one step of an automated reflective blog workflow.")
+  + prompt_parts.append(f"Workflow name: {workflow.get('name')}")
+  + prompt_parts.append(f"Workflow description: {workflow.get('description')}")
+  + 
+  + if step.get("needs_author_input", True):
+  +     prompt_parts.append(f"Author input:\\n```markdown\\n{author_input}\\n```")
+  + ...
+  + return "\\n\\n".join(prompt_parts)
+  ```

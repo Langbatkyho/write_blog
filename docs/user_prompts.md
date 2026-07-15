@@ -31,3 +31,12 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 29. *"Bạn hãy lập kế hoạch chi tiết theo hướng 1. Mở rộng --client thành --client-map trong run_workflow.py — cho phép gán model per-stage."*
 30. *"Tôi muốn áp dụng cài đặt model theo stage như sau: story_architect (GPT-OSS-120B), reflection_engine (Claude Sonnet 4.6), v.v."*
 31. *"Làm thế nào để tôi xác thực được rằng các thành quả này thực sự do model Claude Sonnet 4.6 (Thinking) tạo ra?"*
+
+## Giai đoạn 6: Tối ưu Token và Prompt Caching (2026-07-15)
+
+32. *"Bạn hãy tính toán lượng token input và output theo workflow này"*
+33. *"Tôi muốn tối ưu hóa token của workflow nhất có thể để tiết kiệm chi phí khi gọi API các model AI. Bạn hãy rà soát lại tính toán token nói trên của Gemini 3.1 Pro và rà soát lại toàn bộ codebase."*
+34. *"Bạn hãy đọc kỹ và phản biện với Token Optimization Report của Claude Opus 4.6"*
+35. *"Bạn hãy đánh giá kỹ thuật Prompt Caching có hỗ trợ được gì cho dự án này?"*
+36. *"Tôi đồng ý với 2 điểm dưới đây mà bạn đã phân tích bên trên: 1. Cắt author_input khỏi reader_experience... 2. Gom toàn bộ nội dung tĩnh (author_input, thông tin mô tả luồng) lên cùng cực trên (Prefix) của Prompt. Bạn lên kế hoạch thực hiện"*
+37. *"Bạn hãy cập nhật toàn bộ các tài liệu trong thư mục docs... Sau đó bạn git push /goal"*
