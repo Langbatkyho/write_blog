@@ -99,11 +99,14 @@ Mỗi run tạo thư mục riêng trong `runs/`, gồm:
 
 ## Chạy Bằng Native Model (Không Cần API Key)
 
-Dùng Antigravity bridge để tận dụng model quota nội bộ (GPT-OSS-120B, Claude Sonnet 4.6):
+Dùng Antigravity bridge để tận dụng model quota nội bộ (chỉ áp dụng cho các **Agentic Models** như Gemini 3.1 Pro, Claude Sonnet 4.6):
 
 ```powershell
 python engine/run_workflow.py --input examples/blog_input_template.md --client antigravity
 ```
+
+> [!WARNING]
+> Cơ chế Bridge yêu cầu model trên giao diện chat phải có năng lực **Tool Calling** xuất sắc để tự động đọc/ghi file (ví dụ: `view_file`, `write_to_file`). Nếu bạn chọn các model thuần text (như GPT-OSS 120B) trên giao diện chat, script sẽ bị treo (Timeout) do model không biết cách ghi file trả kết quả.
 
 ### Phân vai Model theo Stage (Client Map)
 

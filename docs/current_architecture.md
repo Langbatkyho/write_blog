@@ -66,6 +66,7 @@ Hệ thống cung cấp một bộ định tuyến (`engine/client_router.py`) c
 Các client cơ sở (Base Clients) bao gồm:
 - **OpenAI API** (`call_openai`): Quản lý qua `engine/openai_client.py`.
 - **Antigravity Quota** (`call_antigravity`): Quản lý qua file-bridge trong `engine/antigravity_bridge.py` với cơ chế timeout 300 giây.
+  - *Lưu ý*: Cơ chế File-Bridge này bắt buộc người dùng phải chọn một **Agentic Model** (như Gemini 3.1 Pro, Claude Sonnet 4.6) trên giao diện chat. Các model thuần text (không hỗ trợ Tool Calling) như GPT-OSS sẽ không thể tự động xử lý file, dẫn đến lỗi treo hệ thống.
 
 ## 4. Learning Loop
 
