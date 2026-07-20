@@ -20,13 +20,15 @@ write_blog/
 ├── flow/
 │   └── write_blog.yaml       # Nguồn chân lý cho Context Policy và Định tuyến (Routing)
 ├── skills/
-│   ├── story_architect.yaml  # Trung thành với sự thật câu chuyện
-│   ├── reflection_engine.yaml# Sự thay đổi nội tâm của người viết
-│   ├── writing_agent.yaml    # Viết bản nháp thô (Ghost Writer)
-│   ├── reader_experience.yaml# Ghi chép trải nghiệm đọc (Reader Diary)
-│   ├── editor_agent.yaml     # Biên tập viên kết nối (Giảm ma sát người đọc)
-│   ├── coach_agent.yaml      # Khai phá điểm mù của người viết
-│   ├── future_self.yaml      # Suy ngẫm về tính toàn vẹn ở tương lai
+│   ├── reflective/
+│   │   ├── story_architect.yaml  # Trung thành với sự thật câu chuyện
+│   │   ├── reflection_engine.yaml# Sự thay đổi nội tâm của người viết
+│   │   ├── writing_agent.yaml    # Viết bản nháp thô (Ghost Writer)
+│   │   ├── reader_experience.yaml# Ghi chép trải nghiệm đọc (Reader Diary)
+│   │   ├── editor_agent.yaml     # Biên tập viên kết nối (Giảm ma sát người đọc)
+│   │   ├── coach_agent.yaml      # Khai phá điểm mù của người viết
+│   │   └── future_self.yaml      # Suy ngẫm về tính toàn vẹn ở tương lai
+│   ├── provocative/           # Phong cách viết gai góc, khiêu khích (cùng 7 agent YAML + STYLE_BRIEF.md)
 │   └── editorial_learning.yaml
 ├── tests/
 │   ├── test_handoff_parser.py

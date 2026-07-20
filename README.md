@@ -1,6 +1,6 @@
 # Mindful Blog Workflow
 
-Dự án này dùng các file YAML trong thư mục `skills` để vận hành một workflow viết blog phản tư có hỗ trợ AI.
+Dự án này dùng các file YAML trong thư mục `skills/<style>` (mặc định là `skills/reflective`) để vận hành một workflow viết blog phản tư có hỗ trợ AI.
 
 Triết lý hiện tại: mỗi agent chỉ trung thành với một câu hỏi duy nhất. AI không thay người viết ra quyết định cuối cùng; AI tạo bản nháp, phản hồi, chỉnh sửa tối thiểu, coaching, và phản tư để người viết tự hoàn thiện `final_blog.md` / `production_blog.md`.
 
@@ -78,16 +78,22 @@ Nếu cần cấu hình riêng:
 Copy-Item engine/config.example.yaml engine/config.local.yaml
 ```
 
-Chạy workflow:
+Chạy workflow với phong cách mặc định (`reflective`):
 
 ```powershell
 python engine/run_workflow.py --input examples/blog_input_template.md
 ```
 
-Kiểm tra không gọi API:
+Chạy workflow với phong cách khác (ví dụ `provocative`):
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_input_template.md --dry-run
+python engine/run_workflow.py --input examples/blog_input_template.md --style provocative
+```
+
+Kiểm tra không gọi API (dry-run):
+
+```powershell
+python engine/run_workflow.py --input examples/blog_input_template.md --style provocative --dry-run
 ```
 
 Mỗi run tạo thư mục riêng trong `runs/`, gồm:

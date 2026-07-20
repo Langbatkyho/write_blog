@@ -1,5 +1,19 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Phiên bản: Đa Phong Cách Multi-Style Architecture (2026-07-20)
+- **Tái Cấu Trúc Thư Mục Skill (`skills/`)**:
+  - Tạo `skills/reflective/` lưu 7 agent YAML gốc (Style 1 mặc định).
+  - Tạo `skills/provocative/` lưu 7 agent YAML với phong cách gai góc, khiêu khích (Style 2) cùng `STYLE_BRIEF.md`.
+  - Giữ `skills/editorial_learning.yaml` ở root thư mục `skills/` do logic học tập độc lập với phong cách viết.
+- **Dynamic Skill Path Resolution (`engine/workflow.py`)**:
+  - Tự động nạp file skill theo phong cách: `Path(step["skill"]).parent / style / Path(step["skill"]).name`.
+  - Ghi thông tin `"style"` vào `metadata.json` và tên thư mục chạy dạng `{timestamp}_{style}_{slug}`.
+- **CLI & Validation (`engine/run_workflow.py`)**:
+  - Thêm cờ `--style` với cơ chế fail-fast kiểm tra sự tồn tại của thư mục style.
+  - Hỗ trợ trích xuất tự động `style` từ `metadata.json` khi chạy `--learn-from-run`.
+- **Kiểm Thử Multi-Style (`tests/test_workflow_contract.py`)**:
+  - Parametrize kiểm thử hợp đồng dữ liệu cho toàn bộ các phong cách (`reflective`, `provocative`).
+
 ## Phiên bản: Prompt Caching & Token Optimization (2026-07-15)
 - **Tối ưu Hóa Token đầu vào (`flow/write_blog.yaml`)**:
   - Thêm cờ `needs_author_input: false` cho stage `reader_experience`. Điều này cắt bỏ khối lượng lớn bản nháp thô khỏi "độc giả mù", vừa tiết kiệm token, vừa đảm bảo tính chân thực (blind reading).

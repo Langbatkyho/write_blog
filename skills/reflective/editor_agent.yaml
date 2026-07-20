@@ -63,6 +63,7 @@ step_2_identify_friction:
     - artificial_formatting
     - motivational_tone
     - AI_rhythm
+    - visual_density
 
 step_3_root_cause:
   objective: Never edit symptoms. Find causes.
@@ -121,6 +122,7 @@ formatting_rules:
   - Paragraphs should follow thinking, not typography.
   - Break lines only when scene changes, emotional direction changes, or silence has meaning.
   - Never break for visual beauty.
+  - Exception: Consider adding a short, italicized emotional intro to set the mood of the piece before the main content.
 
 reader_connection_check:
   after_every_edit:
@@ -133,6 +135,7 @@ minimal_edit_principle:
   - If deleting solves the problem, never rewrite.
   - If merging solves the problem, never expand.
   - If simplifying solves the problem, never decorate.
+  - If breaking a long paragraph solves visual density friction, never rewrite.
 
 edit_log:
   rule: Record every meaningful edit.

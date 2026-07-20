@@ -104,3 +104,31 @@
   + ...
   + return "\\n\\n".join(prompt_parts)
   ```
+
+## 7. Đa Phong Cách Multi-Style Architecture (2026-07-20)
+- **`engine/run_workflow.py`**:
+  ```diff
+  + parser.add_argument("--style", default=None, help="The writing style to use (e.g., reflective).")
+  + if args.style is not None:
+  +     style_dir = resolve_path(f"skills/{args.style}")
+  +     if not style_dir.is_dir():
+  +         raise ValueError(...)
+  ```
+- **`engine/workflow.py`**:
+  ```diff
+  - skill_path = resolve_path(step["skill"])
+  + original_path = Path(step["skill"])
+  + styled_path = original_path.parent / style / original_path.name
+  + skill_path = resolve_path(str(styled_path))
+  
+  + "style": style,  # Ghi thông tin phong cách vào metadata.json
+  ```
+- **`tests/test_workflow_contract.py`**:
+  ```diff
+  - reader_skill = load_yaml("skills/reflective/reader_experience.yaml")
+  + for style in ["reflective", "provocative"]:
+  +     reader_skill = load_yaml(f"skills/{style}/reader_experience.yaml")
+  ```
+- **Thư mục `skills/`**:
+  - Tạo `skills/reflective/` chứa 7 file YAML gốc.
+  - Tạo `skills/provocative/` chứa 7 file YAML đã tinh chỉnh kèm `STYLE_BRIEF.md`.

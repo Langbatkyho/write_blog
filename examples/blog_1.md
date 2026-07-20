@@ -5,77 +5,80 @@ Bạn có thể điền mẫu này rồi đưa cho AI cùng với yêu cầu:
 > Hãy chạy workflow trong `prompts/run_blog_workflow.md`.
 
 ```markdown
-title: 
+title: Kết nối
 
 raw_notes:
-Mình đã rời khỏi NEXT Holdings 2 tháng trước, khép lại 1 hành trình đáng nhớ.
-Quyết định dừng lại không dễ dàng: nhận thức sáng tỏ và trải nghiệm trực tiếp không thành công hàn gắn lại sự Mất kết nối
-Có băn khoăn, day dứt về quá khứ và chống chếnh, mông lung về tương lai
+Mình từng nghĩ mình là người hướng nội trong rất nhiều năm.
+Vì mình thường hay một mình, rất ít bạn bè, ngại chỗ đông người
 
 
-Chợt nhận ra và thấy thú vị rằng cả cuộc đời 24 năm từ khi ra trường chưa hề có cú BREAK nào 😂 
-Luôn là CONTINUE, nhảy từ công việc này sang công việc khác, cả lúc làm thuê và làm chủ 😂 
-Hóa ra, thói quen hay lịch sử đó đem lại sự an toàn, sự tiếp nối liền mạch về tài chính, sự bận rộn đầu óc và chân tay.
-Hóa ra, mình chưa từng đối diện với sự mơ hồ, bất định về tương lai: không kế hoạch, không mục tiêu, không deal nào cả :D Đôi lúc là nỗi sợ, dù không còn là nỗi sợ tài chính nữa.
-Hóa ra, nhìn kỹ hơn, mình cũng đã từng có cú BREAK kỳ quái hồi ở VIB khi xin nghỉ phép 1 tuần ở nhà chỉ để say sưa nghịch công nghệ in 3D 😀
+Mãi 5 năm trước khi học coaching mình ngạc nhiên khi nhận kết quả hướng ngoại từ bài test MBTI. Đúng hơn thì hướng ngoại 60% còn hướng nội 40%
+Ngỡ ngàng
+Ngơ ngác
+Như thể thế giới đảo lộn ý :) Không thể tin nổi :)
+Hóa ra mình có xu hướng lấy năng lượng từ bên ngoài: từ thiên nhiên hoa trái cây cỏ, những vùng đất mới núi non sông biển. Và cả con người nữa, nhưng không phải là mọi người :) 😀
 
-và thế là bắt đầu BREAK
 
-Suốt 2 tháng BREAK, check in vài lần với bạn bè thân thuộc, mình tự ngạc nhiên với bản thân mình là vẫn thoải mái, tích cực và thả lỏng, không "xoắn", không "vội".
+Mình nhớ hồi nhỏ rất hay tủi thân, tự ái.
+Có lúc khóc rấm rứt trên gác đêm 30 Tết
+Có lúc bỏ bữa chỉ vì hờn em gái nhỏ khen cơm mình rang mặn :(
+Có lúc ôm cậu bạn hàng xóm khóc vì bộ phim Hong Kong vừa xem chạm vào chuyện cãi cọ lúc chiều.
 
-Chẳng lẽ BREAK ngon lành thế sao? Không hề 😂 
-Tháng đầu là sự day dứt, phán xét về quá khứ tưởng chừng đã đặt xuống.
-Đôi lúc là sự lười nhác muốn xả hơi, chơi bời cho đã, buông thả cho đã 😂 
-Đôi lúc là cảm giác bồn chồn muốn quay lại sự bận rộn theo kiểu cam kết với điều gì đó lớn hơn bản thân mình. Nôm na là hòa mình vào một tổ chức, không gian làm việc nhóm, khoác lên mình một sứ mệnh, mục tiêu mới.
-Đôi lúc là cảm giác mông lung, chênh vênh khi mình biết rõ có cơ hội, có mối quan hệ nhưng chưa cái gì ra hình thù cả.
-Ngứa chân ngứa tay lắm cơ
 
-Vậy mình BREAK thế nào 😀 
-Mình nhớ đến bài tập thiền TWIM mình đang thực hành: Thả lỏng để mọi thứ xảy ra, chỉ quan sát và tách rời.
-Mình đặt mục tiêu là KHÔNG CÓ MỤC TIÊU GÌ HẾT 😀 
-Không đi tìm công việc, cơ hội đầu tư, dự án gì bên ngoài
-Chỉ dành thời gian toàn phần cho chính mình
+Mình nhớ lại kỷ niệm buồn cuối cấp 3. :(
+Mình tự ái và tủi thân khi một bạn cùng lớp đùa trong một chuyến đi chơi đại ý rằng mình không đủ đẳng cấp để chơi cùng.
+Câu nói đó ám ảnh mình suốt nhiều năm sau đó.
+Đến nỗi mình ngừng liên lạc với lớp cấp 3.
+Mình luôn dè chừng và cảnh giác với những lời nói, biểu hiện khinh thường từ người khác
+Mình có xu hướng chơi trong nhóm hẹp
+Mình vẫn giao tiếp bình thường khi làm việc nhưng dường như không hứng thú bắt chuyện với người lạ
 
-Mình cũng nhận ra những nguy cơ ở trên và thiết lập nhịp sinh hoạt
-Mọi ngày dậy sớm vào thời thiền sáng rồi chiều một thời thiền nữa
-Ngày thường luôn vào ngồi bàn làm việc như giờ công sở và LÀM VIỆC thực sự 😀 , không ngả ngốn, ườn oài dù mình làm việc trong nhà.
-Hết giờ làm việc và cuối tuần thì giải trí, đi chơi bình thường
-Đi bộ ngày 3 lần sáng chiều tối sau ăn
-Tập Tai chi và plank
 
-Ủa, thế chả lẽ BREAK cứ như đi tù giam lỏng vậy à :D
-Không hề nhé :D
-Mình khơi dậy đam mê nghiên cứu, mày mò khám phá xưa kia trở lại với AI, đặc biệt là Vibe Coding rồi tiến lên Agentic Engineering
-Mình say sưa không chỉ vì sáng tạo ra sản phẩm gì hay ho mà chủ yếu vì học cách làm việc với AI
-Mình buồn cười khi nhận ra AI agents nhiều lúc không khác gì con người cũng tham sân si :D
-Nhiều lúc ham quá và cuốn quá đến nỗi đầu óc căng lên chạy hết 200% công suất :D
-Mình có thời gian nấu ăn, kết nối với con cái, gia đình nhiều hơn
-Mình dành cả chuyến đi dài ngày thú vị và đáng nhớ với vợ con và mẹ.
-Mình dành thời gian rất nhiều để quan sát chính mình.
+Mình nhớ lại khi đi làm, nhất là ở ngân hàng, mình có những bộ mặt hết sức trái ngược. 
+Sau này mình đặt tên là các phiên bản Ghê gớm và Người lãnh đạo vui vẻ.
+Mình vẫn phì cười khi nhắc lại với bạn đồng nghiệp thân thiết về chuyện lúc đi họp một là vung kiếm, hai là đội mũ bảo hiểm và kêu "hit me" :)
+Mình vẫn tự hào về bản thân khi đi đâu cũng tạo được không khí vui tươi cho đội nhóm theo kiểu "mỗi ngày đi làm là một ngày vui"
 
-Thành quả thu hoạch được từ BREAK
-1. Kết nối sâu sắc với chính bản thân mình
-Khi không còn các ràng buộc bên ngoài chi phối, xao lãng
-Khi không còn mục tiêu để đuổi theo
-Khi mình chấp nhận sống chân thành với mọi suy nghĩ, cảm xúc của mình
+Rồi khi cơn khủng hoảng sự nghiệp xảy ra và mình tìm đến coaching.
+Mình nhận ra những mâu thuẫn trong giao tiếp với người khác đến từ bên trong mình
+Mình có những nỗi đau, những vết thương trong quá khứ
+Những tổn thương từ bên ngoài và cả tự do mình tự vơ vào, tự suy diễn ra mà ôm lấy
 
-2. Sự tĩnh lặng bên trong
-Mình trải nghiệm trực tiếp mọi cảm xúc suy nghĩ đến rồi đi, của mình nhưng không phải là mình :D
-Mình nhận ra được những thông điệp từ bên trong, kết nối được hài hòa thân tâm trí
-Mình vượt qua được những bê trễ bản năng và thực hành được kỷ luật một cách thư thái :D
+Mình dần hiểu mối quan hệ bên ngoài với con người phản ánh mối quan hệ bên trong của mình
+Mình hiểu tại sao mình thích chơi, thích nói chuyện, thích kết nối với người này
+Mình hiểu rõ hơn tại sao mình dễ phản ứng, tránh né người khác
+Mình hiểu rõ hơn tại sao nhiều lúc mình chỉ muốn một mình
 
-Giờ đây, mình vẫn đang BREAK :D
-Mình đang sắp sửa bước vào một dự án mới mà mình thực sự cảm hứng và có kết nối sâu sắc với nội tâm
-Mình đang tự tin, hào hứng trở lại, thoải mái tái xuất
-Mãi mãi tinh thần startup
+Mình được trải nghiệm sâu sắc kết nối giữa con người với con người
+qua những phiên peer coach
+khi được lắng nghe
+được đồng cảm
+được yêu thương mà không cần bất cứ lời nói hay cử chỉ nào
 
-Còn bạn, bạn đã từng bao giờ thực sự BREAK?
+Mình được trải nghiệm kết nối xúc động nhất
+là giữa mình với chính mình
+khi cảm nhận, mời gọi và trò chuyện với từng phiên bản bên trong
+khi lắng nghe và trân trọng mọi phiên bản
+khi học được cách quay lại yêu thương chính mình
 
-optional_context:
+Dần dần mình mở lòng ra và cảm thấy dễ kết nối với người khác hơn
+Mình học cách nhìn đời, nhìn người bằng con mắt trong (như lời thầy Minh Niệm)
 
+Gần đây khi thực hành thiền Tâm Từ, mình chợt nhận ra mình cười nhiều hơn
+Ngay cả khi đi bộ, dạo công viên, đứng chờ xe bus
+Cười nhẹ nhàng, hiền từ với những người xung quanh, những người xa lạ
+Cười với hoa cỏ chim chóc côn trùng
+Cười với nắng mưa, với mây gió
+
+Mình đã thấy những khoảnh khắc cuộc đời thực sự đẹp
+Và mình tin đó là khi mình kết nối với mọi người, vạn vật xung quanh
+
+Và mình nhắm mắt lại và khẽ thầm
+"Nguyện cho tất cả được an lành"
 
 target_reader:
-- Những người giống như tôi: đi làm hàng chục năm, bị cuốn theo vòng quay công việc/ gia đình/ xã hội, khủng hoảng tuổi trung niên, đôi lúc thấy chống chếnh mất phương hướng, thậm chí lo lắng bồn chồn về tương lai.
+- Những người như mình, có tổn thương, có rào cản trong giao tiếp, trong cuộc sống
+- Những người đó có thể đang âm thầm vật lộn với giận hờn, tủi thân, tự ái, oán hận, tránh né; thậm chí trầm cảm nhẹ.
 
 desired_length:
 dưới 1200 từ

@@ -93,6 +93,11 @@ voice_rules:
     - intellectual display
     - unnecessary elegance
 
+formatting_rules:
+  - Break paragraphs frequently to create white space.
+  - Use subheadings (##) to separate major emotional shifts.
+  - Allow the use of subtle visual breaks (---) and short, one-sentence paragraphs for emphasis.
+
 scene_rules:
   - Whenever possible, begin with scenes, observations, or lived moments.
   - Avoid opening with conclusions, philosophies, or lessons.
@@ -125,13 +130,10 @@ ownership_rules:
 
 excluded_responsibilities:
   - optimize pacing
-  - optimize formatting
   - optimize readability
   - simulate readers
   - polish language
   - remove AI fingerprints
-  - improve paragraph rhythm
-  - revise typography
 
 output:
   type: markdown

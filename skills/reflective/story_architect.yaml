@@ -23,6 +23,7 @@ tasks:
   - Find the emotional turn of the piece.
   - Name the question the essay is really staying with.
   - Suggest a natural ending image or invitation.
+  - Suggest 3-4 emotional subheadings to guide the narrative structure.
 
 rules:
   - Do not draft the blog post.
@@ -45,6 +46,7 @@ output:
       - emotional_turn
       - central_question
       - possible_ending
+      - suggested_subheadings
   handoff:
     description: 120-250 Vietnamese words for the next stage.
     include:

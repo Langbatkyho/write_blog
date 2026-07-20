@@ -40,3 +40,13 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 35. *"Bạn hãy đánh giá kỹ thuật Prompt Caching có hỗ trợ được gì cho dự án này?"*
 36. *"Tôi đồng ý với 2 điểm dưới đây mà bạn đã phân tích bên trên: 1. Cắt author_input khỏi reader_experience... 2. Gom toàn bộ nội dung tĩnh (author_input, thông tin mô tả luồng) lên cùng cực trên (Prefix) của Prompt. Bạn lên kế hoạch thực hiện"*
 37. *"Bạn hãy cập nhật toàn bộ các tài liệu trong thư mục docs... Sau đó bạn git push /goal"*
+
+## Giai đoạn 7: Kiến trúc Đa Phong Cách (Multi-Style System) & Phản Biện Chuyên Sâu (2026-07-20)
+
+43. *"Tôi muốn tiếp tục nâng cấp hệ thống viết bài blog này. Toàn bộ workflow hiện tại với cấu hình các agent được coi là Phong cách 1. Tôi muốn thiết lập Phong cách 2 và về sau có thể thêm Phong cách 3 với trình tự workflow và agent như hiện tại nhưng với cấu hình YAML của từng agent riêng phù hợp với phong cách viết. Bạn hãy tiến hành rà soát lại toàn bộ tài liệu dự án trong README.md và thư mục docs. Sau đó bạn lên kế hoạch chi tiết thực hiện yêu cầu này với phương thức Multi-agent. /grill-me"*
+44. *"Bạn hãy trao ý kiến phản biện cho kế hoạch của Gemini 3.1 Pro."*
+45. *"Bạn hãy phản biện về Phản biện của Claude Opus 4.6, đi thẳng vào từng luận điểm."*
+46. *"Bạn hãy điều chỉnh lại kế hoạch theo tất cả đề xuất mà bạn và Claude Opus 4.6 đồng ý với nhau."*
+47. *"Bạn hãy triển khai kế hoạch này ngay /goal"*
+48. *"Bạn hãy kiểm tra việc thực hiện Kế hoạch đã duyệt của Gemini 3.1 Pro. Hãy thực hiện review nghiêm ngặt theo 3 khía cạnh..."*
+49. *"Bạn hãy thực hiện những điều chỉnh do Claude Opus 4.6 đề xuất. Sau đó bạn log lại toàn bộ kế hoạch và việc triển khai vừa qua vào các file trong thư mục docs: Kiến trúc hiện tại, Change log, Git Diff, User Prompts, Agent Activities"*

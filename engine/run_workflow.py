@@ -14,6 +14,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run the mindful blog workflow.")
     parser.add_argument("--input", help="Path to the author input markdown file.")
     parser.add_argument(
+        "--style",
+        default=None,
+        help="The writing style to use (e.g., reflective). Determines the skill folder.",
+    )
+    parser.add_argument(
         "--learn-from-run",
         help="Path to an existing run directory. Uses final_blog.md and production_blog.md to learn workflow improvements.",
     )
@@ -52,6 +57,12 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if args.style is not None:
+        style_dir = resolve_path(f"skills/{args.style}")
+        if not style_dir.is_dir():
+            available = [d.name for d in resolve_path("skills").iterdir() if d.is_dir()]
+            raise ValueError(f"Style '{args.style}' not found. Available: {available}")
+
     config_path = resolve_path(args.config)
     if not config_path.exists() and args.config == "engine/config.local.yaml":
         config_path = resolve_path("engine/config.example.yaml")
@@ -73,6 +84,7 @@ def main() -> int:
             dry_run=args.dry_run,
             offline=args.offline_learning,
             llm_client=llm_client,
+            style=args.style,
         )
         print(f"Learning run saved to: {learning_dir}")
         print(f"Learning report: {learning_dir / 'editorial_learning_report.md'}")
@@ -82,12 +94,18 @@ def main() -> int:
         parser.error("--input is required unless --learn-from-run is used.")
 
     input_path = resolve_path(args.input)
-    
+    style = args.style or "reflective"
+    style_dir = resolve_path(f"skills/{style}")
+    if not style_dir.is_dir():
+        available = [d.name for d in resolve_path("skills").iterdir() if d.is_dir()]
+        raise ValueError(f"Style '{style}' not found. Available: {available}")
+
     run_dir = run_workflow(
         config_path=config_path, 
         input_path=input_path, 
         dry_run=args.dry_run,
         llm_client=llm_client,
+        style=style,
     )
     print(f"Workflow run saved to: {run_dir}")
     print(f"Full log: {run_dir / 'run_log.md'}")

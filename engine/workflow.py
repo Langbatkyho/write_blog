@@ -91,11 +91,11 @@ def build_step_prompt(
 
     return "\n\n".join(prompt_parts)
 
-def build_run_dir(log_root: Path, input_markdown: str) -> Path:
+def build_run_dir(log_root: Path, input_markdown: str, style: str) -> Path:
     from engine.parser import slugify, extract_title
     timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     slug = slugify(extract_title(input_markdown))
-    return log_root / f"{timestamp}_{slug}"
+    return log_root / f"{timestamp}_{style}_{slug}"
 
 def append_run_log(log_file: Path, title: str, body: str) -> None:
     existing = read_text(log_file) if log_file.exists() else ""
@@ -139,7 +139,7 @@ def derive_artifact_file_contents(skill: dict[str, Any], artifact: str) -> dict[
         contents[str(secondary_name)] = edit_log
     return contents
 
-def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False, llm_client: "LlmClient | None" = None) -> Path:
+def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False, llm_client: "LlmClient | None" = None, style: str = "reflective") -> Path:
     if llm_client is None:
         llm_client = call_openai
 
@@ -149,7 +149,7 @@ def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False, llm
     author_input = read_text(input_path)
 
     log_root = resolve_path(config.get("workflow", {}).get("log_dir", "runs"))
-    run_dir = build_run_dir(log_root, author_input)
+    run_dir = build_run_dir(log_root, author_input, style)
     log_file = run_dir / "run_log.md"
     write_text(run_dir / "input.md", author_input)
     write_text(
@@ -169,6 +169,7 @@ def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False, llm
                 "dry_run": dry_run,
                 "provider": getattr(llm_client, "__name__", "unknown").replace("call_", ""),
                 "client_map": getattr(llm_client, "client_map", None),
+                "style": style,
             },
             ensure_ascii=False,
             indent=2,
@@ -187,7 +188,9 @@ def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False, llm
 
     for index, step in enumerate(workflow.get("steps", []), start=1):
         step_id = str(step["id"])
-        skill_path = resolve_path(step["skill"])
+        original_path = Path(step["skill"])
+        styled_path = original_path.parent / style / original_path.name
+        skill_path = resolve_path(str(styled_path))
         skill = load_yaml(skill_path)
         context_package = build_context_package(step, artifacts, handoffs)
         prompt = build_step_prompt(workflow, step, skill, author_input, context_package)
@@ -289,11 +292,13 @@ def load_step_outputs_from_run(run_dir: Path, workflow: dict[str, Any]) -> dict[
             outputs[step_id] = read_text(output_path)
     return outputs
 
-def load_workflow_skills(workflow: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def load_workflow_skills(workflow: dict[str, Any], style: str) -> dict[str, dict[str, Any]]:
     skills: dict[str, dict[str, Any]] = {}
     for step in workflow.get("steps", []):
         step_id = str(step["id"])
-        skills[step_id] = load_yaml(resolve_path(step["skill"]))
+        original_path = Path(step["skill"])
+        styled_path = original_path.parent / style / original_path.name
+        skills[step_id] = load_yaml(resolve_path(str(styled_path)))
     skills["editorial_learning"] = load_yaml(resolve_path("skills/editorial_learning.yaml"))
     return skills
 
@@ -304,6 +309,7 @@ def run_learning_loop(
     dry_run: bool = False,
     offline: bool = False,
     llm_client: "LlmClient | None" = None,
+    style: str | None = None,
 ) -> Path:
     if llm_client is None:
         llm_client = call_openai
@@ -311,6 +317,14 @@ def run_learning_loop(
     config = load_yaml(config_path)
     workflow_file = resolve_path(config.get("workflow", {}).get("file", "flow/write_blog.yaml"))
     workflow = load_yaml(workflow_file)
+
+    if style is None:
+        metadata_path = run_dir / "metadata.json"
+        if metadata_path.exists():
+            metadata = json.loads(read_text(metadata_path))
+            style = metadata.get("style", "reflective")
+        else:
+            style = "reflective"
 
     if production_path is None:
         production_path = run_dir / "production_blog.md"
@@ -347,7 +361,7 @@ def run_learning_loop(
     comparison_label = final_path.name
     production_blog = read_text(production_path)
     step_outputs = load_step_outputs_from_run(run_dir, workflow)
-    skills = load_workflow_skills(workflow)
+    skills = load_workflow_skills(workflow, style)
 
     timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     learning_dir = run_dir / "learning" / timestamp
@@ -370,6 +384,7 @@ def run_learning_loop(
                 "offline": offline,
                 "provider": getattr(llm_client, "__name__", "unknown").replace("call_", ""),
                 "client_map": getattr(llm_client, "client_map", None),
+                "style": style,
             },
             ensure_ascii=False,
             indent=2,

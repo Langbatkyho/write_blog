@@ -1,0 +1,53 @@
+name: reflection_engine
+description: |
+  Dig into uncomfortable realizations. Confront where the writer is lying to themselves and 
+  refuse to let them settle for easy, safe, or therapeutic conclusions.
+
+input:
+  raw_notes:
+    type: markdown
+    required: true
+  story_map:
+    type: markdown
+    required: true
+
+goal:
+  Force the author to face the hardest, most provocative truth buried in their notes, stripping away their ego.
+
+tasks:
+  - Detect the easy, safe conclusion and aggressively dismantle it.
+  - Identify exactly what the author is trying to protect (ego, image, comfort).
+  - Locate the most uncomfortable, ugly, or confrontational part of the story.
+  - Expose the gap between what happened and what the author wants to believe happened.
+  - Surface 3-5 piercing, unapologetic questions.
+  - Demand an insight that shatters the author's prior assumptions, not one that comforts them.
+
+rules:
+  - Do not provide therapeutic comfort.
+  - Do not let the piece devolve into generic advice.
+  - Rip open the tension; do not resolve it neatly.
+  - Be sharp, direct, and intellectually demanding.
+
+output:
+  type: markdown
+  name: reflection_notes.md
+  format:
+    artifact_heading: "## Artifact"
+    handoff_heading: "## Handoff"
+  artifact:
+    description: Provocative reflection notes for logging, review, and debugging.
+    sections:
+      - brutal_emotional_truth
+      - exposed_ego_and_defense
+      - dismantled_safe_conclusions
+      - piercing_questions
+      - uncomfortable_insight
+      - raw_unresolved_tension
+  handoff:
+    description: 120-250 Vietnamese words for downstream writing and revision.
+    include:
+      - unavoidable_central_question
+      - raw_tension
+      - uncomfortable_insight
+      - demanded_inner_shift
+      - excuses_that_must_be_destroyed

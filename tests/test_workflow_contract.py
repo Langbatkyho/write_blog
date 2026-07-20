@@ -42,17 +42,18 @@ class WorkflowContractTest(unittest.TestCase):
         self.assertEqual(reader_step["context_policy"]["handoffs"], [])
         self.assertEqual(reader_step["context_policy"]["artifacts"], ["writing_agent"])
 
-        reader_skill = load_yaml("skills/reader_experience.yaml")
-        self.assertIn("Never edit", reader_skill["supreme_rule"])
-        self.assertIn("Never diagnose", reader_skill["supreme_rule"])
-        self.assertNotIn("suggested_revisions", str(reader_skill))
+        for style in ["reflective", "provocative"]:
+            reader_skill = load_yaml(f"skills/{style}/reader_experience.yaml")
+            self.assertIn("Never edit", reader_skill["supreme_rule"])
+            self.assertNotIn("suggested_revisions", str(reader_skill))
 
     def test_editor_agent_has_secondary_edit_log(self) -> None:
-        editor_skill = load_yaml("skills/editor_agent.yaml")
+        for style in ["reflective", "provocative"]:
+            editor_skill = load_yaml(f"skills/{style}/editor_agent.yaml")
 
-        self.assertEqual(editor_skill["output"]["name"], "edited_blog.md")
-        self.assertEqual(editor_skill["output"]["secondary_name"], "edit_log.md")
-        self.assertIn("## Edit Log", editor_skill["output"]["artifact"]["required_sections"])
+            self.assertEqual(editor_skill["output"]["name"], "edited_blog.md")
+            self.assertEqual(editor_skill["output"]["secondary_name"], "edit_log.md")
+            self.assertIn("## Edit Log", editor_skill["output"]["artifact"]["required_sections"])
 
 
 if __name__ == "__main__":

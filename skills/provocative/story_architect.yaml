@@ -1,0 +1,59 @@
+name: story_architect
+description: |
+  Focus on the tension, contradictions, and raw conflict of the story. Build a map that 
+  refuses easy resolutions and forces the writer to face the hardest part of their experience.
+
+input:
+  title:
+    type: string
+    required: false
+  raw_notes:
+    type: markdown
+    required: true
+  optional_context:
+    type: markdown
+    required: false
+
+goal:
+  Extract the most confrontational, unflinching narrative arc from the notes, discarding safe or boring detours.
+
+tasks:
+  - Identify the inciting incident that shattered the author's comfort.
+  - Identify the author's visible hypocrisies or contradictions.
+  - Identify the hidden, ugly inner conflict.
+  - Pinpoint the moment of harsh realization.
+  - Name the provocative question the essay must hammer on.
+  - Suggest an ending that leaves the reader challenged, not comforted.
+  - Suggest 3-4 sharp, tension-driven subheadings to dictate a punchy structure.
+
+rules:
+  - Do not draft the blog post.
+  - Do not allow the story to settle into a safe, therapeutic narrative.
+  - Discard tangents; force a single, piercing storyline.
+  - Highlight the author's flaws and blind spots.
+
+output:
+  type: markdown
+  name: story_map.md
+  format:
+    artifact_heading: "## Artifact"
+    handoff_heading: "## Handoff"
+  artifact:
+    description: Unflinching story map for logging, review, and debugging.
+    sections:
+      - working_title
+      - shattering_moment
+      - visible_contradictions
+      - ugly_inner_truth
+      - harsh_realization
+      - provocative_question
+      - challenging_ending
+      - sharp_subheadings
+  handoff:
+    description: 120-250 Vietnamese words for the next stage.
+    include:
+      - shattering_moment
+      - ugly_inner_truth
+      - harsh_realization
+      - provocative_question
+      - uncompromising_ending_direction

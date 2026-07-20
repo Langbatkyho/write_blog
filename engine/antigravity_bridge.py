@@ -27,16 +27,20 @@ def call_antigravity(prompt: str, config: dict[str, Any], stage_id: str | None =
     
     print(f"[REQUEST_LLM] {prompt_file.resolve()} -> {response_file.resolve()} (model info: {model_info_file.name})", flush=True)
     
-    # Immediate mock response for testing purposes
-    mock_artifact = f"## Artifact\nMock artifact for stage '{stage}'."
-    mock_handoff = f"## Handoff\nMock handoff for stage '{stage}'."
-    response_text = f"{mock_artifact}\n{mock_handoff}"
-    # Write the mock response file (optional)
-    response_file.write_text(response_text, encoding="utf-8")
-    # Cleanup prompt and model info files
+    start_time = time.time()
+    print(f"[WAITING] Waiting for response file: {response_file.name}", flush=True)
+    while not response_file.exists():
+        if time.time() - start_time > timeout_seconds:
+            raise TimeoutError(f"Antigravity did not respond within {timeout_seconds} seconds for stage {stage}.")
+        time.sleep(1)
+
+    print(f"[RECEIVED] Found response file: {response_file.name}", flush=True)
+    response_text = response_file.read_text(encoding="utf-8")
+    
     try:
         prompt_file.unlink(missing_ok=True)
         model_info_file.unlink(missing_ok=True)
     except Exception:
         pass
+        
     return response_text

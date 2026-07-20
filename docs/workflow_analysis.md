@@ -61,3 +61,9 @@ Việc tối ưu hóa token không chỉ đơn thuần là rút gọn (compressi
 - **Tối ưu vị trí dữ liệu**: 
   - Dữ liệu dài và tĩnh (như `author_input`) bắt buộc phải đẩy lên đầu file (Static Prefix) để API nhận dạng được và cache lại. Nếu đặt sai vị trí (ví dụ: ở giữa hoặc cuối prompt), phần dữ liệu này sẽ không bao giờ được cache.
   - Các chỉ thị mang tính tuân thủ cao (Skill YAML, định dạng đầu ra) nên đặt ở đuôi (Dynamic Suffix) để lợi dụng Recency Bias, giúp LLM không bị lạc lối sau khi đọc hàng ngàn token ngữ cảnh.
+
+## Bài học 10: Kiến trúc Đa Phong Cách (Multi-Style) không nên làm phình to Engine
+Ban đầu, để hỗ trợ nhiều phong cách viết (như `reflective` hay `provocative`), có nguy cơ phải viết thêm hàng loạt cấu trúc điều kiện `if/else` trong code. Việc định tuyến dựa trên Path resolution (`Path(step["skill"]).parent / style / Path(step["skill"]).name`) cho phép Engine hỗ trợ không giới hạn số lượng phong cách mà code lõi không thay đổi. YAML trở thành API Configuration của từng phong cách.
+
+## Bài học 11: Lập kế hoạch Multi-Agent cần sự tuần tự chặt chẽ
+Khi sử dụng cấu trúc Đa tác tử (Multi-Agent), việc thiết lập các Task song song dễ gây ra **Race Condition** (Tình trạng tương tranh) trên các file mã nguồn dùng chung hoặc unit tests chung. Thay vì phân công Agent 1 và Agent 2 chạy song song, việc yêu cầu Agent 1 hoàn tất Refactoring nền tảng (Thư mục, Engine, Test) rồi mới để Agent 2 vào làm nhiệm vụ Prompt Engineering (Tạo YAML mới) đảm bảo hệ thống không bị lỗi gãy đổ cục bộ. Ground Truth (`STYLE_BRIEF.md`) luôn phải được định nghĩa trước khi Agent làm nội dung nhảy vào thao tác.
