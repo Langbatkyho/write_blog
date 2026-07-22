@@ -41,6 +41,32 @@ openai:
       temperature: 0.45
       max_output_tokens: 3000
 
+    # Moment mode stages
+    sensory_capture:
+      model: gpt-4.1-mini
+      temperature: 0.3
+      max_output_tokens: 1500
+    inner_weather:
+      model: gpt-4.1-mini
+      temperature: 0.3
+      max_output_tokens: 1500
+    cosmic_signal_reader:
+      model: gpt-4.1
+      temperature: 0.5
+      max_output_tokens: 1500
+    moment_writer:
+      model: gpt-4.1
+      temperature: 0.7
+      max_output_tokens: 2500
+    breath_editor:
+      model: gpt-4.1
+      temperature: 0.3
+      max_output_tokens: 2000
+    gentle_witness:
+      model: gpt-4.1-mini
+      temperature: 0.3
+      max_output_tokens: 1500
+
   learning:
     editorial_learning:
       model: gpt-4.1

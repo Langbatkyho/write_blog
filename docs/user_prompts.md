@@ -50,3 +50,14 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 47. *"Bạn hãy triển khai kế hoạch này ngay /goal"*
 48. *"Bạn hãy kiểm tra việc thực hiện Kế hoạch đã duyệt của Gemini 3.1 Pro. Hãy thực hiện review nghiêm ngặt theo 3 khía cạnh..."*
 49. *"Bạn hãy thực hiện những điều chỉnh do Claude Opus 4.6 đề xuất. Sau đó bạn log lại toàn bộ kế hoạch và việc triển khai vừa qua vào các file trong thư mục docs: Kiến trúc hiện tại, Change log, Git Diff, User Prompts, Agent Activities"*
+
+## Giai đoạn 8: Hệ Hai Writing Modes (Dual Writing Modes System) (2026-07-22)
+> **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)
+
+50. *"Tôi quyết định nâng cấp toàn diện hệ thống write_blog này theo kế hoạch nâng cấp do GPT-5.6 Sol lập ra tại: D:\Nghiên cứu AI\write_blog\docs\2026-07-22-mindful_writing_os-two-writing-modes-plan.md. Bạn hãy đọc kỹ tài liệu và cho biết ý kiến phản biện..."*
+51. *"Bạn hãy đọc kỹ kế hoạch nâng cấp do GPT-5.6 Sol lập ra... và ý kiến phản biện của Claude Opus 4.6. Sau đó, bạn cho biết ý kiến phản biện độc lập..."*
+52. *"Tôi đồng ý với bạn về phản biện trên. Bạn hãy cập nhật lại phản biện này vào cuối file D:\Nghiên cứu AI\write_blog\docs\2026-07-22-mindful_writing_os-two-writing-modes-plan.md..."*
+53. *"Bản kế hoạch đã được tôi duyệt tại D:\Nghiên cứu AI\write_blog\docs\2026-07-22-mindful_writing_os-two-writing-modes-final.md. Bạn hãy đọc kỹ và tổ chức điều phối thực hiện /goal"*
+54. *"Bạn hãy kiểm tra và đánh giá việc thực hiện của Gemini 3.6 Flash với kế hoạch đã phê duyệt tại D:\Nghiên cứu AI\write_blog\docs\2026-07-22-mindful_writing_os-two-writing-modes-final.md. Báo cáo kết quả CỰC KỲ CÔ ĐỌNG, TIẾT KIỆM TOKEN ĐẦU RA..."*
+55. *"Tôi đồng ý với báo cáo Audit của Claude Opus 4.6. Bạn hãy tiến hành khắc phục. /goal"*
+56. *"Bạn hãy cập nhật toàn bộ công việc triển khai kế hoạch này vào thư mục docs của dự án theo các file tương ứng: Kiến trúc hiện tại, Change log, Git Diff, User prompts, Agent Activities. Nhớ ghi rõ ngày triển khai và tham chiếu đến kế hoạch triển khai đã được phê duyệt."*

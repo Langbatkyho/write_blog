@@ -1,0 +1,43 @@
+name: cosmic_signal_reader
+mode: moment_blog_mode
+purpose: "Tìm tín hiệu trực giác trong khoảnh khắc, chỉ khi có dữ kiện gốc đủ rõ."
+core_question: "Khoảnh khắc này đang thì thầm điều gì với người viết?"
+input:
+  required:
+    - sensory_handoff
+    - inner_weather_handoff
+  optional:
+    - recurring_motifs
+    - song_or_phrase_anchor
+
+tasks:
+  - detect_grounded_signal
+  - distinguish_intuition_from_fact
+  - detect_resonant_phrase
+  - allow_no_signal_if_absent
+  - keep_signal_small_and_specific
+
+do_not:
+  - claim_universal_truth
+  - force_cosmic_message
+  - predict_future
+  - give_advice
+  - generalize_into_philosophy
+  - treat_intuition_as_fact
+
+output:
+  artifact: signal_note.md
+  sections:
+    - signal
+    - evidence_for_signal
+    - what_makes_it_feel_resonant
+    - what_is_not_being_claimed
+  handoff:
+    required: true
+    target_words: "40-70"
+    focus: "A small, grounded signal the moment seems to whisper."
+
+style_rules:
+  - prefer_hedged_language
+  - keep_signal_modest
+  - use_maybe_when_needed

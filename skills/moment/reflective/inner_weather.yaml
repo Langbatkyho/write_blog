@@ -1,0 +1,42 @@
+name: inner_weather
+mode: moment_blog_mode
+purpose: "Gọi tên thời tiết bên trong người viết ở thời điểm hiện tại."
+core_question: "Thời tiết bên trong người viết ngay lúc này là gì?"
+input:
+  required:
+    - sensory_handoff
+    - raw_notes
+  optional:
+    - emotional_notes
+
+tasks:
+  - identify_dominant_feeling
+  - identify_secondary_feeling
+  - map_emotional_motion
+  - ground_emotion_in_body
+  - preserve_uncertainty
+
+do_not:
+  - diagnose
+  - explain_cause_beyond_notes
+  - force_resolution
+  - force_lesson
+  - turn_feeling_into_theory
+
+output:
+  artifact: inner_weather.md
+  sections:
+    - dominant_feeling
+    - secondary_feeling
+    - emotional_motion
+    - bodily_evidence
+    - uncertainty_notes
+  handoff:
+    required: true
+    target_words: "40-70"
+    focus: "What the inside weather feels like, not why it exists."
+
+style_rules:
+  - use_plain_language
+  - avoid_clinical_tone
+  - avoid_spiritual_overclaim

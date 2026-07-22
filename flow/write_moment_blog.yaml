@@ -1,0 +1,107 @@
+name: mindful_moment_blog_workflow
+mode: moment
+description: >
+  A lightweight, intuitive writing workflow for capturing immediate present moments
+  (300-600 words). Focuses on sensory observation, inner weather, grounded intuitive
+  signals, natural drafting, gentle breath editing, and calm witness verification.
+
+input:
+  title:
+    type: string
+    required: false
+  raw_notes:
+    type: markdown
+    required: true
+  optional_context:
+    type: markdown
+    required: false
+  target_reader:
+    type: string
+    required: false
+  desired_length:
+    type: string
+    default: "300-600 words"
+
+steps:
+  - id: sensory_capture
+    skill: skills/moment/reflective/sensory_capture.yaml
+    purpose: Capture the immediate present moment through senses without deep interpretation.
+    output: sensory_notes.md
+    handoff_output: sensory_handoff.md
+    context_policy:
+      handoffs: []
+      artifacts: []
+
+  - id: inner_weather
+    skill: skills/moment/reflective/inner_weather.yaml
+    purpose: Name the present internal weather grounded in bodily sensations.
+    output: inner_weather.md
+    handoff_output: inner_weather_handoff.md
+    context_policy:
+      handoffs:
+        - sensory_capture
+      artifacts: []
+
+  - id: cosmic_signal_reader
+    skill: skills/moment/reflective/cosmic_signal_reader.yaml
+    purpose: Listen for small, grounded intuitive signals in the present moment.
+    output: signal_note.md
+    handoff_output: signal_handoff.md
+    context_policy:
+      handoffs:
+        - sensory_capture
+        - inner_weather
+      artifacts: []
+
+  - id: moment_writer
+    skill: skills/moment/reflective/moment_writer.yaml
+    purpose: Write a concise draft (300-600 words) keeping the present moment alive.
+    output: moment_draft.md
+    handoff_output: moment_writer_handoff.md
+    context_policy:
+      handoffs:
+        - sensory_capture
+        - inner_weather
+        - cosmic_signal_reader
+      artifacts: []
+
+  - id: breath_editor
+    skill: skills/moment/reflective/breath_editor.yaml
+    purpose: Trim and simplify the moment draft without adding new insights.
+    output: moment_edited.md
+    handoff_output: breath_editor_handoff.md
+    context_policy:
+      handoffs:
+        - sensory_capture
+        - inner_weather
+        - cosmic_signal_reader
+      artifacts:
+        - moment_writer
+
+  - id: gentle_witness
+    skill: skills/moment/reflective/gentle_witness.yaml
+    purpose: Calmly verify the draft remains a living moment without preaching or coaching.
+    output: witness_report.md
+    handoff_output: witness_handoff.md
+    context_policy:
+      handoffs:
+        - cosmic_signal_reader
+        - breath_editor
+      artifacts:
+        - breath_editor
+
+final_output:
+  primary_ai_draft: moment_edited.md
+  reflection: witness_report.md
+  human_final: final_blog.md
+  production: production_blog.md
+  format: markdown
+
+learning_loop:
+  human_editor_output: production_blog.md
+  purpose: >
+    Compare the AI moment draft with human edits to learn short-form moment preferences
+    without polluting deep blog patterns.
+  output:
+    report: editorial_learning_report.md
+    suggestions: workflow_tuning_suggestions.md

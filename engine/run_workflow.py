@@ -14,6 +14,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run the mindful blog workflow.")
     parser.add_argument("--input", help="Path to the author input markdown file.")
     parser.add_argument(
+        "--mode",
+        choices=["deep", "moment"],
+        default="deep",
+        help="The writing mode to use: 'deep' (default, long-form reflection) or 'moment' (short-form snapshot).",
+    )
+    parser.add_argument(
         "--style",
         default=None,
         help="The writing style to use (e.g., reflective). Determines the skill folder.",
@@ -57,11 +63,21 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if args.style is not None:
-        style_dir = resolve_path(f"skills/{args.style}")
-        if not style_dir.is_dir():
-            available = [d.name for d in resolve_path("skills").iterdir() if d.is_dir()]
-            raise ValueError(f"Style '{args.style}' not found. Available: {available}")
+    mode = args.mode
+    style = args.style or "reflective"
+
+    if mode == "moment" and style == "provocative":
+        print("[WARNING] Moment mode does not support provocative style. Falling back to 'reflective'.", file=sys.stderr)
+        style = "reflective"
+
+    style_dir = resolve_path(f"skills/{style}")
+    if mode == "moment":
+        moment_style_dir = resolve_path(f"skills/moment/{style}")
+        if moment_style_dir.is_dir():
+            style_dir = moment_style_dir
+    if not style_dir.is_dir():
+        available = [d.name for d in resolve_path("skills").iterdir() if d.is_dir()]
+        raise ValueError(f"Style '{style}' not found. Available: {available}")
 
     config_path = resolve_path(args.config)
     if not config_path.exists() and args.config == "engine/config.local.yaml":
@@ -72,6 +88,8 @@ def main() -> int:
     fallback_client_name = args.client
     client_map = build_client_map(args.client_map, fallback_client_name)
     llm_client = create_routing_client(client_map, fallback_client_name)
+
+    explicit_mode = args.mode if any(a.startswith("--mode") for a in sys.argv) else None
 
     if args.learn_from_run:
         run_dir = resolve_path(args.learn_from_run)
@@ -84,21 +102,18 @@ def main() -> int:
             dry_run=args.dry_run,
             offline=args.offline_learning,
             llm_client=llm_client,
-            style=args.style,
+            style=style,
+            mode=explicit_mode,
         )
         print(f"Learning run saved to: {learning_dir}")
-        print(f"Learning report: {learning_dir / 'editorial_learning_report.md'}")
+        report_name = f"{explicit_mode or mode}_blog_patterns.md"
+        print(f"Learning report: {learning_dir / report_name}")
         return 0
 
     if not args.input:
         parser.error("--input is required unless --learn-from-run is used.")
 
     input_path = resolve_path(args.input)
-    style = args.style or "reflective"
-    style_dir = resolve_path(f"skills/{style}")
-    if not style_dir.is_dir():
-        available = [d.name for d in resolve_path("skills").iterdir() if d.is_dir()]
-        raise ValueError(f"Style '{style}' not found. Available: {available}")
 
     run_dir = run_workflow(
         config_path=config_path, 
@@ -106,6 +121,7 @@ def main() -> int:
         dry_run=args.dry_run,
         llm_client=llm_client,
         style=style,
+        mode=mode,
     )
     print(f"Workflow run saved to: {run_dir}")
     print(f"Full log: {run_dir / 'run_log.md'}")

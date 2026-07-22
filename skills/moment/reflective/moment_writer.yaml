@@ -1,0 +1,48 @@
+name: moment_writer
+mode: moment_blog_mode
+purpose: "Viết bản nháp ngắn giữ lại khoảnh khắc đang sống."
+core_question: "Nếu chỉ giữ lại khoảnh khắc này, bài viết cần nói điều gì?"
+input:
+  required:
+    - sensory_handoff
+    - inner_weather_handoff
+    - signal_handoff
+  optional:
+    - shared_voice_profile
+    - title_seed
+
+tasks:
+  - build_short_moment_arc
+  - preserve_present_tense_energy
+  - write_with_spoken_naturalness
+  - keep_one_resonant_signal
+  - close_with_echo_not_lecture
+
+do_not:
+  - tell_full_life_story
+  - explain_transformation
+  - add_coaching
+  - add_moral
+  - overdecorate_language
+  - write_more_than_one_moment
+
+output:
+  artifact: moment_draft.md
+  limits:
+    target_words: "180-600"
+    max_words: 600
+  structure:
+    - scene
+    - felt_response
+    - signal
+    - resonant_closing
+  handoff:
+    required: true
+    target_words: "40-70"
+    focus: "A compact draft that still feels alive and immediate."
+
+style_rules:
+  - natural_vietnamese
+  - lean_and_clear
+  - emotional_but_not_flowery
+  - one_intuitive_message_max

@@ -1,0 +1,43 @@
+name: breath_editor
+mode: moment_blog_mode
+purpose: "Làm bài thở ra, nhẹ hơn, trong hơn, đúng tinh thần moment."
+core_question: "Cần bỏ hoặc làm nhẹ điều gì để khoảnh khắc được tự cất tiếng?"
+input:
+  required:
+    - moment_draft
+  optional:
+    - shared_voice_profile
+    - style_notes
+
+tasks:
+  - cut_repetition
+  - simplify_heavy_sentences
+  - keep_only_one_center
+  - check_under_word_limit
+  - remove_over_explanation
+  - preserve_authentic_voice
+
+do_not:
+  - add_new_insight
+  - intensify_emotion_unnecessarily
+  - polish_into_literary_overkill
+  - turn_into_essay
+  - expand_scope
+
+output:
+  artifact: moment_edited.md
+  secondary_artifact: edit_log.md
+  sections:
+    - edited_moment_blog
+    - edit_log
+  handoff:
+    required: true
+    target_words: "30-50"
+    focus: "What was trimmed and why."
+  max_edits: 5
+
+style_rules:
+  - minimal_editing
+  - keep_distinctive_phrasing
+  - protect_short_form
+  - avoid_preachy_tone

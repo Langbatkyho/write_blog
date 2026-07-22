@@ -67,3 +67,9 @@ Ban đầu, để hỗ trợ nhiều phong cách viết (như `reflective` hay `
 
 ## Bài học 11: Lập kế hoạch Multi-Agent cần sự tuần tự chặt chẽ
 Khi sử dụng cấu trúc Đa tác tử (Multi-Agent), việc thiết lập các Task song song dễ gây ra **Race Condition** (Tình trạng tương tranh) trên các file mã nguồn dùng chung hoặc unit tests chung. Thay vì phân công Agent 1 và Agent 2 chạy song song, việc yêu cầu Agent 1 hoàn tất Refactoring nền tảng (Thư mục, Engine, Test) rồi mới để Agent 2 vào làm nhiệm vụ Prompt Engineering (Tạo YAML mới) đảm bảo hệ thống không bị lỗi gãy đổ cục bộ. Ground Truth (`STYLE_BRIEF.md`) luôn phải được định nghĩa trước khi Agent làm nội dung nhảy vào thao tác.
+
+## Bài học 12: Kiến trúc Dual Modes đòi hỏi định tuyến (Routing) linh hoạt từ lõi Engine
+Ban đầu, khi chuyển từ một workflow duy nhất sang Hệ Hai Chế Độ Viết (`deep` và `moment`), phản xạ đầu tiên là sao chép toàn bộ file `flow/write_blog.yaml` thành `flow/write_deep_blog.yaml` dẫn đến tỷ lệ duplicate code lên tới 95%. Hệ thống tốt không nhân bản cấu trúc cố định, mà nên dựa vào cơ chế định tuyến động (`resolve_workflow_file` và `resolve_step_skill_path`) của Engine để tự phân giải đúng Context Policy và Skill YAML theo các cờ `--mode` và `--style`.
+
+## Bài học 13: Phân tách triệt để không gian Tri Thức Học Tập (Learning Knowledge Space)
+Tri thức để biên tập một "khoảnh khắc" (ngắn, trực giác, giữ nguyên năng lượng hiện tại) hoàn toàn khác với tri thức biên tập một bài "phản tư" (dài, tìm kiếm mâu thuẫn, chuyển hóa nhận thức). Nếu để chung vào một file `editorial_learning_report.md`, AI sẽ sớm bị "ô nhiễm chéo" quy tắc và sinh ra các mẫu câu khuyên nhủ triết lý hóa trong các bài viết khoảnh khắc. Việc phân tách luồng xuất ra file (`deep_blog_patterns.md` vs `moment_blog_patterns.md`) và tách biệt thư mục `learning/<mode>/` là bắt buộc để duy trì tính toàn vẹn của từng chế độ viết.

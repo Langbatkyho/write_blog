@@ -14,6 +14,7 @@ def build_learning_prompt(
     final_blog: str,
     production_blog: str,
     comparison_label: str = "final_blog.md",
+    mode: str = "deep",
 ) -> str:
     learning_skill = load_yaml(resolve_path("skills/editorial_learning.yaml"))
     skills_yaml = yaml.safe_dump(skills, allow_unicode=True, sort_keys=False)
@@ -25,6 +26,7 @@ def build_learning_prompt(
     return textwrap.dedent(
         f"""
         You are running the learning loop for an automated reflective blog workflow.
+        Writing Mode: {mode}
 
         Learning skill YAML:
         ```yaml
@@ -63,19 +65,24 @@ def build_learning_prompt(
 
         Instructions:
         - Follow the Learning skill YAML strictly.
-        - Produce a practical markdown report for improving the workflow.
+        - Produce a practical markdown report for improving the workflow for writing mode: {mode}.
         - Focus on what the human editor changed and what the workflow should learn.
-        - Give stage-by-stage insights for every workflow stage, including editor_agent when present.
+        - Give stage-by-stage insights for every workflow stage in this mode.
         - Include suggested YAML changes as concise bullets, not full rewritten files.
         - Do not rewrite the blog post.
         - Do not include hidden reasoning.
         """
     ).strip()
 
-def build_tuning_prompt(report: str) -> str:
+def build_tuning_prompt(report: str, mode: str = "deep") -> str:
+    if mode == "moment":
+        stages_list = "sensory_capture, inner_weather, cosmic_signal_reader, moment_writer, breath_editor, gentle_witness"
+    else:
+        stages_list = "story_architect, reflection_engine, writing_agent, reader_experience, editor_agent, coach_agent, future_self"
+
     return textwrap.dedent(
         f"""
-        Turn this editorial learning report into concise workflow tuning suggestions.
+        Turn this editorial learning report for mode '{mode}' into concise workflow tuning suggestions.
 
         Editorial learning report:
         ```markdown
@@ -83,9 +90,8 @@ def build_tuning_prompt(report: str) -> str:
         ```
 
         Output a markdown document with:
-        - one section for each workflow stage:
-          story_architect, reflection_engine, writing_agent, reader_experience,
-          editor_agent, coach_agent, future_self
+        - one section for each workflow stage in mode '{mode}':
+          {stages_list}
         - concrete YAML or prompt-rule changes for that stage
         - expected effect of each change
         - confidence: high, medium, or low
@@ -113,6 +119,7 @@ def build_offline_learning_report(
     production_blog: str,
     step_outputs: dict[str, str],
     comparison_label: str = "final_blog.md",
+    mode: str = "deep",
 ) -> str:
     final_words = count_words(final_blog)
     production_words = count_words(production_blog)
@@ -141,14 +148,59 @@ def build_offline_learning_report(
 
     available_steps = ", ".join(step_outputs.keys()) or "No step outputs found"
 
+    if mode == "moment":
+        stage_insights = textwrap.dedent("""
+            ### sensory_capture
+            Check whether production edits preserved authentic concrete observations or added unverified details.
+
+            ### inner_weather
+            Check whether production edits changed emotional naming or added clinical/spiritual theory.
+
+            ### cosmic_signal_reader
+            Check whether the small intuitive signal was kept, trimmed, or expanded into a major lecture.
+
+            ### moment_writer
+            Check whether production edits shortened sentence length or removed past-tense reflection to keep present energy.
+
+            ### breath_editor
+            Check whether production edits simplified heavy sentences further or over-polished the prose.
+
+            ### gentle_witness
+            Check whether the witness report accurately flagged forced moments or preachiness.
+        """).strip()
+    else:
+        stage_insights = textwrap.dedent("""
+            ### story_architect
+            Check whether production edits changed the opening, reordered sections, or moved the emotional turn.
+
+            ### reflection_engine
+            Check whether production edits added uncertainty, removed premature certainty, or deepened a hidden tension.
+
+            ### writing_agent
+            Check whether production edits shortened paragraphs, changed pronouns, removed generic phrasing, or added more lived detail.
+
+            ### reader_experience
+            Check whether the reader diary captured where attention, trust, or connection changed.
+
+            ### editor_agent
+            Check whether production edits repeated, contradicted, or improved the editor_agent changes.
+
+            ### coach_agent
+            Check whether production edits answered a deeper question that the coaching report did not ask.
+
+            ### future_self
+            Check whether production edits followed or ignored future_reflection.md.
+        """).strip()
+
     return textwrap.dedent(
         f"""
-        # Offline Editorial Learning Report
+        # Offline Editorial Learning Report ({mode.upper()} MODE)
 
-        This report was generated without calling the OpenAI API. It uses local text comparison, so it can identify structural signals but cannot infer deeper voice or meaning as well as the AI learning loop.
+        This report was generated without calling the OpenAI API. It uses local text comparison to analyze differences.
 
         ## Executive Summary
 
+        - Mode: {mode}
         - Similarity score: {similarity:.3f}
         - {comparison_label} word count: {final_words}
         - production_blog.md word count: {production_words}
@@ -167,33 +219,7 @@ def build_offline_learning_report(
 
         ## Stage-by-Stage Offline Insights
 
-        ### story_architect
-
-        Check whether production edits changed the opening, reordered sections, or moved the emotional turn. If yes, update this stage to produce a sharper story map before drafting.
-
-        ### reflection_engine
-
-        Check whether production edits added uncertainty, removed premature certainty, or deepened a hidden tension. If yes, strengthen this stage's questions around ambiguity and self-protection.
-
-        ### writing_agent
-
-        Check whether production edits shortened paragraphs, changed pronouns, removed generic phrasing, or added more lived detail. These are likely reusable drafting rules.
-
-        ### reader_experience
-
-        Check whether the reader diary captured where attention, trust, or connection changed. It should not diagnose or recommend edits.
-
-        ### editor_agent
-
-        Check whether production edits repeated, contradicted, or improved the editor_agent changes. If yes, update the editor to choose better minimal interventions and produce clearer edit logs.
-
-        ### coach_agent
-
-        Check whether production edits answered a deeper question that the coaching report did not ask. If yes, add that question pattern to this stage.
-
-        ### future_self
-
-        Check whether production edits followed or ignored future_reflection.md. If ignored, identify whether future_self was too vague, too cautious, or overreaching.
+        {stage_insights}
 
         ## Local Diff
 
@@ -203,54 +229,84 @@ def build_offline_learning_report(
         """
     ).strip()
 
-def build_offline_tuning_suggestions(report: str) -> str:
+def build_offline_tuning_suggestions(report: str, mode: str = "deep") -> str:
+    if mode == "moment":
+        suggestions_body = textwrap.dedent("""
+            ## sensory_capture
+            - Check: "Did human edit keep concrete observations without inferring hidden meaning?"
+            - Expected effect: cleaner sensory baseline.
+            - Confidence: high
+
+            ## inner_weather
+            - Check: "Did human edit simplify internal weather naming?"
+            - Expected effect: avoids clinical or over-analytical tone.
+            - Confidence: medium
+
+            ## cosmic_signal_reader
+            - Check: "Was the intuitive signal modest and grounded?"
+            - Expected effect: prevents cosmic signal from becoming preachy advice.
+            - Confidence: high
+
+            ## moment_writer
+            - Check: "Did human edit shorten sentences to preserve present-moment breath?"
+            - Expected effect: more natural short-form cadence.
+            - Confidence: high
+
+            ## breath_editor
+            - Check: "Did editor trim without adding new ideas?"
+            - Expected effect: keeps moment under target word limit (300-600 words).
+            - Confidence: high
+
+            ## gentle_witness
+            - Check: "Did witness report accurately identify any didactic tone?"
+            - Expected effect: reinforces calm verification without triggering loops.
+            - Confidence: medium
+        """).strip()
+    else:
+        suggestions_body = textwrap.dedent("""
+            ## story_architect
+            - Add a review question: "Did the production edit move the real beginning of the story?"
+            - Expected effect: better opening selection.
+            - Confidence: medium
+
+            ## reflection_engine
+            - Add a review question: "Did the production edit delay or soften an insight?"
+            - Expected effect: less premature meaning-making.
+            - Confidence: medium
+
+            ## writing_agent
+            - Compare paragraph length and sentence length against production edits before accepting future drafts.
+            - Expected effect: closer rhythm to the author's edited voice.
+            - Confidence: high
+
+            ## reader_experience
+            - Keep this stage as a blind reader diary with no diagnosis or recommendations.
+            - Expected effect: cleaner signal for editor_agent.
+            - Confidence: high
+
+            ## editor_agent
+            - Compare edit_log.md against production edits and add recurring human edit choices as minimum-edit rules.
+            - Expected effect: fewer unnecessary rewrites and better reader connection.
+            - Confidence: medium
+
+            ## coach_agent
+            - Read edited_blog.md instead of draft_blog.md so coaching focuses on the writer's blind spots, not prose cleanup.
+            - Expected effect: deeper coaching questions.
+            - Confidence: medium
+
+            ## future_self
+            - Keep this stage reflective only; it should identify decisions for the human writer, not rewrite final_blog.md.
+            - Expected effect: clearer human ownership of the final version.
+            - Confidence: medium
+        """).strip()
+
     return textwrap.dedent(
         f"""
-        # Offline Workflow Tuning Suggestions
+        # Offline Workflow Tuning Suggestions ({mode.upper()} MODE)
 
-        These suggestions were generated without OpenAI API access. Treat them as a checklist for human review.
+        These suggestions were generated without OpenAI API access for mode '{mode}'.
 
-        ## story_architect
-
-        - Add a review question: "Did the production edit move the real beginning of the story?"
-        - Expected effect: better opening selection.
-        - Confidence: medium
-
-        ## reflection_engine
-
-        - Add a review question: "Did the production edit delay or soften an insight?"
-        - Expected effect: less premature meaning-making.
-        - Confidence: medium
-
-        ## writing_agent
-
-        - Compare paragraph length and sentence length against production edits before accepting future drafts.
-        - Expected effect: closer rhythm to the author's edited voice.
-        - Confidence: high
-
-        ## reader_experience
-
-        - Keep this stage as a blind reader diary with no diagnosis or recommendations.
-        - Expected effect: cleaner signal for editor_agent.
-        - Confidence: high
-
-        ## editor_agent
-
-        - Compare edit_log.md against production edits and add recurring human edit choices as minimum-edit rules.
-        - Expected effect: fewer unnecessary rewrites and better reader connection.
-        - Confidence: medium
-
-        ## coach_agent
-
-        - Read edited_blog.md instead of draft_blog.md so coaching focuses on the writer's blind spots, not prose cleanup.
-        - Expected effect: deeper coaching questions.
-        - Confidence: medium
-
-        ## future_self
-
-        - Keep this stage reflective only; it should identify decisions for the human writer, not rewrite final_blog.md.
-        - Expected effect: clearer human ownership of the final version.
-        - Confidence: medium
+        {suggestions_body}
 
         ## Source Report
 

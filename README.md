@@ -1,10 +1,15 @@
 # Mindful Blog Workflow
 
-Dự án này dùng các file YAML trong thư mục `skills/<style>` (mặc định là `skills/reflective`) để vận hành một workflow viết blog phản tư có hỗ trợ AI.
+Dự án này dùng các file YAML trong thư mục `skills/` để vận hành hệ hai chế độ viết blog phản tư và khoảnh khắc có hỗ trợ AI:
+
+- **`deep_blog_mode`** (`--mode deep`): Viết dài (1000-1500 từ), phản tư sâu, chuyển hóa trải nghiệm.
+- **`moment_blog_mode`** (`--mode moment`): Viết ngắn (300-600 từ), hiện tại, cảm giác giác quan, lắng nghe tín hiệu khoảnh khắc.
 
 Triết lý hiện tại: mỗi agent chỉ trung thành với một câu hỏi duy nhất. AI không thay người viết ra quyết định cuối cùng; AI tạo bản nháp, phản hồi, chỉnh sửa tối thiểu, coaching, và phản tư để người viết tự hoàn thiện `final_blog.md` / `production_blog.md`.
 
-## Workflow Hiện Tại
+## Hai Writing Modes
+
+### 1. Deep Blog Mode (`--mode deep`)
 
 ```text
 story_architect
@@ -17,20 +22,41 @@ story_architect
   -> human writer
 ```
 
-Outputs chính:
+### 2. Moment Blog Mode (`--mode moment`)
 
-- `story_map.md`: sự thật của câu chuyện.
-- `reflection_notes.md`: sự thật của chuyển biến bên trong.
-- `draft_blog.md`: bản nháp trung thực từ `writing_agent`.
-- `reader_report.md`: nhật ký trải nghiệm đọc lần đầu, không gợi ý sửa.
-- `edited_blog.md`: bản đã được `editor_agent` chỉnh để giảm reader friction.
-- `edit_log.md`: lý do của các chỉnh sửa quan trọng.
-- `coaching_report.md`: câu hỏi coaching về blind spots của người viết.
-- `future_reflection.md`: phản tư từ future self, không rewrite.
-- `final_blog.md`: bản cuối do người viết quyết định.
-- `production_blog.md`: bản đăng thật để learning loop học lại.
+```text
+sensory_capture
+  -> inner_weather
+  -> cosmic_signal_reader
+  -> moment_writer
+  -> breath_editor
+  -> gentle_witness
+  -> human writer
+```
 
-## Vai Trò Các Agent
+Outputs chính của `moment_blog_mode`:
+
+- `sensory_notes.md`: ghi nhận cảnh vật, giác quan, cảm giác thân thể.
+- `inner_weather.md`: gọi tên thời tiết bên trong hiện tại.
+- `signal_note.md`: tín hiệu trực giác nhỏ, có căn cứ.
+- `moment_draft.md`: bản nháp ngắn (300-600 từ) giữ năng lượng hiện tại.
+- `moment_edited.md`: bản cắt gọt làm nhẹ bởi `breath_editor`.
+- `witness_report.md`: xác nhận bài viết còn là khoảnh khắc sống từ `gentle_witness`.
+
+## Vai Trò Các Agent Theo Mode
+
+### Moment Mode Agents
+
+| Agent | Trung thành với | Câu hỏi chính |
+| --- | --- | --- |
+| `sensory_capture` | Giác quan | Khoảnh khắc này đang hiện ra qua giác quan như thế nào? |
+| `inner_weather` | Trạng thái | Thời tiết bên trong người viết ngay lúc này là gì? |
+| `cosmic_signal_reader` | Trực giác | Khoảnh khắc này đang thì thầm điều gì với người viết? |
+| `moment_writer` | Năng lượng hiện tại | Nếu chỉ giữ lại khoảnh khắc này, bài viết cần nói điều gì? |
+| `breath_editor` | Độ trong | Cần bỏ hoặc làm nhẹ điều gì để khoảnh khắc được tự cất tiếng? |
+| `gentle_witness` | Sự thật | Bài viết còn là một khoảnh khắc sống hay đã bị kéo thành bài học? |
+
+### Deep Mode Agents
 
 | Agent | Trung thành với | Câu hỏi chính |
 | --- | --- | --- |
@@ -78,22 +104,28 @@ Nếu cần cấu hình riêng:
 Copy-Item engine/config.example.yaml engine/config.local.yaml
 ```
 
-Chạy workflow với phong cách mặc định (`reflective`):
+Chạy deep blog mode (mặc định):
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_input_template.md
+python engine/run_workflow.py --input examples/blog_input_template.md --mode deep
 ```
 
-Chạy workflow với phong cách khác (ví dụ `provocative`):
+Chạy moment blog mode (viết ngắn, hiện tại):
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_input_template.md --style provocative
+python engine/run_workflow.py --input examples/moment_blog_input_template.md --mode moment
+```
+
+Chạy workflow với phong cách khác (ví dụ `provocative` cho deep mode):
+
+```powershell
+python engine/run_workflow.py --input examples/blog_input_template.md --mode deep --style provocative
 ```
 
 Kiểm tra không gọi API (dry-run):
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_input_template.md --style provocative --dry-run
+python engine/run_workflow.py --input examples/moment_blog_input_template.md --mode moment --dry-run
 ```
 
 Mỗi run tạo thư mục riêng trong `runs/`, gồm:

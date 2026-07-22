@@ -1,5 +1,63 @@
 # Tổng hợp Git Diff và Thay đổi Code
 
+## 8. Hệ Hai Writing Modes (Dual Writing Modes System) (2026-07-22)
+> **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)
+
+- **`flow/write_moment_blog.yaml`** (Mới thêm):
+  ```yaml
+  name: mindful_moment_blog_workflow
+  mode: moment
+  # Khai báo quy trình 6 bước: sensory_capture -> inner_weather -> cosmic_signal_reader -> moment_writer -> breath_editor -> gentle_witness
+  ```
+- **`flow/write_blog.yaml`**:
+  ```diff
+    name: mindful_blog_workflow
+  + mode: deep
+    description: >
+  ```
+- **`skills/moment/reflective/*.yaml`** (Mới thêm 6 file skills chuẩn hóa):
+  ```yaml
+  # sensory_capture.yaml, inner_weather.yaml, cosmic_signal_reader.yaml, moment_writer.yaml, breath_editor.yaml, gentle_witness.yaml
+  name: <skill_name>
+  mode: moment_blog_mode
+  purpose: ...
+  output:
+    artifact: <file.md>
+    handoff: ...
+  ```
+- **`engine/run_workflow.py`**:
+  ```diff
+  + parser.add_argument("--mode", choices=["deep", "moment"], default="deep")
+  + if mode == "moment" and style == "provocative":
+  +     print("[WARNING] Moment mode does not support provocative style. Falling back to 'reflective'.", file=sys.stderr)
+  +     style = "reflective"
+  + explicit_mode = args.mode if any(a.startswith("--mode") for a in sys.argv) else None
+  ```
+- **`engine/workflow.py`**:
+  ```diff
+  + def resolve_workflow_file(config: dict[str, Any], mode: str) -> Path:
+  +     if mode == "moment": return resolve_path("flow/write_moment_blog.yaml")
+  +     return resolve_path("flow/write_blog.yaml")
+  +
+  + def resolve_step_skill_path(step: dict[str, Any], style: str, mode: str) -> Path:
+  +     if mode == "moment": return resolve_path(f"skills/moment/{style}/{original_path.name}")
+  ```
+- **`engine/learning.py`**:
+  ```diff
+  + report_name = f"{mode}_blog_patterns.md"
+  + learning_dir = run_dir / "learning" / mode / timestamp
+  ```
+- **`engine/config.example.yaml`**:
+  ```diff
+  +   # Moment mode stages
+  +   sensory_capture: { model: gpt-4.1-mini, temperature: 0.3, max_output_tokens: 1500 }
+  +   ...
+  ```
+- **`tests/test_moment_blog_mode.py`** (Mới thêm):
+  ```python
+  # 8 test cases kiểm thử hợp đồng flow, mode routing, dry-run, offline learning, và cùng 1 input chạy cả 2 mode.
+  ```
+
 *Lưu ý: Kho lưu trữ Git mới được khởi tạo ở thời điểm hiện tại. Do đó, toàn bộ lịch sử và "diff" trong quá khứ đã được gom gọn vào Initial Commit. Dưới đây là tóm tắt các thay đổi về mã nguồn (Code Diff Summary) được tái tạo từ các Log trước.*
 
 ## 1. Modularization (Tách Monolith)

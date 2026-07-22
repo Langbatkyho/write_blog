@@ -1,0 +1,45 @@
+name: sensory_capture
+mode: moment_blog_mode
+purpose: "Ghi lại khoảnh khắc hiện tại bằng giác quan, không diễn giải sâu."
+core_question: "Khoảnh khắc này đang hiện ra qua giác quan như thế nào?"
+input:
+  required:
+    - raw_notes
+  optional:
+    - author_phrases
+    - time_place_context
+
+tasks:
+  - identify_central_moment
+  - capture_visible_scene
+  - capture_sound_smell_temperature
+  - capture_bodily_sensation
+  - preserve_authentic_phrasing
+  - separate_observation_from_interpretation
+
+do_not:
+  - infer_hidden_meaning
+  - explain_transformation
+  - add_life_advice
+  - beautify_for_effect
+  - invent_missing_details
+
+output:
+  artifact: sensory_notes.md
+  sections:
+    - central_moment
+    - visible_scene
+    - sensory_details
+    - bodily_sensations
+    - verbatim_fragments
+    - uncertain_details
+  handoff:
+    required: true
+    target_words: "50-90"
+    focus: "What was seen, felt, and noticed."
+
+style_rules:
+  - keep_language_concrete
+  - prefer_short_sentences
+  - preserve_uncertainty
+  - do_not_name_philosophy

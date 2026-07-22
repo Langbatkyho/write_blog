@@ -1,4 +1,5 @@
 name: mindful_blog_workflow
+mode: deep
 description: >
   A reflective editorial workflow that turns the author's raw lived
   experience into a faithful draft, captures first-time reader experience,

@@ -1,6 +1,14 @@
 # Kiến trúc dự án hiện tại (Mindful Blog Workflow Engine)
 
-Sau quá trình refactoring toàn diện và tái thiết kế biên giới (boundaries) của từng Agent, kiến trúc hiện tại đã được module hóa cao độ, hỗ trợ Dependency Injection (DI) và có cơ chế bảo vệ hợp đồng dữ liệu rõ ràng.
+> **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)  
+> **Cập nhật ngày:** 2026-07-22
+
+Dự án `mindful_writing_os` đã được nâng cấp toàn diện từ một hệ thống phản tư đơn sang **Hệ Hai Writing Modes** (Dual Writing Modes Architecture):
+
+1. **`deep_blog_mode` (`--mode deep`)**: Dành cho bài viết dài (1000-1500 từ), phản tư sâu, chuyển hóa trải nghiệm nội tâm.
+2. **`moment_blog_mode` (`--mode moment`)**: Dành cho bài viết ngắn (300-600 từ), hiện tại, trực giác, ghi nhận tín hiệu giác quan & thời tiết bên trong mà không ép bài học hay triết lý hóa.
+
+---
 
 ## 1. Cấu trúc thư mục (Directory Structure)
 
@@ -11,72 +19,93 @@ write_blog/
 │   ├── utils.py              # Xử lý đường dẫn và đọc/ghi YAML, text
 │   ├── parser.py             # Phân tích nội dung Artifact/Handoff, đếm tokens
 │   ├── openai_client.py      # Giao tiếp OpenAI API, retry loops, bảo mật key
-│   ├── antigravity_bridge.py # Giao tiếp qua file (File-based Bridge) dùng Local Model Quota
-│   ├── learning.py           # Quản lý prompts và báo cáo cho learning loop
-│   ├── workflow.py           # Quản lý Workflow & Step orchestrator
-│   └── run_workflow.py       # CLI Entrypoint linh hoạt (Hỗ trợ cờ `--client`)
+│   ├── client_router.py      # Định tuyến stage-to-client mapping (--client-map)
+│   ├── antigravity_bridge.py # Giao tiếp qua file-bridge cho Local Model Quota
+│   ├── learning.py           # Quản lý prompts & offline/online learning phân tách theo mode
+│   ├── workflow.py           # Workflow Orchestrator (Dynamic skill resolution & flow routing)
+│   └── run_workflow.py       # CLI Entrypoint hỗ trợ `--mode`, `--style`, `--client`, `--learn-from-run`
 ├── examples/
-│   └── blog_input_template.md
+│   ├── blog_input_template.md        # Input mẫu cho Deep Blog Mode
+│   └── moment_blog_input_template.md # Input mẫu cho Moment Blog Mode
 ├── flow/
-│   └── write_blog.yaml       # Nguồn chân lý cho Context Policy và Định tuyến (Routing)
+│   ├── write_blog.yaml       # Quy trình Deep Blog Mode (7 bước)
+│   └── write_moment_blog.yaml# Quy trình Moment Blog Mode (6 bước)
 ├── skills/
-│   ├── reflective/
-│   │   ├── story_architect.yaml  # Trung thành với sự thật câu chuyện
-│   │   ├── reflection_engine.yaml# Sự thay đổi nội tâm của người viết
-│   │   ├── writing_agent.yaml    # Viết bản nháp thô (Ghost Writer)
-│   │   ├── reader_experience.yaml# Ghi chép trải nghiệm đọc (Reader Diary)
-│   │   ├── editor_agent.yaml     # Biên tập viên kết nối (Giảm ma sát người đọc)
-│   │   ├── coach_agent.yaml      # Khai phá điểm mù của người viết
-│   │   └── future_self.yaml      # Suy ngẫm về tính toàn vẹn ở tương lai
-│   ├── provocative/           # Phong cách viết gai góc, khiêu khích (cùng 7 agent YAML + STYLE_BRIEF.md)
-│   └── editorial_learning.yaml
+│   ├── reflective/           # 7 Deep mode skills (Story, Reflection, Writing, Reader, Editor, Coach, Future Self)
+│   ├── provocative/          # 7 Deep mode skills gai góc
+│   ├── moment/
+│   │   └── reflective/       # 6 Moment mode skills:
+│   │       ├── sensory_capture.yaml     # Ghi nhận cảnh & thân thể
+│   │       ├── inner_weather.yaml       # Gọi tên thời tiết bên trong
+│   │       ├── cosmic_signal_reader.yaml# Tín hiệu trực giác nhỏ
+│   │       ├── moment_writer.yaml       # Nháp ngắn (300-600 từ)
+│   │       ├── breath_editor.yaml       # Cắt gọt nhẹ nhàng (Breath edit)
+│   │       └── gentle_witness.yaml      # Xác nhận độ trong & tươi mới
+│   └── editorial_learning.yaml# Skill phân tích học tập biên tập
 ├── tests/
 │   ├── test_handoff_parser.py
 │   ├── test_openai_client.py
 │   ├── test_workflow_contract.py
-│   └── test_antigravity_bridge.py
-├── docs/                     # Lưu trữ lịch sử triển khai và phân tích hệ thống
+│   ├── test_antigravity_bridge.py
+│   ├── test_client_router.py
+│   └── test_moment_blog_mode.py  # Test suite toàn diện cho Dual Writing Modes
+├── docs/                     # Tài liệu thiết kế, kế hoạch, review & changelog
 ├── README.md
 └── mindful_writing_os.md
 ```
 
-## 2. Luồng dữ liệu và Context Policy
+---
 
-Tất cả các quyết định về việc truyền dữ liệu từ bước trước sang bước sau đều được khai báo rõ ràng trong `flow/write_blog.yaml` (Context Policy) thay vì giấu trong code Python.
+## 2. Luồng làm việc & Phân vai Agent theo Mode
 
-- **story_architect**: Không nhận ngữ cảnh từ trước.
-- **reflection_engine**: Nhận handoff từ `story_architect`.
-- **writing_agent**: Nhận handoff từ story và reflection.
-- **reader_experience**: Nhận duy nhất `draft_blog.md` để mô phỏng "đọc mù" (blind reading).
-- **editor_agent**: Nhận bản nháp và báo cáo trải nghiệm đọc.
-- **coach_agent**: Nhận bản đã biên tập (`edited_blog.md`) để rèn luyện người viết.
-- **future_self**: Nhận bản đã biên tập và toàn bộ handoff từ editor, coach, reflection.
-- **Human Writer**: Làm chủ bản xuất bản cuối cùng (`production_blog.md`).
+### 2.1. Deep Blog Mode (`--mode deep`)
 
-Mỗi giai đoạn sinh ra 2 loại cấu trúc:
-1. `Artifact`: Bản chi tiết đầy đủ (dùng cho vòng lặp học tập và debug).
-2. `Handoff`: Bản tóm tắt súc tích (truyền cho bước sau để tối ưu lượng token sử dụng).
+Luồng xử lý 7 bước:
+```text
+story_architect -> reflection_engine -> writing_agent -> reader_experience -> editor_agent -> coach_agent -> future_self -> Human Writer
+```
 
-## 3. Cấu trúc Prompt và Prompt Caching (Mới)
-Prompt cho từng Agent (`engine/workflow.py`) được thiết kế đặc biệt để tối ưu hóa tính năng **Prompt Caching** (như của Anthropic / OpenAI):
-- **Static Prefix (Phần tĩnh đầu bảng):** Chứa các giới thiệu hệ thống, Author Input (nếu có), và các chỉ thị cố định (Instructions). Phần này chiếm khoảng ~1,700 tokens, không đổi giữa các stage (trừ `reader_experience`), giúp API tự động hit cache và tiết kiệm tới 90% chi phí input token lặp lại.
-- **Dynamic Suffix (Phần động đuôi bảng):** Chứa các dữ liệu thay đổi liên tục (Handoffs, Artifacts, metadata hiện tại) và phần `Skill YAML`. Việc đặt `Skill YAML` ở cuối cùng cũng nhằm tận dụng hiệu ứng **Recency Bias** để ép LLM tuân thủ chặt chẽ định dạng đầu ra.
+| Agent | Trung thành với | Câu hỏi chính |
+| :--- | :--- | :--- |
+| `story_architect` | Câu chuyện | Điều gì thật sự đã xảy ra? |
+| `reflection_engine` | Nhận thức | Điều gì thay đổi bên trong người viết? |
+| `writing_agent` | Giọng người viết | Nếu có đủ thời gian, tác giả sẽ kể chuyện này thế nào? |
+| `reader_experience` | Trải nghiệm đọc | Độc giả lần đầu đã cảm thấy gì? |
+| `editor_agent` | Kết nối | Cần thay đổi tối thiểu điều gì để giảm ma sát? |
+| `coach_agent` | Sự phát triển | Người viết còn chưa nhìn thấy điều gì? |
+| `future_self` | Con người tương lai | 5 năm nữa, tác giả còn muốn đứng tên bài này không? |
 
-## 4. Hệ thống Dependency Injection (DI) Client
+### 2.2. Moment Blog Mode (`--mode moment`)
 
-Codebase hỗ trợ đa dạng LLM Provider. Hàm `run_workflow` nhận một tham số `llm_client: LlmClient = None`. TypeAlias được định nghĩa tại `engine/workflow.py`:
-`LlmClient = Callable[[str, dict[str, Any], str | None], str]`
+Luồng xử lý 6 bước:
+```text
+sensory_capture -> inner_weather -> cosmic_signal_reader -> moment_writer -> breath_editor -> gentle_witness -> Human Writer
+```
 
-Hệ thống cung cấp một bộ định tuyến (`engine/client_router.py`) cho phép gán model/client theo từng stage cụ thể:
-- **Client Router (`create_routing_client`)**: Hàm trả về một Callable dispatch requests tới các client khác nhau dựa trên tham số `--client-map`.
+| Agent | Trung thành với | Câu hỏi chính |
+| :--- | :--- | :--- |
+| `sensory_capture` | Giác quan | Khoảnh khắc này đang hiện ra qua giác quan như thế nào? |
+| `inner_weather` | Trạng thái | Thời tiết bên trong người viết ngay lúc này là gì? |
+| `cosmic_signal_reader` | Trực giác | Khoảnh khắc này đang thì thầm điều gì với người viết? |
+| `moment_writer` | Năng lượng hiện tại | Nếu chỉ giữ lại khoảnh khắc này, bài viết cần nói điều gì? |
+| `breath_editor` | Độ trong | Cần bỏ hoặc làm nhẹ điều gì để khoảnh khắc được tự cất tiếng? |
+| `gentle_witness` | Sự thật | Bài viết còn là một khoảnh khắc sống hay đã bị kéo thành bài học? |
 
-Các client cơ sở (Base Clients) bao gồm:
-- **OpenAI API** (`call_openai`): Quản lý qua `engine/openai_client.py`.
-- **Antigravity Quota** (`call_antigravity`): Quản lý qua file-bridge trong `engine/antigravity_bridge.py` với cơ chế timeout 300 giây.
-  - *Lưu ý*: Cơ chế File-Bridge này bắt buộc người dùng phải chọn một **Agentic Model** (như Gemini 3.1 Pro, Claude Sonnet 4.6) trên giao diện chat. Các model thuần text (không hỗ trợ Tool Calling) như GPT-OSS sẽ không thể tự động xử lý file, dẫn đến lỗi treo hệ thống.
+---
 
-## 4. Learning Loop
+## 3. Quy Tắc Routing & Skill Resolution
 
-- Thu thập và phân tích sự chênh lệch (diff) giữa `final_blog.md` (hoặc `edited_blog.md`) do AI sinh ra và `production_blog.md` do con người biên tập thủ công lần cuối.
-- Quá trình "học lại" sử dụng Artifact thay vì Handoff nhằm bảo toàn bằng chứng nguyên vẹn.
-- Hỗ trợ cả **Offline Learning** (so sánh text local) và **API Learning** (gọi LLM trích xuất insights).
+- **Flow Routing (`resolve_workflow_file`)**: Tự động chuyển hướng tới `flow/write_moment_blog.yaml` nếu `mode == "moment"`, hoặc `flow/write_blog.yaml` nếu `mode == "deep"`.
+- **Skill Path Resolution (`resolve_step_skill_path`)**: Ưu tiên tìm skill theo cấu trúc `skills/moment/{style}/{skill_name}` khi ở Moment mode, hoặc `skills/{style}/{skill_name}` khi ở Deep mode.
+- **Style-Mode Fallback**: Nếu người dùng chọn `--mode moment --style provocative`, CLI sẽ cảnh báo và tự động fallback về `reflective` do Moment mode không hỗ trợ provocative.
+
+---
+
+## 4. Mode-Separated Learning Loop
+
+Vòng lặp học tập (Learning Loop) phân tách hoàn toàn dữ liệu tri thức theo mode:
+- Kết quả chạy lưu tại: `runs/<run_dir>/learning/<mode>/<timestamp>/`
+- Tên báo cáo mẫu tri thức:
+  - Deep mode: `deep_blog_patterns.md`
+  - Moment mode: `moment_blog_patterns.md`
+- Đảm bảo tri thức bài viết ngắn (khoảnh khắc) không làm ô nhiễm quy tắc biên tập bài viết dài (phản tư sâu).

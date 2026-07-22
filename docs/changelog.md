@@ -1,5 +1,30 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Phiên bản: Hệ Hai Writing Modes (Dual Writing Modes System) (2026-07-22)
+> **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)
+
+- **Hệ Thống Hai Chế Độ Viết (`deep_blog_mode` & `moment_blog_mode`)**:
+  - Tách biệt hai quy trình: bài viết dài phản tư sâu (1000-1500 từ) và bài viết ngắn khoảnh khắc (300-600 từ).
+- **Tạo 6 Skill YAML Cho Moment Mode (`skills/moment/reflective/`)**:
+  - `sensory_capture.yaml`: Ghi nhận cảnh vật, âm thanh, cảm giác thân thể.
+  - `inner_weather.yaml`: Gọi tên thời tiết bên trong gắn với biểu hiện cơ thể.
+  - `cosmic_signal_reader.yaml`: Lắng nghe tín hiệu trực giác nhỏ có căn cứ.
+  - `moment_writer.yaml`: Viết nháp ngắn (300-600 từ) giữ năng lượng hiện tại.
+  - `breath_editor.yaml`: Cắt gọt nhẹ nhàng, làm bài thở ra.
+  - `gentle_witness.yaml`: Ghi nhận điềm tĩnh độ tươi mới của bài viết.
+- **Tạo & Tối Ưu Flow YAML (`flow/`)**:
+  - Thêm `flow/write_moment_blog.yaml` định nghĩa quy trình 6 bước cho Moment Blog.
+  - Thêm `mode: deep` vào `flow/write_blog.yaml` và loại bỏ file flow trùng lặp (`flow/write_deep_blog.yaml`).
+- **Nâng Cấp Engine & CLI (`engine/`)**:
+  - `run_workflow.py`: Bổ sung tham số `--mode deep|moment` (mặc định `deep`), kiểm tra cờ `--mode` linh hoạt, tự động fallback `moment+provocative -> reflective`.
+  - `workflow.py`: Định tuyến flow động (`resolve_workflow_file`), nạp skill theo mode/style (`resolve_step_skill_path`), đơn giản hóa `derive_artifact_file_contents`.
+  - `learning.py`: Tách biệt báo cáo learning theo mode (`learning/<mode>/<timestamp>/`), đặt tên file kết quả dạng `deep_blog_patterns.md` và `moment_blog_patterns.md`.
+  - `config.example.yaml`: Thêm cấu hình token/temperature riêng cho 6 agent của Moment Mode.
+- **Kiểm Thử & Documentation**:
+  - Thêm `examples/moment_blog_input_template.md` làm mẫu đầu vào cho Moment mode.
+  - Thêm `tests/test_moment_blog_mode.py` với 8 test cases phủ hợp đồng flow, resolution, dry-run, offline learning, và kiểm thử chung 1 input cho cả 2 mode.
+  - Cập nhật `README.md` với đầy đủ tài liệu hướng dẫn hai chế độ viết.
+
 ## Phiên bản: Đa Phong Cách Multi-Style Architecture (2026-07-20)
 - **Tái Cấu Trúc Thư Mục Skill (`skills/`)**:
   - Tạo `skills/reflective/` lưu 7 agent YAML gốc (Style 1 mặc định).
