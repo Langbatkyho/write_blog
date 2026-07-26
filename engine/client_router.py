@@ -20,10 +20,15 @@ def _get_antigravity() -> LlmClient:
     from engine.antigravity_bridge import call_antigravity
     return call_antigravity
 
+def _get_gemini() -> LlmClient:
+    from engine.gemini_client import call_gemini
+    return call_gemini
+
 # Registry: tên client -> hàm import lazy
 _CLIENT_REGISTRY: dict[str, Callable[[], LlmClient]] = {
     "openai": _get_openai,
     "antigravity": _get_antigravity,
+    "gemini": _get_gemini,
 }
 
 VALID_CLIENTS = set(_CLIENT_REGISTRY.keys())

@@ -37,7 +37,13 @@ class TestAntigravityBridge(unittest.TestCase):
         mock_response_file.exists.side_effect = [False, True]
         mock_response_file.read_text.return_value = "Mocked Response"
 
-        config = {"openai": {"model": "test-model"}, "antigravity": {"timeout": 5}}
+        config = {
+            "openai": {
+                "model": "default-model",
+                "stages": {"test_stage": {"model": "test-model"}},
+            },
+            "antigravity": {"timeout": 5},
+        }
         
         result = call_antigravity("Hello", config, "test_stage")
         

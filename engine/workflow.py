@@ -159,20 +159,26 @@ def resolve_workflow_file(config: dict[str, Any], mode: str) -> Path:
 
 def resolve_step_skill_path(step: dict[str, Any], style: str, mode: str) -> Path:
     original_path = Path(step["skill"])
-    if "moment" in original_path.parts:
-        return resolve_path(str(original_path))
-    if mode == "moment":
-        moment_path = resolve_path(f"skills/moment/{style}/{original_path.name}")
-        if moment_path.exists():
-            return moment_path
-        moment_root_path = resolve_path(f"skills/moment/{original_path.name}")
-        if moment_root_path.exists():
-            return moment_root_path
-    styled_path = original_path.parent / style / original_path.name
-    resolved = resolve_path(str(styled_path))
-    if resolved.exists():
-        return resolved
-    return resolve_path(str(original_path))
+    filename = original_path.name
+
+    from engine.style_manager import resolve_style_by_slug_or_alias
+    resolved = resolve_style_by_slug_or_alias(mode, style)
+    if resolved:
+        style = resolved
+
+    t1 = resolve_path(f"skills/{mode}/{style}/{filename}")
+    if t1.exists():
+        return t1
+
+    if mode == "deep":
+        t2 = resolve_path(f"skills/{style}/{filename}")
+        if t2.exists():
+            return t2
+
+    raise FileNotFoundError(
+        f"Skill '{filename}' not found for style '{style}' in mode '{mode}'. "
+        f"Expected at: skills/{mode}/{style}/{filename}"
+    )
 
 def run_workflow(
     config_path: Path,
@@ -188,6 +194,8 @@ def run_workflow(
     config = load_yaml(config_path)
     workflow_file = resolve_workflow_file(config, mode)
     workflow = load_yaml(workflow_file)
+    from engine.style_manager import validate_style_contract
+    style = validate_style_contract(mode, style, workflow_file)
     author_input = read_text(input_path)
 
     log_root = resolve_path(config.get("workflow", {}).get("log_dir", "runs"))
@@ -370,6 +378,8 @@ def run_learning_loop(
 
     workflow_file = resolve_workflow_file(config, mode)
     workflow = load_yaml(workflow_file)
+    from engine.style_manager import validate_style_contract
+    style = validate_style_contract(mode, style, workflow_file)
 
     if production_path is None:
         production_path = run_dir / "production_blog.md"

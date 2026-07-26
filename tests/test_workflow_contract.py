@@ -43,13 +43,13 @@ class WorkflowContractTest(unittest.TestCase):
         self.assertEqual(reader_step["context_policy"]["artifacts"], ["writing_agent"])
 
         for style in ["reflective", "provocative"]:
-            reader_skill = load_yaml(f"skills/{style}/reader_experience.yaml")
+            reader_skill = load_yaml(f"skills/deep/{style}/reader_experience.yaml")
             self.assertIn("Never edit", reader_skill["supreme_rule"])
             self.assertNotIn("suggested_revisions", str(reader_skill))
 
     def test_editor_agent_has_secondary_edit_log(self) -> None:
         for style in ["reflective", "provocative"]:
-            editor_skill = load_yaml(f"skills/{style}/editor_agent.yaml")
+            editor_skill = load_yaml(f"skills/deep/{style}/editor_agent.yaml")
 
             self.assertEqual(editor_skill["output"]["name"], "edited_blog.md")
             self.assertEqual(editor_skill["output"]["secondary_name"], "edit_log.md")

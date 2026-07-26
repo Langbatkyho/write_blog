@@ -143,6 +143,18 @@ Dùng Antigravity bridge để tận dụng model quota nội bộ (chỉ áp d�
 python engine/run_workflow.py --input examples/blog_input_template.md --client antigravity
 ```
 
+Chạy `moment_blog_mode` bằng Local Model Quota trên ChatGPT Work:
+
+```powershell
+python engine/run_workflow.py --input examples/blog_1.md --mode moment --client antigravity
+```
+
+Chỉ dẫn chi tiết:
+
+```text
+docs/2026-07-22-moment-blog-local-model-quota-chatgpt-work-guide.md
+```
+
 > [!WARNING]
 > Cơ chế Bridge yêu cầu model trên giao diện chat phải có năng lực **Tool Calling** xuất sắc để tự động đọc/ghi file (ví dụ: `view_file`, `write_to_file`). Nếu bạn chọn các model thuần text (như GPT-OSS 120B) trên giao diện chat, script sẽ bị treo (Timeout) do model không biết cách ghi file trả kết quả.
 

@@ -2,9 +2,10 @@ name: editorial_learning
 version: 2.0
 
 description: |
-  Learn from the difference between the AI-supported editorial path and the
-  author's human-edited production draft, then translate that learning into
-  workflow improvement insights.
+  Học từ khác biệt giữa đường biên tập có AI hỗ trợ và bản production
+  do người viết chỉnh sửa, rồi chuyển hóa thành insight cải thiện workflow.
+  Mặc định viết báo cáo bằng tiếng Việt; chỉ giữ tiếng Anh cho tên hàm,
+  thuộc tính, biến số, file name, stage id, YAML key và thuật ngữ hệ thống.
 
 input:
   workflow:
@@ -27,26 +28,26 @@ input:
     required: true
 
 goal:
-  Discover how the author's production edit differs from the workflow outputs,
-  then identify what each stage should learn.
+  Phát hiện bản production của người viết khác gì so với output của workflow,
+  rồi xác định từng stage cần học điều gì.
 
 tasks:
-  - Compare draft_blog.md, edited_blog.md, future_reflection.md, final_blog.md, and production_blog.md when available.
-  - Identify recurring human-editor preferences.
-  - Separate one-off edits from reusable workflow principles.
-  - Trace production changes back to the stage most responsible for them.
-  - Evaluate whether reader_experience captured the reader signal without diagnosing.
-  - Evaluate whether editor_agent resolved reader friction with minimal edits.
-  - Evaluate whether coach_agent found writer blind spots instead of prose issues.
-  - Evaluate whether future_self raised useful publication decisions without rewriting.
-  - Suggest concrete improvements for story_architect, reflection_engine, writing_agent, reader_experience, editor_agent, coach_agent, and future_self.
+  - So sánh draft_blog.md, edited_blog.md, future_reflection.md, final_blog.md và production_blog.md khi có.
+  - Với moment_blog_mode, so sánh sensory_notes.md, inner_weather.md, signal_note.md, moment_draft.md, moment_edited.md, witness_report.md, final_blog.md và production_blog.md khi có.
+  - Nhận diện các preference biên tập lặp lại của người viết.
+  - Tách chỉnh sửa một lần khỏi nguyên tắc workflow có thể tái sử dụng.
+  - Truy ngược thay đổi trong production về stage chịu trách nhiệm nhiều nhất.
+  - Đánh giá từng stage theo đúng mode hiện tại, không áp deep agents vào moment mode.
+  - Gợi ý cải thiện cụ thể cho các stage hiện có trong workflow.
 
 rules:
-  - Do not rewrite the blog post.
-  - Do not flatter the author.
-  - Do not treat every human edit as a rule.
-  - Prefer precise workflow insights over generic writing advice.
-  - Preserve uncertainty when the evidence is not strong enough.
+  - Mặc định viết toàn bộ output bằng tiếng Việt.
+  - Chỉ giữ tiếng Anh cho tên hàm, thuộc tính, biến số, file name, stage id, YAML key và thuật ngữ hệ thống đã có sẵn.
+  - Không viết lại bài blog.
+  - Không tâng bốc người viết.
+  - Không xem mọi chỉnh sửa của người viết là một quy tắc.
+  - Ưu tiên insight workflow chính xác hơn lời khuyên viết lách chung chung.
+  - Giữ sự chưa chắc khi evidence chưa đủ mạnh.
 
 output:
   type: markdown

@@ -61,9 +61,23 @@ graph TD
   - Thêm cờ `--mode` vào CLI `engine/run_workflow.py` và hỗ trợ phân tách thư mục `learning/<mode>/<timestamp>/`.
   - Viết bộ unit test ban đầu `tests/test_moment_blog_mode.py`.
 
-### 2.5. Subagents Chuyên Biệt (Research & Codebase Auditors)
-- **Nhiệm vụ:** Chạy ngầm trong môi trường cô lập để đọc mã nguồn, kiểm tra file system, trích xuất log mà không làm ô nhiễm context chính.
-- **Kết quả:** Cung cấp đầy đủ nội dung nguyên vẹn của 12+ files mã nguồn và test suite cho Agent chính thực hiện kiểm tra contract.
+### 2.5. Subagents Chuyên Biệt (Guided Style Voice Lab Core Team)
+Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent chuyên biệt đã được khởi tạo để hiện thực hóa 4 phân vùng kiến trúc:
+1. **Data & Security Architect Subagent (`065c2c93`)**:
+   - **Xây dựng:** `engine/voice_lab/models.py`, `migration.py`, `archive.py`.
+   - **Đóng góp:** Định nghĩa Pydantic Schemas (`StyleProfile`, `VoiceDNA`, `EvidenceClaim`, `CanonicalIR`), hàm `sanitize_sample` chống Prompt Injection, nạp style cũ `import_existing_style`, và xuất/nhập gói an toàn `.voice-style.zip` (SHA-256 integrity).
+2. **Backend Domain Engineer Subagent (`0b671dfc`)**:
+   - **Xây dựng:** `engine/voice_lab/analyzer.py`, `interview.py`, `compiler.py`, `overrides.py`.
+   - **Đóng góp:** Phân tích Voice DNA & Bằng chứng (100% tiếng Việt), tạo phỏng vấn & A/B Calibration mù (`calibrate_ab`, `DIMENSION_VI`), lập ma trận kề `DIMENSION_AGENTS` và bộ xử lý 3-way diff overrides.
+3. **UI/UX Integrator Subagent (`c6144baa`)**:
+   - **Xây dựng:** Giao diện 5-Step Guided Voice Lab Wizard trong `ui/app.py`.
+   - **Đóng góp:** Tích hợp Quota Estimator UI, Layer Inspector so sánh Canonical IR và Effective YAML, cùng quy trình xuất bản an toàn 4 tầng Publish Safety Pipeline (Staging -> Validate -> Backup -> Atomic Replace / Rollback).
+4. **QA & Verification Bot Subagent (`2b3d3fbe`)**:
+   - **Xây dựng:** `tests/test_voice_lab.py`.
+   - **Đóng góp:** Viết bộ Contract Test kiểm chứng 100% độ phủ ma trận kề `DIMENSION_AGENTS` và Zero-cost Smoke Test kiểm tra từ khóa không tốn Quota.
+
+### 2.6. Agent Chính (Antigravity Main Agent)
+- **Nhiệm vụ:** Điều phối toàn hệ thống, sửa lỗi Publish Staging (`AGENT_FILENAME_MAP`), Việt hóa 100% phỏng vấn & calibration, đóng vai trò Bridge Agent chạy workflow Moment mode với style `va-natural` qua Local Model Quota.
 
 ---
 
@@ -77,12 +91,18 @@ graph TD
 | 2026-07-22 15:26 | Gemini 3.6 Flash | Triển khai mã nguồn toàn bộ 2 modes (`/goal`) | Xây dựng skills, flows, engine & test suite (33 tests OK) |
 | 2026-07-22 15:31 | Claude Opus 4.6 | Audit mã nguồn cực kỳ cô đọng | Xuất báo cáo audit với 5 vector refactor |
 | 2026-07-22 15:38 | Gemini 3.1 Pro | Khắc phục triệt để các lỗi Audit (`/goal`) | Xóa file trùng, chuẩn hóa YAML, sửa CLI, 34/34 tests OK |
-| 2026-07-22 15:42 | Gemini 3.6 Flash | Cập nhật bộ tài liệu `docs/` | Hoàn tất cập nhật `current_architecture`, `changelog`, `git_diff`, `user_prompts`, `agent_activities` |
+| 2026-07-25 10:15 | Antigravity Agent | Triển khai Multi-Editable-Style V5.0 | Xây dựng `style_manager.py`, UI 4 Tabs, Group-Based Validator |
+| 2026-07-26 11:30 | Subagents 1-4 | Triển khai Voice Lab V1 Backend & UI | Tạo gói `engine/voice_lab/`, `tests/test_voice_lab.py`, UI 5-step |
+| 2026-07-26 14:15 | Antigravity Agent | Khắc phục lỗi Publish Rollback & Việt hóa | Thêm `AGENT_FILENAME_MAP`, Việt hóa `analyzer.py` & `interview.py` |
+| 2026-07-26 14:48 | Antigravity Agent | Chạy Moment Blog `va-natural` qua Local Quota | Tạo bài blog khoảnh khắc `Người Vô Sự` hoàn chỉnh |
+| 2026-07-26 15:07 | Antigravity Agent | Cập nhật hệ thống tài liệu `docs/` (`/goal`) | Hoàn tất cập nhật 5 file tài liệu kiến trúc & lịch sử |
 
 ---
 
 ## 4. Bài Học Kinh Nghiệm Quản Trị Đa Đại Lý (Multi-Agent Governance)
 
 1. **Khóa Contract Trước Khi Viết Code (Phase 0):** Việc chốt rõ Schema giữa `output.artifact` và `output.handoff` giúp tránh bất kỳ sự sai lệch nào giữa các sub-agents.
-2. **Loại Bỏ Code Trùng Lặp Sớm:** Không nên tạo các file flow song song (`write_deep_blog.yaml` vs `write_blog.yaml`) khi chỉ khác biệt 1 trường cấu hình `mode`. Hãy tận dụng routing động trong engine.
-3. **Phân Tách Thư Mục Tri Thức Theo Mode:** Việc phân chia tri thức học được (`learning/deep/` và `learning/moment/`) giúp bảo vệ phong cách bài viết ngắn không bị pha tạp bởi các quy tắc biên tập của bài viết dài.
+2. **Khớp Tên File Hợp Đồng (Filename Mapping):** Khi biên dịch code động ra thư mục staging, luôn phải dùng bảng tra cứu tên file cứng (`AGENT_FILENAME_MAP`) để đảm bảo không bị lỗi vi phạm hợp đồng Flow do lệch slug.
+3. **Quy Trình Xuất Bản An Toàn Nguyên Tử (Atomic Replace & Rollback):** Việc áp dụng staging -> validate -> replace giúp bảo vệ tuyệt đối dữ liệu phong cách hệ thống không bị hư hỏng khi gặp sự cố giữa chừng.
+4. **Phân Tách Thư Mục Tri Thức Theo Mode:** Việc phân chia tri thức học được (`learning/deep/` và `learning/moment/`) giúp bảo vệ phong cách bài viết ngắn không bị pha tạp bởi các quy tắc biên tập của bài viết dài.
+

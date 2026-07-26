@@ -25,7 +25,7 @@ def build_learning_prompt(
 
     return textwrap.dedent(
         f"""
-        You are running the learning loop for an automated reflective blog workflow.
+        Bạn đang chạy learning loop cho một workflow viết blog phản tư tự động.
         Writing Mode: {mode}
 
         Learning skill YAML:
@@ -43,34 +43,36 @@ def build_learning_prompt(
         {skills_yaml}
         ```
 
-        Original author input:
+        Input gốc của tác giả:
         ```markdown
         {author_input}
         ```
 
-        Workflow step outputs:
+        Output của các bước workflow:
         ```markdown
         {step_outputs_block}
         ```
 
-        AI-supported comparison draft ({comparison_label}):
+        Bản nháp so sánh có AI hỗ trợ ({comparison_label}):
         ```markdown
         {final_blog}
         ```
 
-        Human-edited production_blog.md:
+        Bản người viết đã chỉnh sửa production_blog.md:
         ```markdown
         {production_blog}
         ```
 
         Instructions:
-        - Follow the Learning skill YAML strictly.
-        - Produce a practical markdown report for improving the workflow for writing mode: {mode}.
-        - Focus on what the human editor changed and what the workflow should learn.
-        - Give stage-by-stage insights for every workflow stage in this mode.
-        - Include suggested YAML changes as concise bullets, not full rewritten files.
-        - Do not rewrite the blog post.
-        - Do not include hidden reasoning.
+        - Tuân thủ chặt chẽ Learning skill YAML.
+        - Mặc định viết toàn bộ báo cáo bằng tiếng Việt.
+        - Chỉ giữ tiếng Anh cho tên hàm, thuộc tính, biến số, file name, stage id, YAML key, và thuật ngữ hệ thống đã có sẵn.
+        - Tạo báo cáo markdown thực dụng để cải thiện workflow cho writing mode: {mode}.
+        - Tập trung vào những gì người viết đã chỉnh và workflow cần học được điều gì.
+        - Đưa insight theo từng stage của mode hiện tại.
+        - Gợi ý chỉnh YAML bằng bullet ngắn, không viết lại toàn bộ file.
+        - Không viết lại bài blog.
+        - Không đưa hidden reasoning.
         """
     ).strip()
 
@@ -82,22 +84,23 @@ def build_tuning_prompt(report: str, mode: str = "deep") -> str:
 
     return textwrap.dedent(
         f"""
-        Turn this editorial learning report for mode '{mode}' into concise workflow tuning suggestions.
+        Chuyển editorial learning report cho mode '{mode}' thành các gợi ý tinh chỉnh workflow thật ngắn gọn.
 
         Editorial learning report:
         ```markdown
         {report}
         ```
 
-        Output a markdown document with:
-        - one section for each workflow stage in mode '{mode}':
+        Output là một tài liệu markdown bằng tiếng Việt, gồm:
+        - một section cho từng workflow stage trong mode '{mode}':
           {stages_list}
-        - concrete YAML or prompt-rule changes for that stage
-        - expected effect of each change
-        - confidence: high, medium, or low
+        - thay đổi YAML hoặc prompt-rule cụ thể cho stage đó
+        - tác động kỳ vọng của từng thay đổi
+        - độ tin cậy: high, medium, hoặc low
 
-        Do not rewrite the blog post.
-        Do not include hidden reasoning.
+        Chỉ giữ tiếng Anh cho tên hàm, thuộc tính, biến số, file name, stage id, YAML key, và thuật ngữ hệ thống đã có sẵn.
+        Không viết lại bài blog.
+        Không đưa hidden reasoning.
         """
     ).strip()
 
@@ -112,7 +115,7 @@ def render_offline_diff(final_blog: str, production_blog: str, comparison_label:
         lineterm="",
     )
     diff = "\n".join(diff_lines)
-    return diff if diff.strip() else "No line-level differences detected."
+    return diff if diff.strip() else "Không phát hiện khác biệt theo từng dòng."
 
 def build_offline_learning_report(
     final_blog: str,
@@ -133,91 +136,91 @@ def build_offline_learning_report(
     diff = render_offline_diff(final_blog, production_blog, comparison_label=comparison_label)
 
     if word_delta < 0:
-        length_note = "The production version is shorter, suggesting the human edit may have removed excess explanation or tightened rhythm."
+        length_note = "Bản production ngắn hơn, cho thấy người viết có thể đã cắt phần giải thích thừa hoặc siết lại nhịp."
     elif word_delta > 0:
-        length_note = "The production version is longer, suggesting the human edit may have added context, emotional detail, or connective tissue."
+        length_note = "Bản production dài hơn, cho thấy người viết có thể đã thêm ngữ cảnh, chi tiết cảm xúc hoặc phần nối ý."
     else:
-        length_note = "The production version has the same word count, so the main learning is likely in phrasing, structure, or emphasis."
+        length_note = "Bản production có cùng số từ, nên bài học chính có thể nằm ở cách diễn đạt, cấu trúc hoặc trọng tâm nhấn."
 
     if production_sentence_avg < final_sentence_avg:
-        rhythm_note = "Average sentence length went down, suggesting a preference for shorter breath and clearer pauses."
+        rhythm_note = "Độ dài câu trung bình giảm, cho thấy người viết có xu hướng thích nhịp ngắn hơn và khoảng dừng rõ hơn."
     elif production_sentence_avg > final_sentence_avg:
-        rhythm_note = "Average sentence length went up, suggesting a preference for more developed reflection or smoother flow."
+        rhythm_note = "Độ dài câu trung bình tăng, cho thấy người viết có thể muốn phần suy tưởng phát triển hơn hoặc dòng văn mượt hơn."
     else:
-        rhythm_note = "Average sentence length stayed similar."
+        rhythm_note = "Độ dài câu trung bình gần như không đổi."
 
-    available_steps = ", ".join(step_outputs.keys()) or "No step outputs found"
+    available_steps = ", ".join(step_outputs.keys()) or "Không tìm thấy step output"
 
     if mode == "moment":
         stage_insights = textwrap.dedent("""
             ### sensory_capture
-            Check whether production edits preserved authentic concrete observations or added unverified details.
+            Kiểm tra liệu bản production có giữ quan sát cụ thể chân thật hay thêm chi tiết chưa có căn cứ.
 
             ### inner_weather
-            Check whether production edits changed emotional naming or added clinical/spiritual theory.
+            Kiểm tra liệu bản production có đổi cách gọi tên cảm xúc hoặc thêm lý thuyết tâm lý/tâm linh quá mức.
 
             ### cosmic_signal_reader
-            Check whether the small intuitive signal was kept, trimmed, or expanded into a major lecture.
+            Kiểm tra tín hiệu trực giác nhỏ được giữ, được cắt gọn, hay bị mở rộng thành bài giảng.
 
             ### moment_writer
-            Check whether production edits shortened sentence length or removed past-tense reflection to keep present energy.
+            Kiểm tra liệu bản production có rút ngắn câu hoặc bỏ phần hồi tưởng để giữ năng lượng hiện tại.
 
             ### breath_editor
-            Check whether production edits simplified heavy sentences further or over-polished the prose.
+            Kiểm tra liệu bản production có làm nhẹ câu nặng hơn nữa hay cho thấy bản edit đã bị quá trau chuốt.
 
             ### gentle_witness
-            Check whether the witness report accurately flagged forced moments or preachiness.
+            Kiểm tra liệu witness report có nhận ra đúng các đoạn gượng, quá sạch hoặc lên giọng dạy đời.
         """).strip()
     else:
         stage_insights = textwrap.dedent("""
             ### story_architect
-            Check whether production edits changed the opening, reordered sections, or moved the emotional turn.
+            Kiểm tra liệu bản production có đổi mở bài, sắp xếp lại các phần hoặc di chuyển điểm chuyển cảm xúc.
 
             ### reflection_engine
-            Check whether production edits added uncertainty, removed premature certainty, or deepened a hidden tension.
+            Kiểm tra liệu bản production có thêm sự chưa chắc, bỏ kết luận quá sớm hoặc đào sâu một căng thẳng ẩn.
 
             ### writing_agent
-            Check whether production edits shortened paragraphs, changed pronouns, removed generic phrasing, or added more lived detail.
+            Kiểm tra liệu bản production có rút ngắn đoạn, đổi đại từ, bỏ câu chung chung hoặc thêm chi tiết sống.
 
             ### reader_experience
-            Check whether the reader diary captured where attention, trust, or connection changed.
+            Kiểm tra liệu reader diary có bắt được nơi sự chú ý, niềm tin hoặc kết nối thay đổi.
 
             ### editor_agent
-            Check whether production edits repeated, contradicted, or improved the editor_agent changes.
+            Kiểm tra liệu bản production lặp lại, đi ngược hoặc cải thiện các chỉnh sửa của editor_agent.
 
             ### coach_agent
-            Check whether production edits answered a deeper question that the coaching report did not ask.
+            Kiểm tra liệu bản production có trả lời một câu hỏi sâu hơn mà coaching report chưa hỏi.
 
             ### future_self
-            Check whether production edits followed or ignored future_reflection.md.
+            Kiểm tra liệu bản production có đi theo hay bỏ qua future_reflection.md.
         """).strip()
 
     return textwrap.dedent(
         f"""
-        # Offline Editorial Learning Report ({mode.upper()} MODE)
+        # Báo Cáo Offline Editorial Learning ({mode.upper()} MODE)
 
-        This report was generated without calling the OpenAI API. It uses local text comparison to analyze differences.
+        Báo cáo này được tạo mà không gọi OpenAI API. Nó dùng so sánh văn bản cục bộ để phân tích khác biệt.
 
-        ## Executive Summary
+        ## Tóm Tắt
 
         - Mode: {mode}
         - Similarity score: {similarity:.3f}
-        - {comparison_label} word count: {final_words}
-        - production_blog.md word count: {production_words}
-        - Word delta: {word_delta:+d}
-        - Paragraph delta: {paragraph_delta:+d}
-        - Average sentence words, {comparison_label}: {final_sentence_avg:.2f}
-        - Average sentence words, production: {production_sentence_avg:.2f}
+        - Số từ {comparison_label}: {final_words}
+        - Số từ production_blog.md: {production_words}
+        - Chênh lệch số từ: {word_delta:+d}
+        - Chênh lệch số đoạn: {paragraph_delta:+d}
+        - Số từ trung bình/câu, {comparison_label}: {final_sentence_avg:.2f}
+        - Số từ trung bình/câu, production: {production_sentence_avg:.2f}
 
         {length_note}
 
         {rhythm_note}
 
-        ## Available Workflow Context
+        ## Ngữ Cảnh Workflow Có Sẵn
 
-        Step outputs found: {available_steps}
+        Step outputs tìm thấy: {available_steps}
 
-        ## Stage-by-Stage Offline Insights
+        ## Insight Offline Theo Từng Stage
 
         {stage_insights}
 
@@ -233,83 +236,83 @@ def build_offline_tuning_suggestions(report: str, mode: str = "deep") -> str:
     if mode == "moment":
         suggestions_body = textwrap.dedent("""
             ## sensory_capture
-            - Check: "Did human edit keep concrete observations without inferring hidden meaning?"
-            - Expected effect: cleaner sensory baseline.
+            - Check: "Bản người viết sửa có giữ quan sát cụ thể mà không suy diễn ý nghĩa ẩn không?"
+            - Tác động kỳ vọng: baseline giác quan sạch và đáng tin hơn.
             - Confidence: high
 
             ## inner_weather
-            - Check: "Did human edit simplify internal weather naming?"
-            - Expected effect: avoids clinical or over-analytical tone.
+            - Check: "Bản người viết sửa có làm cách gọi tên thời tiết bên trong giản dị hơn không?"
+            - Tác động kỳ vọng: tránh giọng lâm sàng hoặc phân tích quá mức.
             - Confidence: medium
 
             ## cosmic_signal_reader
-            - Check: "Was the intuitive signal modest and grounded?"
-            - Expected effect: prevents cosmic signal from becoming preachy advice.
+            - Check: "Tín hiệu trực giác có còn nhỏ và có căn cứ không?"
+            - Tác động kỳ vọng: tránh biến cosmic signal thành lời khuyên dạy đời.
             - Confidence: high
 
             ## moment_writer
-            - Check: "Did human edit shorten sentences to preserve present-moment breath?"
-            - Expected effect: more natural short-form cadence.
+            - Check: "Bản người viết sửa có chỉnh nhịp câu để giữ hơi thở hiện tại không?"
+            - Tác động kỳ vọng: nhịp bài ngắn tự nhiên hơn.
             - Confidence: high
 
             ## breath_editor
-            - Check: "Did editor trim without adding new ideas?"
-            - Expected effect: keeps moment under target word limit (300-600 words).
+            - Check: "Editor có cắt gọn mà không thêm ý mới không?"
+            - Tác động kỳ vọng: giữ moment trong giới hạn 300-600 từ.
             - Confidence: high
 
             ## gentle_witness
-            - Check: "Did witness report accurately identify any didactic tone?"
-            - Expected effect: reinforces calm verification without triggering loops.
+            - Check: "Witness report có nhận ra đúng giọng dạy đời, quá sạch hoặc quá gượng không?"
+            - Tác động kỳ vọng: củng cố bước xác nhận nhẹ nhàng mà không tạo loop.
             - Confidence: medium
         """).strip()
     else:
         suggestions_body = textwrap.dedent("""
             ## story_architect
-            - Add a review question: "Did the production edit move the real beginning of the story?"
-            - Expected effect: better opening selection.
+            - Thêm câu hỏi review: "Bản production có di chuyển điểm bắt đầu thật sự của câu chuyện không?"
+            - Tác động kỳ vọng: chọn mở bài tốt hơn.
             - Confidence: medium
 
             ## reflection_engine
-            - Add a review question: "Did the production edit delay or soften an insight?"
-            - Expected effect: less premature meaning-making.
+            - Thêm câu hỏi review: "Bản production có trì hoãn hoặc làm mềm một insight không?"
+            - Tác động kỳ vọng: giảm việc tạo ý nghĩa quá sớm.
             - Confidence: medium
 
             ## writing_agent
-            - Compare paragraph length and sentence length against production edits before accepting future drafts.
-            - Expected effect: closer rhythm to the author's edited voice.
+            - So sánh độ dài đoạn và câu với bản production trước khi chấp nhận draft sau này.
+            - Tác động kỳ vọng: nhịp gần hơn với giọng người viết đã chỉnh.
             - Confidence: high
 
             ## reader_experience
-            - Keep this stage as a blind reader diary with no diagnosis or recommendations.
-            - Expected effect: cleaner signal for editor_agent.
+            - Giữ stage này là nhật ký đọc mù, không chẩn đoán hoặc khuyến nghị.
+            - Tác động kỳ vọng: tín hiệu sạch hơn cho editor_agent.
             - Confidence: high
 
             ## editor_agent
-            - Compare edit_log.md against production edits and add recurring human edit choices as minimum-edit rules.
-            - Expected effect: fewer unnecessary rewrites and better reader connection.
+            - So sánh edit_log.md với bản production và thêm các lựa chọn chỉnh lặp lại của người viết thành minimum-edit rules.
+            - Tác động kỳ vọng: ít rewrite không cần thiết hơn và kết nối người đọc tốt hơn.
             - Confidence: medium
 
             ## coach_agent
-            - Read edited_blog.md instead of draft_blog.md so coaching focuses on the writer's blind spots, not prose cleanup.
-            - Expected effect: deeper coaching questions.
+            - Đọc edited_blog.md thay vì draft_blog.md để coaching tập trung vào điểm mù của người viết, không phải dọn câu chữ.
+            - Tác động kỳ vọng: câu hỏi coaching sâu hơn.
             - Confidence: medium
 
             ## future_self
-            - Keep this stage reflective only; it should identify decisions for the human writer, not rewrite final_blog.md.
-            - Expected effect: clearer human ownership of the final version.
+            - Giữ stage này chỉ phản tư; nó nên nêu quyết định cho người viết, không rewrite final_blog.md.
+            - Tác động kỳ vọng: quyền sở hữu bản cuối của người viết rõ hơn.
             - Confidence: medium
         """).strip()
 
     return textwrap.dedent(
         f"""
-        # Offline Workflow Tuning Suggestions ({mode.upper()} MODE)
+        # Gợi Ý Tinh Chỉnh Workflow Offline ({mode.upper()} MODE)
 
-        These suggestions were generated without OpenAI API access for mode '{mode}'.
+        Các gợi ý này được tạo mà không cần OpenAI API cho mode '{mode}'.
 
         {suggestions_body}
 
-        ## Source Report
+        ## Báo Cáo Nguồn
 
-        See `editorial_learning_report.md` for metrics and diff details.
+        Xem `editorial_learning_report.md` để biết metrics và chi tiết diff.
         """
     ).strip()

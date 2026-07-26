@@ -39,15 +39,15 @@ def main() -> int:
     )
     parser.add_argument(
         "--client",
-        choices=["openai", "antigravity"],
+        choices=["openai", "antigravity", "gemini"],
         default="openai",
-        help="LLM Client to use. 'openai' (default) or 'antigravity'.",
+        help="LLM Client to use. 'openai' (default), 'antigravity', or 'gemini'.",
     )
     parser.add_argument(
         "--client-map",
         help=(
             "Per-stage LLM client mapping. Format: 'stage1=client,stage2=client'. "
-            "Valid clients: openai, antigravity. "
+            "Valid clients: openai, antigravity, gemini. "
             "Stages not listed use --client as fallback."
         ),
     )
@@ -66,18 +66,7 @@ def main() -> int:
     mode = args.mode
     style = args.style or "reflective"
 
-    if mode == "moment" and style == "provocative":
-        print("[WARNING] Moment mode does not support provocative style. Falling back to 'reflective'.", file=sys.stderr)
-        style = "reflective"
 
-    style_dir = resolve_path(f"skills/{style}")
-    if mode == "moment":
-        moment_style_dir = resolve_path(f"skills/moment/{style}")
-        if moment_style_dir.is_dir():
-            style_dir = moment_style_dir
-    if not style_dir.is_dir():
-        available = [d.name for d in resolve_path("skills").iterdir() if d.is_dir()]
-        raise ValueError(f"Style '{style}' not found. Available: {available}")
 
     config_path = resolve_path(args.config)
     if not config_path.exists() and args.config == "engine/config.local.yaml":

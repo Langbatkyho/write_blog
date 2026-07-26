@@ -1,5 +1,62 @@
 # Tổng hợp Git Diff và Thay đổi Code
 
+## 9. Guided Style Voice Lab V1 & Multi-Style Production Engine (2026-07-26)
+> **Tham chiếu kế hoạch phê duyệt:**  
+> - [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)  
+> - [docs/2026-07-25-multi-editable-style-upgrade-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-25-multi-editable-style-upgrade-plan-final.md)
+
+- **`engine/voice_lab/` (Package mới 8 modules)**:
+  ```python
+  # models.py: StyleProfile, VoiceDNA, EvidenceClaim, CanonicalIR, sanitize_sample
+  # analyzer.py: analyze_samples(samples) -> VoiceDNA, EvidenceClaims (100% tiếng Việt)
+  # interview.py: generate_interview(profile), calibrate_ab(dimension, profile), DIMENSION_VI (100% tiếng Việt)
+  # compiler.py: compile_style(profile, mode), DIMENSION_AGENTS, AGENT_FILENAME_MAP
+  # overrides.py: merge_overrides(base_ir, overrides_ir)
+  # migration.py: import_existing_style(mode, slug)
+  # archive.py: export_voice_style_archive, import_voice_style_archive (.voice-style.zip SHA-256)
+  ```
+- **`engine/voice_lab/compiler.py`**:
+  ```diff
+  + AGENT_FILENAME_MAP = {
+  +     "story_architect": "story_architect.yaml",
+  +     "reflection_engine": "reflection_engine.yaml",
+  +     "writing_agent": "writing_agent.yaml",
+  +     "reader_experience": "reader_experience.yaml",
+  +     "editor_agent": "editor_agent.yaml",
+  +     "coach_agent": "coach_agent.yaml",
+  +     "future_self": "future_self.yaml",
+  +     "sensory_capture": "sensory_capture.yaml",
+  +     "inner_weather": "inner_weather.yaml",
+  +     "cosmic_signal_reader": "cosmic_signal_reader.yaml",
+  +     "moment_writer": "moment_writer.yaml",
+  +     "breath_editor": "breath_editor.yaml",
+  +     "gentle_witness": "gentle_witness.yaml",
+  + }
+  ```
+- **`ui/app.py`**:
+  ```diff
+  + from engine.voice_lab.interview import DIMENSION_VI, generate_interview, calibrate_ab
+  + from engine.voice_lab.compiler import compile_style
+  + # Tích hợp 5-Step Guided Voice Lab Wizard & Publish Safety Pipeline (Staging -> Validate -> Backup -> Atomic Replace / Rollback)
+  ```
+- **`engine/gemini_client.py` (Mới thêm)**:
+  ```python
+  # Giao tiếp Gemini API trực tiếp bằng GEMINI_API_KEY với model default gemini-3.5-flash
+  ```
+- **`engine/client_router.py`**:
+  ```diff
+  + register_client("gemini", call_gemini)
+  ```
+- **`tests/test_voice_lab.py` (Mới thêm)**:
+  ```python
+  # Contract Test: test_adjacency_matrix_coverage (100% coverage)
+  # Zero-cost Smoke Test: test_zero_cost_smoke_test (keyword search & invariant diffs)
+  ```
+- **`skills/moment/va-natural/*.yaml` (Style tùy biến mới)**:
+  ```yaml
+  # Cấu hình 6 agent YAML cho phong cách Vân Anh Natural (Moment Mode)
+  ```
+
 ## 8. Hệ Hai Writing Modes (Dual Writing Modes System) (2026-07-22)
 > **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)
 

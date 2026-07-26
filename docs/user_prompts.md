@@ -61,3 +61,18 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 54. *"Bạn hãy kiểm tra và đánh giá việc thực hiện của Gemini 3.6 Flash với kế hoạch đã phê duyệt tại D:\Nghiên cứu AI\write_blog\docs\2026-07-22-mindful_writing_os-two-writing-modes-final.md. Báo cáo kết quả CỰC KỲ CÔ ĐỌNG, TIẾT KIỆM TOKEN ĐẦU RA..."*
 55. *"Tôi đồng ý với báo cáo Audit của Claude Opus 4.6. Bạn hãy tiến hành khắc phục. /goal"*
 56. *"Bạn hãy cập nhật toàn bộ công việc triển khai kế hoạch này vào thư mục docs của dự án theo các file tương ứng: Kiến trúc hiện tại, Change log, Git Diff, User prompts, Agent Activities. Nhớ ghi rõ ngày triển khai và tham chiếu đến kế hoạch triển khai đã được phê duyệt."*
+
+## Giai đoạn 9: Guided Style Voice Lab V1 & Production Integration (2026-07-26)
+> **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)
+
+57. *"Tôi test Bước 2: Xem xét Bằng chứng (Evidence Review) phân tích được mẫu. Khi ấn nút chuyển sang bước 3 Interview thì bị bỏ qua bước 3 mà nhảy luôn ra Bước 4: Hiệu chỉnh (A/B Calibration) và chỉ hiện ra text random. Bạn hãy kiểm tra lại log file và logic để tìm lỗi."*
+58. *"Tôi muốn test thật trên dữ liệu thật và AI sử dụng Local Model Quota chứ không muốn mock test"*
+59. *"Tôi test hệ thống quản trị Voice Lab V1... Tôi muốn đảm bảo hệ thống này sử dụng được Local Model Quota để chạy thay vì API gọi ra ngoài."*
+60. *"Tôi đã điền 2 Gemini API Key. Hãy sử dụng model gemini-3.5-flash"*
+61. *"Tôi thực hiện suôn sẻ đến bước 5 Publish thì gặp lỗi: Publish thất bại, đã Rollback. Lỗi: Style 'va-natural.staging' (mode: deep) vi phạm hợp đồng Flow. Thiếu các file skill bắt buộc..."*
+62. *"Bạn hãy triển khai viết blog chế độ moment sử dụng phong cách va-natural này theo phương thức Local Model Quota cho input D:\Nghiên cứu AI\write_blog\examples\moment_1.md /goal"*
+63. *"Khoan, tôi thấy bạn chạy client gemini thì phải. Tôi muốn chạy client là Antigravity Bridge để sử dụng Local Model Quota cơ"*
+64. *"Còn 1 điểm nữa. Chỗ Interview đang có text tiếng Anh và A/B Caliberation đang hiện 2 mẫu text A và B bằng tiếng Anh. Tôi muốn chuyển hết sang tiếng Việt"*
+65. *"Bạn hãy khởi động trình quản lý Voice Lab để tôi test"*
+66. *"Bạn hãy ghi nhận lại toàn bộ thành quả thực hiện Kế hoạch multi-style và Voice Lab dự án này (tính từ sau lần git push trước) bổ sung vào các tài liệu trong thư mục docs: Kiến trúc hiện tại, Change log, Git Diff, User Prompts, Agent Activities /goal"*
+

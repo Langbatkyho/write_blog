@@ -2,6 +2,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from engine.openai_client import get_openai_options
+
 def call_antigravity(prompt: str, config: dict[str, Any], stage_id: str | None = None) -> str:
     """
     Sử dụng file-based bridge để chờ Antigravity agent xử lý prompt.
@@ -21,7 +23,7 @@ def call_antigravity(prompt: str, config: dict[str, Any], stage_id: str | None =
     prompt_file.write_text(prompt, encoding="utf-8")
     
     # Write model info to help verification if needed
-    model = config.get("openai", {}).get("model", "antigravity-internal")
+    model = get_openai_options(config, stage).get("model", "antigravity-internal")
     model_info_file = temp_dir / f"model_{stage}_{ts}.txt"
     model_info_file.write_text(model, encoding="utf-8")
     
