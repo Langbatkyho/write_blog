@@ -105,6 +105,16 @@ class TestCreateRoutingClient(unittest.TestCase):
         router = create_routing_client({}, fallback="openai")
         self.assertEqual(router.__name__, "routing_client")
 
+    def test_descriptor_reports_real_api_capability_per_provider(self):
+        router = create_routing_client(
+            {"writing_agent": "antigravity"},
+            fallback="openai",
+        )
+        local = router.describe_stage("writing_agent", {})
+        external = router.describe_stage("story_architect", {})
+        self.assertFalse(local["api_capable"])
+        self.assertTrue(external["api_capable"])
+
 
 if __name__ == "__main__":
     unittest.main()

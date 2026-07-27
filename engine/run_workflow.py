@@ -9,6 +9,7 @@ if str(ROOT) not in sys.path:
 
 from engine.utils import resolve_path
 from engine.workflow import run_workflow, run_learning_loop
+from engine.workflow_contracts import LearningRunResult, WorkflowRunResult
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the mindful blog workflow.")
@@ -93,7 +94,16 @@ def main() -> int:
             llm_client=llm_client,
             style=style,
             mode=explicit_mode,
+            run_source="cli",
         )
+        if isinstance(learning_dir, LearningRunResult):
+            print(
+                "Learning preview completed in memory: "
+                f"api_attempted={learning_dir.api_attempted}, "
+                f"api_called={learning_dir.api_called}, "
+                f"persisted={learning_dir.persisted}"
+            )
+            return 0
         print(f"Learning run saved to: {learning_dir}")
         report_name = f"{explicit_mode or mode}_blog_patterns.md"
         print(f"Learning report: {learning_dir / report_name}")
@@ -111,7 +121,17 @@ def main() -> int:
         llm_client=llm_client,
         style=style,
         mode=mode,
+        run_source="cli",
     )
+    if isinstance(run_dir, WorkflowRunResult):
+        print(
+            "Dry-run preview completed in memory: "
+            f"{len(run_dir.stages)} stages, "
+            f"api_attempted={run_dir.api_attempted}, "
+            f"api_called={run_dir.api_called}, "
+            f"persisted={run_dir.persisted}"
+        )
+        return 0
     print(f"Workflow run saved to: {run_dir}")
     print(f"Full log: {run_dir / 'run_log.md'}")
     return 0

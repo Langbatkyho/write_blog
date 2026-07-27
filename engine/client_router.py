@@ -31,6 +31,12 @@ _CLIENT_REGISTRY: dict[str, Callable[[], LlmClient]] = {
     "gemini": _get_gemini,
 }
 
+_PROVIDER_API_CAPABILITY = {
+    "openai": True,
+    "gemini": True,
+    "antigravity": False,
+}
+
 VALID_CLIENTS = set(_CLIENT_REGISTRY.keys())
 
 
@@ -52,6 +58,11 @@ def build_client_map(
     Raises:
         ValueError: Nếu format sai hoặc client_name không hợp lệ.
     """
+    if fallback not in VALID_CLIENTS:
+        raise ValueError(
+            f"Unknown fallback client '{fallback}'. "
+            f"Valid clients: {sorted(VALID_CLIENTS)}."
+        )
     if not client_map_str:
         return {}
 
@@ -77,6 +88,14 @@ def build_client_map(
             raise ValueError("Stage ID cannot be empty in client-map.")
         result[stage_id] = client_name
     return result
+
+
+def validate_client_map(
+    client_map: dict[str, str], valid_stage_ids: set[str]
+) -> None:
+    unknown = sorted(set(client_map) - valid_stage_ids)
+    if unknown:
+        raise ValueError(f"Client map chứa stage không tồn tại: {unknown}")
 
 
 def resolve_client(client_name: str) -> LlmClient:
@@ -114,6 +133,15 @@ def create_routing_client(
         Một LlmClient callable tương thích signature
         Callable[[str, dict[str, Any], str | None], str].
     """
+    if fallback not in VALID_CLIENTS:
+        raise ValueError(
+            f"Unknown fallback client '{fallback}'. "
+            f"Valid clients: {sorted(VALID_CLIENTS)}."
+        )
+    invalid_clients = sorted(set(client_map.values()) - VALID_CLIENTS)
+    if invalid_clients:
+        raise ValueError(f"Client map chứa provider không hợp lệ: {invalid_clients}")
+
     # Cache các client đã resolve để tránh import lặp
     _cache: dict[str, LlmClient] = {}
 
@@ -135,4 +163,27 @@ def create_routing_client(
     # Preserve name for metadata logging
     routing_client.__name__ = "routing_client"
     routing_client.client_map = client_map
+    routing_client.fallback_name = fallback
+    routing_client.provider_name = "routing"
+    routing_client.api_capable = True
+
+    def describe_stage(
+        stage_id: str, config: dict[str, Any]
+    ) -> dict[str, str | bool]:
+        provider = client_map.get(stage_id, fallback)
+        if provider in {"openai", "antigravity"}:
+            from engine.openai_client import get_openai_options
+
+            model = str(get_openai_options(config, stage_id).get("model"))
+        else:
+            from engine.gemini_client import DEFAULT_MODEL
+
+            model = str(config.get("gemini", {}).get("model", DEFAULT_MODEL))
+        return {
+            "provider": provider,
+            "model": model,
+            "api_capable": _PROVIDER_API_CAPABILITY[provider],
+        }
+
+    routing_client.describe_stage = describe_stage
     return routing_client

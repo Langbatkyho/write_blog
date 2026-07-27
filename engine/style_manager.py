@@ -1,15 +1,17 @@
 import datetime as dt
-import json
-import os
-import re
 import shutil
 from pathlib import Path
 from typing import Any, Tuple, List, Dict, Optional
 import yaml
 
-from engine.utils import resolve_path, read_text, write_text, load_yaml
-
-SLUG_REGEX = re.compile(r"^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$")
+from engine.utils import resolve_path, write_text, load_yaml
+from engine.style_repository import (
+    clone_to_staging,
+    commit_staged_directory,
+    commit_staged_rename,
+    move_to_trash,
+)
+from engine.style_contracts import is_valid_style_slug, validate_style_metadata
 
 DEEP_GROUP_A_FILES = {
     "story_architect.yaml",
@@ -25,11 +27,7 @@ DEEP_GROUP_B_FILES = {
 }
 
 def validate_slug(slug: str) -> bool:
-    if not slug or len(slug) < 2 or len(slug) > 50:
-        return False
-    if ".." in slug or "/" in slug or "\\" in slug:
-        return False
-    return bool(SLUG_REGEX.match(slug))
+    return is_valid_style_slug(slug)
 
 def validate_style_yaml(content: str, filename: str, mode: str) -> Tuple[bool, str, str]:
     try:
@@ -100,6 +98,11 @@ def validate_style_contract(mode: str, style: str, workflow_path: Optional[Path]
     style_dir = resolve_path(f"skills/{mode}/{style}")
     if not style_dir.is_dir() and mode == "deep":
         style_dir = resolve_path(f"skills/{style}")
+    meta_path = style_dir / "style_meta.yaml"
+    if meta_path.exists():
+        validate_style_metadata(
+            load_yaml(meta_path), expected_slug=style, expected_mode=mode
+        )
 
     # Determine workflow path if not provided
     if not workflow_path:
@@ -124,7 +127,9 @@ def validate_style_contract(mode: str, style: str, workflow_path: Optional[Path]
         except ValueError as ve:
             raise ve
         except Exception as e:
-            pass
+            raise ValueError(
+                f"Không thể validate Flow contract tại {workflow_path}: {e}"
+            ) from e
 
     return style
 
@@ -140,15 +145,32 @@ def list_styles(mode: str) -> List[Dict[str, Any]]:
         meta_path = d / "style_meta.yaml"
         if meta_path.exists():
             try:
-                meta = load_yaml(meta_path)
+                meta = validate_style_metadata(
+                    load_yaml(meta_path),
+                    expected_slug=d.name,
+                    expected_mode=mode,
+                )
                 meta.setdefault("slug", d.name)
                 meta.setdefault("name", d.name)
                 meta.setdefault("mode", mode)
                 meta.setdefault("is_protected", False)
                 meta.setdefault("updated_at", dt.datetime.fromtimestamp(d.stat().st_mtime).isoformat())
                 styles.append(meta)
-            except Exception:
-                pass
+            except Exception as exc:
+                styles.append(
+                    {
+                        "name": d.name,
+                        "slug": d.name,
+                        "mode": mode,
+                        "description": "Style metadata không hợp lệ",
+                        "is_protected": True,
+                        "is_valid": False,
+                        "validation_error": str(exc),
+                        "updated_at": dt.datetime.fromtimestamp(
+                            d.stat().st_mtime
+                        ).isoformat(),
+                    }
+                )
         else:
             styles.append({
                 "name": d.name,
@@ -174,10 +196,9 @@ def get_style_detail(mode: str, slug: str) -> Dict[str, Any]:
     meta_path = style_dir / "style_meta.yaml"
     meta = {}
     if meta_path.exists():
-        try:
-            meta = load_yaml(meta_path)
-        except Exception:
-            pass
+        meta = validate_style_metadata(
+            load_yaml(meta_path), expected_slug=slug, expected_mode=mode
+        )
     meta.setdefault("name", slug)
     meta.setdefault("slug", slug)
     meta.setdefault("mode", mode)
@@ -195,6 +216,8 @@ def get_style_detail(mode: str, slug: str) -> Dict[str, Any]:
     }
 
 def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[bool, str, str]:
+    if Path(filename).name != filename or filename in {"", ".", ".."}:
+        return False, "Tên file không hợp lệ hoặc chứa path traversal.", ""
     resolved = resolve_style_by_slug_or_alias(mode, slug)
     if not resolved:
         return False, f"Style '{slug}' không tồn tại.", ""
@@ -211,30 +234,27 @@ def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[
     if not style_dir.is_dir() and mode == "deep":
         style_dir = resolve_path(f"skills/{slug}")
 
-    target_path = style_dir / filename
-    tmp_path = style_dir / f"{filename}.tmp"
-
+    staging_dir: Path | None = None
     try:
-        write_text(tmp_path, content)
-        os.replace(tmp_path, target_path)
-
-        # Update updated_at in style_meta.yaml
-        meta_path = style_dir / "style_meta.yaml"
+        staging_dir = clone_to_staging(style_dir, style_dir.parent, slug)
+        write_text(staging_dir / filename, content)
+        meta_path = staging_dir / "style_meta.yaml"
         if meta_path.exists():
-            try:
-                meta = load_yaml(meta_path)
-                meta["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
-                write_text(meta_path, yaml.safe_dump(meta, allow_unicode=True, sort_keys=False))
-            except Exception:
-                pass
-
+            meta = load_yaml(meta_path)
+            if filename == "style_meta.yaml":
+                meta = validate_style_metadata(
+                    meta, expected_slug=slug, expected_mode=mode
+                )
+            meta["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+            write_text(
+                meta_path,
+                yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
+            )
+        commit_staged_directory(staging_dir, style_dir)
         return True, "", warn
     except Exception as e:
-        if tmp_path.exists():
-            try:
-                tmp_path.unlink()
-            except Exception:
-                pass
+        if staging_dir and staging_dir.exists():
+            shutil.rmtree(staging_dir, ignore_errors=True)
         return False, f"Lỗi ghi file atomic: {str(e)}", ""
 
 def create_style(
@@ -257,11 +277,10 @@ def create_style(
     if not source_dir.is_dir():
         return False, f"Style gốc '{clone_from}' không tồn tại để nhân bản."
 
+    staging_dir: Path | None = None
     try:
-        shutil.copytree(source_dir, target_dir)
-        
-        # Override style_meta.yaml
-        meta_path = target_dir / "style_meta.yaml"
+        staging_dir = clone_to_staging(source_dir, target_dir.parent, slug)
+        meta_path = staging_dir / "style_meta.yaml"
         now_str = dt.datetime.now(dt.timezone.utc).isoformat()
         meta = {
             "name": name,
@@ -273,14 +292,18 @@ def create_style(
             "is_protected": False,
             "previous_slugs": [],
         }
-        write_text(meta_path, yaml.safe_dump(meta, allow_unicode=True, sort_keys=False))
+        validate_style_metadata(
+            meta, expected_slug=slug, expected_mode=mode
+        )
+        write_text(
+            meta_path,
+            yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
+        )
+        commit_staged_directory(staging_dir, target_dir)
         return True, ""
     except Exception as e:
-        if target_dir.exists():
-            try:
-                shutil.rmtree(target_dir)
-            except Exception:
-                pass
+        if staging_dir and staging_dir.exists():
+            shutil.rmtree(staging_dir, ignore_errors=True)
         return False, f"Lỗi khi nhân bản style (đã rollback): {str(e)}"
 
 def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tuple[bool, str]:
@@ -297,18 +320,17 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
     meta = {}
     if meta_path.exists():
         try:
-            meta = load_yaml(meta_path)
-        except Exception:
-            pass
+            meta = validate_style_metadata(
+                load_yaml(meta_path),
+                expected_slug=old_slug,
+                expected_mode=mode,
+            )
+        except Exception as exc:
+            return False, f"Metadata style không hợp lệ: {exc}"
 
     if meta.get("is_protected", False):
         if old_slug != new_slug:
             return False, "Không thể đổi kỹ thuật (slug) của System Style bảo vệ. Chỉ có thể đổi tên hiển thị."
-        # Update name only
-        meta["name"] = new_name
-        meta["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
-        write_text(meta_path, yaml.safe_dump(meta, allow_unicode=True, sort_keys=False))
-        return True, ""
 
     if not validate_slug(new_slug):
         return False, "Slug mới không hợp lệ. Chỉ chấp nhận chữ thường, số, dấu gạch ngang."
@@ -317,10 +339,9 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
     if old_slug != new_slug and target_dir.exists():
         return False, f"Slug '{new_slug}' đã được sử dụng."
 
+    staging_dir: Path | None = None
     try:
-        if old_slug != new_slug:
-            os.replace(style_dir, target_dir)
-
+        staging_dir = clone_to_staging(style_dir, target_dir.parent, new_slug)
         if old_slug != new_slug:
             prev = meta.get("previous_slugs", [])
             if old_slug not in prev:
@@ -330,12 +351,22 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
 
         meta["name"] = new_name
         meta["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+        validate_style_metadata(
+            meta, expected_slug=new_slug, expected_mode=mode
+        )
         
-        target_meta_path = target_dir / "style_meta.yaml" if old_slug != new_slug else meta_path
-        write_text(target_meta_path, yaml.safe_dump(meta, allow_unicode=True, sort_keys=False))
-
+        write_text(
+            staging_dir / "style_meta.yaml",
+            yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
+        )
+        if old_slug == new_slug:
+            commit_staged_directory(staging_dir, style_dir)
+        else:
+            commit_staged_rename(staging_dir, style_dir, target_dir)
         return True, ""
     except Exception as e:
+        if staging_dir and staging_dir.exists():
+            shutil.rmtree(staging_dir, ignore_errors=True)
         return False, f"Lỗi đổi tên style: {str(e)}"
 
 def delete_style(mode: str, slug: str) -> Tuple[bool, str]:
@@ -351,14 +382,19 @@ def delete_style(mode: str, slug: str) -> Tuple[bool, str]:
     meta_path = style_dir / "style_meta.yaml"
     if meta_path.exists():
         try:
-            meta = load_yaml(meta_path)
+            meta = validate_style_metadata(
+                load_yaml(meta_path),
+                expected_slug=slug,
+                expected_mode=mode,
+            )
             if meta.get("is_protected", False):
                 return False, "Không thể xóa System Style bảo vệ (is_protected=True)."
-        except Exception:
-            pass
+        except Exception as exc:
+            return False, f"Metadata style không hợp lệ; từ chối xóa: {exc}"
 
     try:
-        shutil.rmtree(style_dir)
-        return True, ""
+        trash_root = resolve_path(f"profile_history/style_trash/{mode}")
+        trash_path = move_to_trash(style_dir, trash_root)
+        return True, f"Style đã chuyển vào thùng rác: {trash_path}"
     except Exception as e:
         return False, f"Lỗi khi xóa folder style: {str(e)}"

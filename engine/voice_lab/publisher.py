@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import datetime as dt
 import os
 import shutil
@@ -11,7 +12,13 @@ import yaml
 
 from engine.style_manager import validate_slug, validate_style_yaml
 from engine.utils import resolve_path, write_text
-from engine.voice_lab.compiler import REQUIRED_AGENTS, AGENT_FILENAME_MAP
+from engine.voice_lab.compiler import (
+    REQUIRED_AGENTS,
+    AGENT_FILENAME_MAP,
+    SKILL_LEVEL_INVARIANTS,
+    stable_skill_hash,
+    validate_base_snapshot,
+)
 from engine.voice_lab.models import CompileResult, PublishResult, StyleProfile
 
 
@@ -29,6 +36,10 @@ def _validate_publish_input(
         raise ValueError("Slug không hợp lệ.")
     if mode not in REQUIRED_AGENTS:
         raise ValueError(f"Mode không hợp lệ: {mode}")
+    if profile.mode != mode:
+        raise ValueError(
+            f"Profile mode '{profile.mode}' không khớp publish mode '{mode}'."
+        )
     if profile.analysis_status != "complete":
         raise ValueError("Profile chưa phân tích hoàn tất.")
     if profile.status != "confirmed" or profile.is_draft:
@@ -40,6 +51,15 @@ def _validate_publish_input(
     missing = sorted(required_files - actual_files)
     if missing:
         raise ValueError(f"Compile result thiếu skill bắt buộc: {missing}")
+    unexpected = sorted(actual_files - required_files)
+    if unexpected:
+        raise ValueError(f"Compile result có skill ngoài Flow contract: {unexpected}")
+    for artifact in compiled.artifacts.values():
+        validate_base_snapshot(
+            artifact,
+            mode=mode,
+            base_style_slug=profile.base_style_slug,
+        )
 
 
 def _write_and_validate_staging(
@@ -55,6 +75,10 @@ def _write_and_validate_staging(
     warnings: list[str] = []
     staging_dir.mkdir(parents=True, exist_ok=False)
     for filename, artifact in compiled.artifacts.items():
+        if artifact.filename != filename:
+            raise ValueError(
+                f"{filename}: Canonical IR filename không khớp key artifact."
+            )
         effective = artifact.effective_skill
         content = yaml.safe_dump(effective, allow_unicode=True, sort_keys=False)
         valid, error, warning = validate_style_yaml(content, filename, mode)
@@ -64,11 +88,32 @@ def _write_and_validate_staging(
             warnings.append(f"{filename}: {warning}")
         write_text(staging_dir / filename, content)
 
-        for key, expected in artifact.invariants.items():
-            if key in effective and effective[key] != expected:
+        for key in SKILL_LEVEL_INVARIANTS:
+            if key not in artifact.invariants:
+                continue
+            if key not in effective:
+                raise ValueError(f"{filename}: thiếu invariant bắt buộc '{key}'.")
+            expected = artifact.invariants[key]
+            if effective[key] != expected:
                 raise ValueError(
                     f"{filename}: invariant '{key}' thay đổi trong effective skill."
                 )
+        synthetic = {
+            "filename": artifact.filename,
+            "workflow_order": artifact.workflow_order,
+            "agent_id": artifact.agent_id,
+        }
+        for key, actual in synthetic.items():
+            if key not in artifact.invariants:
+                raise ValueError(f"{filename}: snapshot thiếu invariant '{key}'.")
+            if artifact.invariants[key] != actual:
+                raise ValueError(
+                    f"{filename}: invariant '{key}' không khớp Canonical IR."
+                )
+        base_candidate = copy.deepcopy(effective)
+        base_candidate.pop("voice_lab_style", None)
+        if stable_skill_hash(base_candidate) != artifact.base_hash:
+            raise ValueError(f"{filename}: base_hash không khớp effective skill.")
 
     now = dt.datetime.now(dt.timezone.utc).isoformat()
     meta = {
@@ -95,10 +140,22 @@ def _write_and_validate_staging(
     if not workflow_path.exists():
         raise ValueError(f"Không tìm thấy workflow: {workflow_path}")
     workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8-sig"))
-    for step in workflow.get("steps", []):
-        filename = Path(step["skill"]).name
-        if not (staging_dir / filename).exists():
-            raise ValueError(f"Staging thiếu skill workflow yêu cầu: {filename}")
+    flow_files = {Path(step["skill"]).name for step in workflow.get("steps", [])}
+    expected_files = {
+        AGENT_FILENAME_MAP[mode][agent] for agent in REQUIRED_AGENTS[mode]
+    }
+    if flow_files != expected_files:
+        raise ValueError(
+            "Flow filename contract không khớp AGENT_FILENAME_MAP: "
+            f"flow={sorted(flow_files)}, map={sorted(expected_files)}"
+        )
+    staging_files = {path.name for path in staging_dir.glob("*.yaml")}
+    generated_skill_files = staging_files - {"style_meta.yaml"}
+    if generated_skill_files != flow_files:
+        raise ValueError(
+            "Staging skill set không khớp Flow: "
+            f"staging={sorted(generated_skill_files)}, flow={sorted(flow_files)}"
+        )
     return warnings
 
 

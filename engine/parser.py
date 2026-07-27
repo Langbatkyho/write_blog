@@ -1,6 +1,10 @@
 import re
 from typing import Any
 
+
+class StageResponseError(ValueError):
+    pass
+
 def count_words(text: str) -> int:
     return len(re.findall(r"\w+", text, flags=re.UNICODE))
 
@@ -23,12 +27,24 @@ def truncate_words(text: str, max_words: int = 220) -> str:
         return text.strip()
     return " ".join(words[:max_words]).strip() + "\n\n[Fallback handoff truncated locally.]"
 
-def parse_stage_response(response_text: str) -> tuple[str, str, bool]:
+def parse_stage_response(
+    response_text: str, *, strict: bool = False
+) -> tuple[str, str, bool]:
     artifact_match = re.search(
         r"(?ims)^##\s*Artifact\s*$\s*(.*?)(?=^##\s*Handoff\s*$|\Z)",
         response_text,
     )
     handoff_match = re.search(r"(?ims)^##\s*Handoff\s*$\s*(.*)\Z", response_text)
+
+    if strict and (artifact_match is None or handoff_match is None):
+        missing = []
+        if artifact_match is None:
+            missing.append("## Artifact")
+        if handoff_match is None:
+            missing.append("## Handoff")
+        raise StageResponseError(
+            "Stage response thiếu contract bắt buộc: " + ", ".join(missing)
+        )
 
     artifact = artifact_match.group(1).strip() if artifact_match else response_text.strip()
     handoff = handoff_match.group(1).strip() if handoff_match else ""
@@ -37,6 +53,9 @@ def parse_stage_response(response_text: str) -> tuple[str, str, bool]:
     if not handoff:
         handoff = truncate_words(artifact)
         used_fallback = True
+
+    if strict and (not artifact or not handoff):
+        raise StageResponseError("Stage response có Artifact/Handoff rỗng.")
 
     return artifact, handoff, used_fallback
 

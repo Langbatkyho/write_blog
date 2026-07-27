@@ -58,6 +58,18 @@ def _call_structured(
     temperature: float = 0.1,
     max_output_tokens: int = 8192,
 ) -> str:
+    required_tokens = estimate_tokens(prompt) + max_output_tokens
+    context_budget = _context_budget()
+    if required_tokens > context_budget:
+        raise AnalysisError(
+            "input_too_large",
+            "Prompt Voice Lab vượt ngân sách context an toàn. "
+            "Vui lòng giảm số lượng hoặc độ dài mẫu.",
+            detail=(
+                f"required_tokens={required_tokens}, "
+                f"context_budget={context_budget}"
+            ),
+        )
     try:
         return call_gemini(
             prompt,

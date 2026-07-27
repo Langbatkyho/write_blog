@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agentic Workflow Architect"
+  short_description: "Thiết kế và refactor workflow agentic an toàn"
+  default_prompt: "Use $agentic-workflow-architect to design or refactor this project workflow with strict contracts and safe I/O."

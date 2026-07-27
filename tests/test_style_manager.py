@@ -1,7 +1,9 @@
 import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -18,21 +20,36 @@ from engine.style_manager import (
     resolve_style_by_slug_or_alias,
     validate_style_contract,
 )
-from engine.utils import resolve_path, read_text, load_yaml
+from engine.utils import read_text
 
 class TestStyleManager(unittest.TestCase):
     def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory(dir=ROOT)
+        self.workspace = Path(self.temporary.name)
+        (self.workspace / "skills" / "deep").mkdir(parents=True)
+        for slug in ("reflective", "provocative"):
+            shutil.copytree(
+                ROOT / "skills" / "deep" / slug,
+                self.workspace / "skills" / "deep" / slug,
+            )
+        shutil.copytree(ROOT / "flow", self.workspace / "flow")
+        self.resolve_patch = patch(
+            "engine.style_manager.resolve_path",
+            side_effect=lambda raw: (
+                Path(raw)
+                if Path(raw).is_absolute()
+                else self.workspace / Path(raw)
+            ),
+        )
+        self.resolve_patch.start()
         self.test_slugs = ["test-custom", "test-rename-old", "test-rename-new", "test-save-atomic"]
-        for slug in self.test_slugs:
-            d = resolve_path(f"skills/deep/{slug}")
-            if d.exists():
-                shutil.rmtree(d)
 
     def tearDown(self) -> None:
-        for slug in self.test_slugs:
-            d = resolve_path(f"skills/deep/{slug}")
-            if d.exists():
-                shutil.rmtree(d)
+        self.resolve_patch.stop()
+        self.temporary.cleanup()
+
+    def path(self, relative: str) -> Path:
+        return self.workspace / relative
 
     def test_validate_style_yaml_universal_hard_check(self) -> None:
         valid_yaml = "name: test\noutput:\n  file: test.md\ntasks:\n  - task1"
@@ -88,8 +105,8 @@ class TestStyleManager(unittest.TestCase):
     def test_create_and_delete_custom_style(self) -> None:
         success, msg = create_style("deep", "Test Custom", "test-custom", "Description test", clone_from="reflective")
         self.assertTrue(success, msg)
-        self.assertTrue(resolve_path("skills/deep/test-custom").exists())
-        self.assertTrue(resolve_path("skills/deep/test-custom/style_meta.yaml").exists())
+        self.assertTrue(self.path("skills/deep/test-custom").exists())
+        self.assertTrue(self.path("skills/deep/test-custom/style_meta.yaml").exists())
 
         # Check protected system style delete attempt
         del_success, del_msg = delete_style("deep", "reflective")
@@ -99,7 +116,10 @@ class TestStyleManager(unittest.TestCase):
         # Check custom style delete
         del_success, del_msg = delete_style("deep", "test-custom")
         self.assertTrue(del_success, del_msg)
-        self.assertFalse(resolve_path("skills/deep/test-custom").exists())
+        self.assertFalse(self.path("skills/deep/test-custom").exists())
+        self.assertTrue(
+            list(self.path("profile_history/style_trash/deep").iterdir())
+        )
 
     def test_rename_style_and_alias_resolution(self) -> None:
         success, msg = create_style("deep", "Test Rename Old", "test-rename-old", "Desc", clone_from="reflective")
@@ -108,8 +128,8 @@ class TestStyleManager(unittest.TestCase):
         # Rename
         ren_success, ren_msg = rename_style("deep", "test-rename-old", "Test Rename New", "test-rename-new")
         self.assertTrue(ren_success, ren_msg)
-        self.assertFalse(resolve_path("skills/deep/test-rename-old").exists())
-        self.assertTrue(resolve_path("skills/deep/test-rename-new").exists())
+        self.assertFalse(self.path("skills/deep/test-rename-old").exists())
+        self.assertTrue(self.path("skills/deep/test-rename-new").exists())
 
         # Alias lookup
         resolved = resolve_style_by_slug_or_alias("deep", "test-rename-old")
@@ -124,25 +144,71 @@ class TestStyleManager(unittest.TestCase):
     def test_create_style_rollback_on_failure(self) -> None:
         success, msg = create_style("deep", "Invalid", "invalid..slug", "Desc")
         self.assertFalse(success)
-        self.assertFalse(resolve_path("skills/deep/invalid..slug").exists())
+        self.assertFalse(self.path("skills/deep/invalid..slug").exists())
 
         success, msg = create_style("deep", "Invalid Source", "test-custom", "Desc", clone_from="non-existent-source")
         self.assertFalse(success)
-        self.assertFalse(resolve_path("skills/deep/test-custom").exists())
+        self.assertFalse(self.path("skills/deep/test-custom").exists())
 
     def test_save_style_file_atomic(self) -> None:
         create_style("deep", "Test Save", "test-save-atomic", "Desc", clone_from="reflective")
         target_file = "story_architect.yaml"
-        original_content = read_text(resolve_path(f"skills/deep/test-save-atomic/{target_file}"))
+        original_content = read_text(
+            self.path(f"skills/deep/test-save-atomic/{target_file}")
+        )
         new_content = original_content + "\n# Modified comment\n"
 
         success, err, warn = save_style_file("deep", "test-save-atomic", target_file, new_content)
         self.assertTrue(success, err)
-        saved_content = read_text(resolve_path(f"skills/deep/test-save-atomic/{target_file}"))
+        saved_content = read_text(
+            self.path(f"skills/deep/test-save-atomic/{target_file}")
+        )
         self.assertIn("# Modified comment", saved_content)
-        self.assertFalse(resolve_path(f"skills/deep/test-save-atomic/{target_file}.tmp").exists())
+        self.assertFalse(
+            self.path(f"skills/deep/test-save-atomic/{target_file}.tmp").exists()
+        )
 
         delete_style("deep", "test-save-atomic")
+
+    def test_save_and_rename_rollback_on_commit_failure(self) -> None:
+        success, msg = create_style(
+            "deep",
+            "Rollback",
+            "test-save-atomic",
+            "Desc",
+            clone_from="reflective",
+        )
+        self.assertTrue(success, msg)
+        target = self.path("skills/deep/test-save-atomic/story_architect.yaml")
+        original = read_text(target)
+        with patch(
+            "engine.style_manager.commit_staged_directory",
+            side_effect=OSError("forced commit failure"),
+        ):
+            saved, error, _ = save_style_file(
+                "deep",
+                "test-save-atomic",
+                "story_architect.yaml",
+                original + "\n# should-not-commit\n",
+            )
+        self.assertFalse(saved)
+        self.assertIn("forced commit failure", error)
+        self.assertEqual(read_text(target), original)
+        self.assertFalse(
+            list(target.parent.parent.glob(".test-save-atomic.staging-*"))
+        )
+
+        with patch(
+            "engine.style_manager.commit_staged_rename",
+            side_effect=OSError("forced rename failure"),
+        ):
+            renamed, error = rename_style(
+                "deep", "test-save-atomic", "Renamed", "test-rename-new"
+            )
+        self.assertFalse(renamed)
+        self.assertIn("forced rename failure", error)
+        self.assertTrue(self.path("skills/deep/test-save-atomic").exists())
+        self.assertFalse(self.path("skills/deep/test-rename-new").exists())
 
 if __name__ == "__main__":
     unittest.main()

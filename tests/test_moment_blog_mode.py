@@ -1,16 +1,20 @@
-import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
-
-import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.utils import load_yaml, read_text, resolve_path
-from engine.workflow import run_workflow, run_learning_loop, resolve_workflow_file, resolve_step_skill_path
+from engine.workflow import (
+    preview_workflow,
+    run_workflow,
+    run_learning_loop,
+    resolve_workflow_file,
+    resolve_step_skill_path,
+)
 
 
 class TestMomentBlogMode(unittest.TestCase):
@@ -67,90 +71,96 @@ class TestMomentBlogMode(unittest.TestCase):
         if not input_path.exists():
             input_path = ROOT / "examples" / "blog_input_template.md"
 
-        run_dir = run_workflow(
+        preview = preview_workflow(
             config_path=config_path,
             input_path=input_path,
-            dry_run=True,
             style="reflective",
             mode="moment",
+            run_source="test",
         )
-        self.assertTrue(run_dir.exists())
-        self.assertTrue((run_dir / "metadata.json").exists())
-
-        metadata = json.loads(read_text(run_dir / "metadata.json"))
-        self.assertEqual(metadata["mode"], "moment")
-        self.assertEqual(metadata["style"], "reflective")
-
-        # Verify output artifacts exist
-        self.assertTrue((run_dir / "moment_edited.md").exists())
-        self.assertTrue((run_dir / "witness_report.md").exists())
+        self.assertFalse(preview.persisted)
+        self.assertFalse(preview.api_called)
+        self.assertEqual(preview.mode, "moment")
+        self.assertEqual(preview.style, "reflective")
+        self.assertEqual(preview.stages["breath_editor"].artifact_file, "moment_edited.md")
+        self.assertEqual(preview.stages["gentle_witness"].artifact_file, "witness_report.md")
 
     def test_dry_run_deep_mode(self) -> None:
         config_path = ROOT / "engine" / "config.example.yaml"
         input_path = ROOT / "examples" / "blog_input_template.md"
 
-        run_dir = run_workflow(
+        preview = preview_workflow(
             config_path=config_path,
             input_path=input_path,
-            dry_run=True,
             style="reflective",
             mode="deep",
+            run_source="test",
         )
-        self.assertTrue(run_dir.exists())
-        metadata = json.loads(read_text(run_dir / "metadata.json"))
-        self.assertEqual(metadata["mode"], "deep")
-        self.assertTrue((run_dir / "edited_blog.md").exists())
+        self.assertEqual(preview.mode, "deep")
+        self.assertFalse(preview.persisted)
+        self.assertEqual(preview.stages["editor_agent"].artifact_file, "edited_blog.md")
 
     def test_same_input_both_modes(self) -> None:
         config_path = ROOT / "engine" / "config.example.yaml"
         input_path = ROOT / "examples" / "moment_blog_input_template.md"
 
-        run_dir_deep = run_workflow(
+        deep_preview = preview_workflow(
             config_path=config_path,
             input_path=input_path,
-            dry_run=True,
             style="reflective",
             mode="deep",
+            run_source="test",
         )
-        self.assertTrue(run_dir_deep.exists())
-        self.assertTrue((run_dir_deep / "edited_blog.md").exists())
+        self.assertIn("editor_agent", deep_preview.stages)
 
-        run_dir_moment = run_workflow(
+        moment_preview = preview_workflow(
             config_path=config_path,
             input_path=input_path,
-            dry_run=True,
             style="reflective",
             mode="moment",
+            run_source="test",
         )
-        self.assertTrue(run_dir_moment.exists())
-        self.assertTrue((run_dir_moment / "moment_edited.md").exists())
+        self.assertIn("breath_editor", moment_preview.stages)
 
     def test_offline_learning_loop_moment_mode(self) -> None:
         config_path = ROOT / "engine" / "config.example.yaml"
         input_path = ROOT / "examples" / "moment_blog_input_template.md"
 
-        run_dir = run_workflow(
-            config_path=config_path,
-            input_path=input_path,
-            dry_run=True,
-            style="reflective",
-            mode="moment",
-        )
-        # Create dummy production_blog.md and final_blog.md
-        (run_dir / "final_blog.md").write_text("Khoảnh khắc mưa rơi nhè nhẹ trên phố.", encoding="utf-8")
-        (run_dir / "production_blog.md").write_text("Khoảnh khắc mưa rơi nhè nhẹ trên đường phố cũ.", encoding="utf-8")
+        with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+            run_dir = run_workflow(
+                config_path=config_path,
+                input_path=input_path,
+                dry_run=True,
+                persist=True,
+                output_root=Path(temporary),
+                run_source="test",
+                style="reflective",
+                mode="moment",
+            )
+            self.assertIsInstance(run_dir, Path)
+            assert isinstance(run_dir, Path)
+            (run_dir / "final_blog.md").write_text(
+                "Khoảnh khắc mưa rơi nhè nhẹ trên phố.", encoding="utf-8"
+            )
+            (run_dir / "production_blog.md").write_text(
+                "Khoảnh khắc mưa rơi nhè nhẹ trên đường phố cũ.",
+                encoding="utf-8",
+            )
 
-        learning_dir = run_learning_loop(
-            config_path=config_path,
-            run_dir=run_dir,
-            dry_run=True,
-            offline=True,
-            mode="moment",
-        )
-        self.assertTrue(learning_dir.exists())
-        self.assertTrue((learning_dir / "moment_blog_patterns.md").exists())
-        report_text = read_text(learning_dir / "moment_blog_patterns.md")
-        self.assertIn("MOMENT MODE", report_text)
+            learning_dir = run_learning_loop(
+                config_path=config_path,
+                run_dir=run_dir,
+                dry_run=True,
+                offline=True,
+                mode="moment",
+                persist=True,
+                output_root=Path(temporary) / "learning",
+                run_source="test",
+            )
+            self.assertTrue(learning_dir.exists())
+            self.assertTrue((learning_dir / "moment_blog_patterns.md").exists())
+            report_text = read_text(learning_dir / "moment_blog_patterns.md")
+            self.assertIn("MOMENT MODE", report_text)
 
 
 if __name__ == "__main__":

@@ -121,11 +121,29 @@ def _load_base_skill(mode: str, base_style_slug: str, filename: str) -> dict:
     return load_yaml(candidate)
 
 
-def _stable_hash(data: Dict[str, Any]) -> str:
+def stable_skill_hash(data: Dict[str, Any]) -> str:
     encoded = json.dumps(
         data, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def validate_base_snapshot(
+    artifact: CanonicalIR,
+    *,
+    mode: str,
+    base_style_slug: str,
+) -> None:
+    if artifact.base_style_slug != base_style_slug:
+        raise ValueError(
+            f"{artifact.filename}: base style trong Canonical IR không khớp profile."
+        )
+    current_base = _load_base_skill(mode, base_style_slug, artifact.filename)
+    if stable_skill_hash(current_base) != artifact.base_hash:
+        raise ValueError(
+            f"{artifact.filename}: base style đã thay đổi sau khi compile; "
+            "cần compile lại trước khi publish."
+        )
 
 
 def _rules_for_dimension(
@@ -193,6 +211,10 @@ def compile_style(
     """Compile deterministic full-template overlays from an explicit base style."""
     if mode not in REQUIRED_AGENTS:
         raise ValueError(f"Mode không hợp lệ: {mode}")
+    if profile.mode != mode:
+        raise ValueError(
+            f"Profile mode '{profile.mode}' không khớp compile mode '{mode}'."
+        )
     filename_map = AGENT_FILENAME_MAP[mode]
     required = REQUIRED_AGENTS[mode]
     warnings: List[str] = []
@@ -258,7 +280,7 @@ def compile_style(
             ),
             context_policy=_contract_object(base.get("context_policy")),
             base_style_slug=profile.base_style_slug,
-            base_hash=_stable_hash(base),
+            base_hash=stable_skill_hash(base),
             invariants=invariants,
             style_overlays=overlays,
             effective_skill=effective,

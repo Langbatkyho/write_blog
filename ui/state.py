@@ -1,0 +1,59 @@
+from __future__ import annotations
+
+from typing import Any, MutableMapping
+
+
+SESSION_DEFAULTS: dict[str, Any] = {
+    "mode": "deep",
+    "selected_style_slug": "reflective",
+    "active_tab": 0,
+    "vl_step": 1,
+    "vl_samples": [""],
+    "vl_dna": None,
+    "vl_claims": [],
+    "vl_interview": [],
+    "vl_answers": {},
+    "vl_calibration": None,
+    "vl_calibration_selection": None,
+    "vl_interview_patch": None,
+    "vl_profile": None,
+    "vl_compiled_ir": {},
+    "vl_style_name": "",
+    "vl_style_slug": "",
+}
+
+VOICE_LAB_TRANSIENT_KEYS = (
+    "vl_step",
+    "vl_dna",
+    "vl_claims",
+    "vl_interview",
+    "vl_answers",
+    "vl_calibration",
+    "vl_calibration_selection",
+    "vl_interview_patch",
+    "vl_profile",
+    "vl_compiled_ir",
+)
+
+
+def initialize_session_state(state: MutableMapping[str, Any]) -> None:
+    for key, value in SESSION_DEFAULTS.items():
+        if key not in state:
+            state[key] = value.copy() if isinstance(value, (dict, list)) else value
+
+
+def reset_voice_lab_state(state: MutableMapping[str, Any]) -> None:
+    for key in VOICE_LAB_TRANSIENT_KEYS:
+        value = SESSION_DEFAULTS[key]
+        state[key] = value.copy() if isinstance(value, (dict, list)) else value
+
+
+def switch_mode(state: MutableMapping[str, Any], mode: str) -> bool:
+    if mode not in {"deep", "moment"}:
+        raise ValueError(f"Mode không hợp lệ: {mode}")
+    if state.get("mode") == mode:
+        return False
+    state["mode"] = mode
+    state["selected_style_slug"] = "reflective"
+    reset_voice_lab_state(state)
+    return True
