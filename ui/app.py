@@ -1,10 +1,6 @@
 import sys
 from pathlib import Path
 import json
-import uuid
-import datetime as dt
-import shutil
-import os
 import yaml
 from html import escape
 import streamlit as st
@@ -13,11 +9,18 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from engine.voice_lab.models import StyleProfile, VoiceDNA, EvidenceClaim
+from engine.voice_lab.models import AnalysisError
 from engine.voice_lab.analyzer import analyze_samples
 from engine.voice_lab.compiler import compile_style
-from engine.voice_lab.interview import generate_interview, calibrate_ab, DIMENSION_VI
-from engine.voice_lab.overrides import merge_overrides
+from engine.voice_lab.interview import (
+    DIMENSION_VI,
+    apply_calibration_selection,
+    apply_interview_patch,
+    calibrate_ab,
+    generate_interview,
+    propose_interview_patch,
+)
+from engine.voice_lab.publisher import publish_style
 
 from engine.style_manager import (
     list_styles,
@@ -71,7 +74,11 @@ if "vl_interview" not in st.session_state:
 if "vl_answers" not in st.session_state:
     st.session_state.vl_answers = {}
 if "vl_calibration" not in st.session_state:
-    st.session_state.vl_calibration = {} # dim -> (variant_a, variant_b, selected)
+    st.session_state.vl_calibration = None
+if "vl_interview_patch" not in st.session_state:
+    st.session_state.vl_interview_patch = None
+if "vl_profile" not in st.session_state:
+    st.session_state.vl_profile = None
 if "vl_compiled_ir" not in st.session_state:
     st.session_state.vl_compiled_ir = {}
 if "vl_style_name" not in st.session_state:
@@ -130,6 +137,18 @@ with st.sidebar:
     if mode_choice != st.session_state.mode:
         st.session_state.mode = mode_choice
         st.session_state.selected_style_slug = "reflective"
+        for key in (
+            "vl_step",
+            "vl_dna",
+            "vl_claims",
+            "vl_interview",
+            "vl_answers",
+            "vl_calibration",
+            "vl_interview_patch",
+            "vl_profile",
+            "vl_compiled_ir",
+        ):
+            st.session_state.pop(key, None)
         st.rerun()
 
     st.markdown("---")
@@ -250,11 +269,16 @@ with tab_studio:
                 st.error("Vui lòng nhập ít nhất 1 mẫu bài viết.")
             else:
                 with st.spinner("Đang phân tích Voice DNA..."):
-                    dna, claims = analyze_samples(valid_samples)
-                    st.session_state.vl_dna = dna
-                    st.session_state.vl_claims = claims
-                    st.session_state.vl_step = 2
-                    st.rerun()
+                    try:
+                        result = analyze_samples(valid_samples, mode=mode)
+                        st.session_state.vl_profile = result.profile
+                        st.session_state.vl_dna = result.profile.dna
+                        st.session_state.vl_claims = result.profile.evidence
+                        st.session_state.vl_interview_patch = None
+                        st.session_state.vl_step = 2
+                        st.rerun()
+                    except AnalysisError as exc:
+                        st.error(exc.user_message)
 
     elif step == 2:
         st.markdown("### Bước 2: Xem xét Bằng chứng (Evidence Review)")
@@ -264,30 +288,57 @@ with tab_studio:
             
         st.write("**Các Bằng chứng (Claims):**")
         for claim in st.session_state.vl_claims:
-            st.info(f"**Dimension:** {claim.dimension}\n\n**Claim:** {claim.claim}\n\n**Quote:** '{claim.quote}'\n\n**Confidence:** {claim.confidence:.2f}")
+            st.info(
+                f"**Dimension:** {claim.dimension}\n\n"
+                f"**Claim:** {claim.claim}\n\n"
+                f"**Sample:** {claim.sample_id}\n\n"
+                f"**Quote:** '{claim.exact_quote}'"
+            )
+        profile = st.session_state.vl_profile
+        if profile and profile.rejected_evidence:
+            with st.expander(
+                f"Evidence đã loại ({len(profile.rejected_evidence)})",
+                expanded=False,
+            ):
+                for claim in profile.rejected_evidence:
+                    st.warning(
+                        f"{claim.dimension}: {claim.rejection_reason} — "
+                        f"“{claim.exact_quote}”"
+                    )
+        if profile and profile.analysis_warnings:
+            for warning in profile.analysis_warnings:
+                st.warning(warning)
 
         col1, col2 = st.columns(2)
         if col1.button("⬅️ Quay lại", key="back_1"):
             st.session_state.vl_step = 1
             st.rerun()
         if col2.button("➡️ Tiếp tục (Interview)", type="primary"):
-            profile = StyleProfile(slug="temp", mode=mode, dna=st.session_state.vl_dna, evidence=st.session_state.vl_claims)
+            profile = st.session_state.vl_profile
             interview_qs = generate_interview(profile)
             st.session_state.vl_interview = interview_qs
             # If no interview questions, skip to calibration
             if not interview_qs:
-                dim = "tone"
-                var_a, var_b = calibrate_ab(dim, profile)
-                st.session_state.vl_calibration = {"dimension": dim, "variant_a": var_a, "variant_b": var_b, "selected": None, "profile": profile}
-                st.session_state.vl_step = 4
+                dimensions = list(profile.dna.non_empty_dimensions()) if profile.dna else []
+                if not dimensions:
+                    st.error("Profile chưa có dimension đủ evidence để calibration.")
+                else:
+                    try:
+                        st.session_state.vl_calibration = calibrate_ab(
+                            dimensions[0], profile
+                        )
+                        st.session_state.vl_step = 4
+                    except AnalysisError as exc:
+                        st.error(exc.user_message)
             else:
                 st.session_state.vl_step = 3
-            st.rerun()
+            if st.session_state.vl_step in {3, 4}:
+                st.rerun()
 
     elif step == 3:
         st.markdown("### Bước 3: Phỏng vấn Bổ sung (Guided Interview)")
         for q in st.session_state.vl_interview:
-            st.write(f"**{q.dimension}**: {q.question}")
+            st.write(f"**{DIMENSION_VI.get(q.dimension, q.dimension)}**: {q.question}")
             st.caption(f"Bối cảnh phân tích: {q.context}")
             st.session_state.vl_answers[q.id] = st.text_input("Câu trả lời của bạn", key=f"ans_{q.id}", value=st.session_state.vl_answers.get(q.id, ""))
 
@@ -295,42 +346,107 @@ with tab_studio:
         if col1.button("⬅️ Quay lại", key="back_2"):
             st.session_state.vl_step = 2
             st.rerun()
-        if col2.button("➡️ Tiếp tục (Calibration)", type="primary"):
-            # Use profile created in previous step or reconstruct
-            profile = StyleProfile(slug="temp", mode=mode, dna=st.session_state.vl_dna, evidence=st.session_state.vl_claims)
-            dim = "tone"
-            var_a, var_b = calibrate_ab(dim, profile)
-            st.session_state.vl_calibration = {"dimension": dim, "variant_a": var_a, "variant_b": var_b, "selected": None, "profile": profile}
-            st.session_state.vl_step = 4
-            st.rerun()
+        if col2.button("Tạo đề xuất cập nhật", type="primary"):
+            try:
+                st.session_state.vl_interview_patch = propose_interview_patch(
+                    st.session_state.vl_profile,
+                    st.session_state.vl_interview,
+                    st.session_state.vl_answers,
+                )
+            except AnalysisError as exc:
+                st.error(exc.user_message)
+
+        patch = st.session_state.vl_interview_patch
+        if patch is not None:
+            st.markdown("#### Duyệt thay đổi đề xuất")
+            st.json(patch.model_dump())
+            confirm_col, skip_col = st.columns(2)
+            if confirm_col.button("Xác nhận và tiếp tục A/B", type="primary"):
+                try:
+                    profile = apply_interview_patch(
+                        st.session_state.vl_profile,
+                        patch,
+                        st.session_state.vl_interview,
+                        st.session_state.vl_answers,
+                        confirmed=True,
+                    )
+                    dimensions = (
+                        list(profile.dna.non_empty_dimensions()) if profile.dna else []
+                    )
+                    if not dimensions:
+                        raise ValueError(
+                            "Profile chưa có dimension đủ evidence để calibration."
+                        )
+                    target = st.session_state.vl_interview[0].dimension
+                    if target not in dimensions:
+                        target = dimensions[0]
+                    st.session_state.vl_profile = profile
+                    st.session_state.vl_dna = profile.dna
+                    st.session_state.vl_calibration = calibrate_ab(target, profile)
+                    st.session_state.vl_step = 4
+                    st.rerun()
+                except AnalysisError as exc:
+                    st.error(exc.user_message)
+                except ValueError as exc:
+                    st.error(str(exc))
+            if skip_col.button("Bỏ qua phỏng vấn"):
+                profile = st.session_state.vl_profile
+                dimensions = (
+                    list(profile.dna.non_empty_dimensions()) if profile.dna else []
+                )
+                if dimensions:
+                    try:
+                        st.session_state.vl_calibration = calibrate_ab(
+                            dimensions[0], profile
+                        )
+                        st.session_state.vl_step = 4
+                        st.rerun()
+                    except AnalysisError as exc:
+                        st.error(exc.user_message)
 
     elif step == 4:
         st.markdown("### Bước 4: Hiệu chỉnh (A/B Calibration)")
         calib = st.session_state.vl_calibration
-        dim = calib.get("dimension", "")
+        if calib is None:
+            st.error("Calibration session chưa được tạo.")
+            st.stop()
+        dim = calib.dimension
         dim_vi = DIMENSION_VI.get(dim, dim)
         st.write(f"Vui lòng chọn biến thể phù hợp nhất cho **{dim_vi}** (Kiểm tra mù / Blind test):")
         
         c1, c2 = st.columns(2)
         with c1:
-            st.info(calib["variant_a"])
+            st.info(calib.variant_a)
             if st.button("Chọn Bản A"):
-                st.session_state.vl_calibration["selected"] = "A"
+                calib.selected = "A"
         with c2:
-            st.info(calib["variant_b"])
+            st.info(calib.variant_b)
             if st.button("Chọn Bản B"):
-                st.session_state.vl_calibration["selected"] = "B"
+                calib.selected = "B"
                 
-        if st.session_state.vl_calibration.get("selected"):
-            st.success(f"Đã chọn Bản {st.session_state.vl_calibration['selected']}.")
+        if calib.selected:
+            st.success(f"Đã chọn Bản {calib.selected}.")
             if st.button("➡️ Chuyển sang Compile & Review", type="primary"):
-                profile = st.session_state.vl_calibration.get("profile") or StyleProfile(slug="temp", mode=mode, dna=st.session_state.vl_dna, evidence=st.session_state.vl_claims)
-                profile.is_draft = False
-                ir_dict = compile_style(profile, mode=mode)
-                st.session_state.vl_compiled_ir = ir_dict
-                st.session_state.vl_profile = profile
-                st.session_state.vl_step = 5
-                st.rerun()
+                try:
+                    selected = calib.selected
+                    # apply_calibration_selection guards against duplicate use.
+                    calib.selected = None
+                    profile = apply_calibration_selection(
+                        st.session_state.vl_profile, calib, selected
+                    )
+                    profile.status = "confirmed"
+                    profile.is_draft = False
+                    compiled = compile_style(profile, mode=mode)
+                    st.session_state.vl_calibration = calib
+                    st.session_state.vl_compiled_ir = compiled
+                    st.session_state.vl_profile = profile
+                    st.session_state.vl_dna = profile.dna
+                    st.session_state.vl_step = 5
+                    st.rerun()
+                except (ValueError, AnalysisError) as exc:
+                    st.error(
+                        exc.user_message if isinstance(exc, AnalysisError) else str(exc)
+                    )
         
         if st.button("⬅️ Quay lại", key="back_3"):
             st.session_state.vl_step = 3 if st.session_state.vl_interview else 2
@@ -363,7 +479,14 @@ with tab_studio:
                     st.json(ir_data)
                 with col_b:
                     st.markdown("**Effective YAML**")
-                    st.code(yaml.safe_dump(ir_data, allow_unicode=True, sort_keys=False), language="yaml")
+                    st.code(
+                        yaml.safe_dump(
+                            ir_data.get("effective_skill", {}),
+                            allow_unicode=True,
+                            sort_keys=False,
+                        ),
+                        language="yaml",
+                    )
                     
         st.subheader("🚀 Đăng tải Style (Publish)")
         st.session_state.vl_style_name = st.text_input("Tên Style", value=st.session_state.vl_style_name)
@@ -376,80 +499,26 @@ with tab_studio:
                 slug = st.session_state.vl_style_slug
                 try:
                     with st.spinner("Executing 4-Step Publish Pipeline..."):
-                        # 1. Staging
-                        staging_dir = resolve_path(f"skills/{mode}/{slug}.staging")
-                        if staging_dir.exists():
-                            shutil.rmtree(staging_dir)
-                        staging_dir.mkdir(parents=True, exist_ok=True)
-                        
-                        # compiled_ir keys are now filenames (e.g. 'story_architect.yaml')
-                        for filename, ir_data in st.session_state.vl_compiled_ir.items():
-                            file_path = staging_dir / filename
-                            # Write only the style_rules and prompt into the skill yaml
-                            skill_content = {
-                                "prompt": ir_data.get("prompt", ""),
-                                "style_rules": ir_data.get("style_rules", []),
-                                "output_contract": ir_data.get("output_contract", ""),
-                                "handoff_contract": ir_data.get("handoff_contract", ""),
-                                "context_policy": ir_data.get("context_policy", ""),
-                                "voice_lab_generated": True,
-                            }
-                            write_text(file_path, yaml.safe_dump(skill_content, allow_unicode=True, sort_keys=False))
-                            
-                        meta = {
-                            "name": st.session_state.vl_style_name,
-                            "slug": slug,
-                            "mode": mode,
-                            "is_protected": False,
-                            "updated_at": dt.datetime.now(dt.timezone.utc).isoformat()
-                        }
-                        write_text(staging_dir / "style_meta.yaml", yaml.safe_dump(meta, allow_unicode=True, sort_keys=False))
-
-                        # 2. Validate — pass workflow_path directly so validator checks staging dir
-                        flow_name = "write_moment_blog.yaml" if mode == "moment" else "write_blog.yaml"
-                        workflow_path = resolve_path(f"flow/{flow_name}")
-                        import yaml as _yaml
-                        from pathlib import Path as _Path
-                        if workflow_path.exists():
-                            wf = _yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
-                            missing = []
-                            for step in wf.get("steps", []):
-                                skill_filename = _Path(step["skill"]).name
-                                if not (staging_dir / skill_filename).exists():
-                                    missing.append(skill_filename)
-                            if missing:
-                                raise ValueError(f"Staging thiếu file skill bắt buộc: {missing}")
-                        
-                        runtime_dir = resolve_path(f"skills/{mode}/{slug}")
-                        
-                        # 3. Backup
-                        backup_dir = resolve_path("profile_history")
-                        backup_dir.mkdir(exist_ok=True)
-                        if runtime_dir.exists():
-                            backup_path = backup_dir / f"{slug}_{int(dt.datetime.now().timestamp())}.zip"
-                            shutil.make_archive(str(backup_path).replace('.zip', ''), 'zip', str(runtime_dir))
-                            
-                        # 4. Atomic Replace (Tombstone pattern)
-                        if runtime_dir.exists():
-                            tombstone = runtime_dir.with_suffix('.old')
-                            if tombstone.exists():
-                                shutil.rmtree(tombstone)
-                            os.rename(str(runtime_dir), str(tombstone))
-                        os.rename(str(staging_dir), str(runtime_dir))
-                        if 'tombstone' in locals() and tombstone.exists():
-                            shutil.rmtree(tombstone)
+                        profile = st.session_state.vl_profile.model_copy(deep=True)
+                        profile.slug = slug
+                        profile.mode = mode
+                        st.session_state.vl_profile = profile
+                        result = publish_style(
+                            profile,
+                            st.session_state.vl_compiled_ir,
+                            name=st.session_state.vl_style_name,
+                            slug=slug,
+                            mode=mode,
+                        )
                         
                     st.success(f"✅ Publish Pipeline Hoàn tất! Style '{st.session_state.vl_style_name}' đã sẵn sàng.")
+                    for warning in result.warnings:
+                        st.warning(warning)
                     # Reset wizard
                     st.session_state.vl_step = 1
                     st.session_state.selected_style_slug = slug
                     st.rerun()
                 except Exception as e:
-                    # Rollback
-                    if 'tombstone' in locals() and tombstone.exists():
-                        os.rename(str(tombstone), str(runtime_dir))
-                    if 'staging_dir' in locals() and staging_dir.exists():
-                        shutil.rmtree(staging_dir)
                     st.error(f"❌ Publish thất bại, đã Rollback. Lỗi: {str(e)}")
 
         if st.button("⬅️ Quay lại", key="back_4"):

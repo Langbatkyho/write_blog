@@ -43,6 +43,38 @@ Outputs chính của `moment_blog_mode`:
 - `moment_edited.md`: bản cắt gọt làm nhẹ bởi `breath_editor`.
 - `witness_report.md`: xác nhận bài viết còn là khoảnh khắc sống từ `gentle_witness`.
 
+## Kiến trúc Đa Phong Cách & Voice Lab Schema v2
+
+Hệ thống cho phép mở rộng không giới hạn các phong cách viết (ví dụ: `va-natural`, `minh-hom-hinh`, `reflective`, `provocative`) thông qua cờ `--style <tên_phong_cách>`.
+
+Trình quản lý giọng văn **Guided Style Voice Lab Schema v2** (`ui/app.py`, `engine/voice_lab/`) tích hợp quy trình 5 bước:
+
+1. **Phân tích có bằng chứng**: Gemini structured JSON trích xuất 12 chiều `DimensionProfile`; quote phải khớp nguyên văn với sample.
+2. **Evidence Review**: Evidence sai bị reject để audit; confidence được tính bằng code, không dùng điểm tự khai của LLM.
+3. **Guided Interview**: Chỉ hỏi tối đa 3 chiều yếu nhất; `ProfilePatch` chỉ được áp dụng sau khi người dùng xác nhận.
+4. **Blind A/B Calibration**: Chỉ thay một dimension, ẩn `shuffle_mapping`; lựa chọn cập nhật strength, examples và history của profile.
+5. **Compile & Publish**: Compiler overlay lên full base template, giữ Invariant Contract; publisher chạy `Staging -> Validate -> Backup -> Atomic Replace / Rollback`.
+
+Các đặc tính an toàn chính:
+
+- Adaptive single/multi-pass dựa trên token budget.
+- Không tạo DNA/evidence/A-B giả khi Gemini hoặc parser lỗi.
+- Schema v2 đọc được profile/archive v1; dữ liệu mới chỉ ghi v2.
+- Protected system style không thể bị Voice Lab ghi đè.
+- Voice Lab chỉ gọi trực tiếp Gemini API qua `engine/gemini_client.py`; OpenAI/Antigravity vẫn dành cho workflow bên ngoài Voice Lab.
+- Deep mode compile 7 agent; Moment mode compile 6 agent theo `AGENT_FILENAME_MAP` và `DIMENSION_AGENTS`.
+
+Kế hoạch và audit triển khai: `docs/2026-07-27-voice-lab-refactor-plan-final.md`.
+
+Chạy Voice Lab:
+
+```powershell
+$env:GEMINI_API_KEY="..."
+streamlit run ui/app.py
+```
+
+Có thể khai báo nhiều key dạng `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`, ... để client xoay vòng. Voice Lab hiển thị lỗi rõ ràng và giữ profile ở trạng thái draft nếu Gemini không khả dụng hoặc evidence không hợp lệ.
+
 ## Vai Trò Các Agent Theo Mode
 
 ### Moment Mode Agents
@@ -143,20 +175,20 @@ Dùng Antigravity bridge để tận dụng model quota nội bộ (chỉ áp d�
 python engine/run_workflow.py --input examples/blog_input_template.md --client antigravity
 ```
 
-Chạy `moment_blog_mode` bằng Local Model Quota trên ChatGPT Work:
+Chạy `moment_blog_mode` kết hợp phong cách tùy biến từ Voice Lab (ví dụ `va-natural`) bằng Local Model Quota:
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_1.md --mode moment --client antigravity
+python engine/run_workflow.py --input examples/moment_1.md --mode moment --style va-natural --client antigravity
 ```
 
-Chỉ dẫn chi tiết:
+Chỉ dẫn chi tiết từng bước cho trình quản lý Antigravity Bridge:
 
 ```text
-docs/2026-07-22-moment-blog-local-model-quota-chatgpt-work-guide.md
+docs/moment_local_quota_guide_AntiGravity.md
 ```
 
 > [!WARNING]
-> Cơ chế Bridge yêu cầu model trên giao diện chat phải có năng lực **Tool Calling** xuất sắc để tự động đọc/ghi file (ví dụ: `view_file`, `write_to_file`). Nếu bạn chọn các model thuần text (như GPT-OSS 120B) trên giao diện chat, script sẽ bị treo (Timeout) do model không biết cách ghi file trả kết quả.
+> Cơ chế Bridge yêu cầu model trên giao diện chat phải có năng lực **Tool Calling** xuất sắc để tự động đọc/ghi file (ví dụ: `view_file`, `write_to_file`). Bridge mới đã hỗ trợ xử lý mã hóa UTF-8 Windows tự động và xác minh hợp đồng Fail-Fast trước khi thi hành. Nếu bạn chọn các model thuần text (như GPT-OSS 120B) trên giao diện chat, script sẽ bị treo do model không biết ghi file trả kết quả.
 
 ### Phân vai Model theo Stage (Client Map)
 

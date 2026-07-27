@@ -15,5 +15,5 @@ target_reader:
 - Những ai đang bù đầu tóc rối với nhịp sống căng thẳng, chao đảo
 
 desired_length:
-300-600 từ
+dưới 300 từ
 ```

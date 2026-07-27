@@ -89,6 +89,14 @@ def _rate_limit():
     _request_timestamps.append(time.time())
 
 
+# Try importing Google GenAI official SDK
+try:
+    from google import genai
+    from google.genai import types
+    _HAS_GENAI_SDK = True
+except ImportError:
+    _HAS_GENAI_SDK = False
+
 # ---------- API Call ----------
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -102,17 +110,81 @@ def call_gemini(
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
     max_output_tokens: int = 4096,
+    thinking_budget: int = 1024,
     max_retries: int = 3,
 ) -> str:
     """
-    Call Gemini API with rate limiting and key rotation.
+    Call Gemini API (e.g. gemini-3.5-flash) with rate limiting, key rotation,
+    and High Thinking Mode (thinking_budget=1024).
     Compatible signature with call_openai / call_antigravity.
     """
     _rate_limit()
     api_key = _next_key()
+    config = dict(config or {})
+    response_mime_type = config.get("response_mime_type") or config.get("responseMimeType")
+    response_schema = config.get("response_schema") or config.get("responseSchema")
+    is_json_schema = isinstance(response_schema, dict) and (
+        "$defs" in response_schema or "$schema" in response_schema
+    )
 
+    stage_label = stage_id or "unknown"
+    budget_str = f" (Thinking Budget: {thinking_budget} - High Mode)" if thinking_budget > 0 else ""
+    print(f"[GEMINI] Calling {model} for stage '{stage_label}'{budget_str}...")
+
+    # Strategy 1: Use official google.genai SDK if available
+    if _HAS_GENAI_SDK:
+        for attempt in range(max_retries):
+            try:
+                client = genai.Client(api_key=api_key)
+                config_kwargs = {
+                    "temperature": temperature,
+                    "max_output_tokens": max_output_tokens,
+                    "response_mime_type": response_mime_type,
+                }
+                if is_json_schema:
+                    config_kwargs["response_json_schema"] = response_schema
+                else:
+                    config_kwargs["response_schema"] = response_schema
+                gen_config = types.GenerateContentConfig(**config_kwargs)
+                if thinking_budget and thinking_budget > 0:
+                    gen_config.thinking_config = types.ThinkingConfig(thinking_budget=thinking_budget)
+
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=gen_config,
+                )
+                if response and response.text:
+                    result = response.text.strip()
+                    print(f"[GEMINI] [OK] Response received via SDK ({len(result)} chars)")
+                    return result
+            except Exception as exc:
+                if attempt < max_retries - 1:
+                    api_key = _next_key()
+                    wait = 2 ** attempt
+                    print(f"[GEMINI SDK] Retry {attempt+1}/{max_retries} due to: {exc}. Waiting {wait}s...")
+                    time.sleep(wait)
+                else:
+                    print(f"[GEMINI SDK] Fallback to REST API due to: {exc}")
+
+    # Strategy 2: Fallback to REST API via urllib
     endpoint = GEMINI_ENDPOINT.format(model=model)
     url = f"{endpoint}?key={api_key}"
+
+    generation_config: dict[str, Any] = {
+        "temperature": temperature,
+        "maxOutputTokens": max_output_tokens,
+    }
+    if thinking_budget and thinking_budget > 0:
+        generation_config["thinkingConfig"] = {
+            "thinkingBudget": thinking_budget
+        }
+    if response_mime_type:
+        generation_config["responseMimeType"] = response_mime_type
+    if response_schema and is_json_schema:
+        generation_config["responseJsonSchema"] = response_schema
+    elif response_schema:
+        generation_config["responseSchema"] = response_schema
 
     payload = {
         "contents": [
@@ -120,14 +192,8 @@ def call_gemini(
                 "parts": [{"text": prompt}]
             }
         ],
-        "generationConfig": {
-            "temperature": temperature,
-            "maxOutputTokens": max_output_tokens,
-        },
+        "generationConfig": generation_config,
     }
-
-    stage_label = stage_id or "unknown"
-    print(f"[GEMINI] Calling {model} for stage '{stage_label}'...")
 
     for attempt in range(max_retries):
         request = urllib.request.Request(
@@ -147,7 +213,7 @@ def call_gemini(
                 texts = [p.get("text", "") for p in parts if "text" in p]
                 if texts:
                     result = "\n".join(texts).strip()
-                    print(f"[GEMINI] ✅ Response received ({len(result)} chars)")
+                    print(f"[GEMINI] [OK] Response received ({len(result)} chars)")
                     return result
             # If no candidates, return raw
             return json.dumps(data, ensure_ascii=False, indent=2)

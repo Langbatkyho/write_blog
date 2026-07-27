@@ -1,5 +1,31 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Phiên bản: Gemini 3.5 Flash High Thinking Mode & Profile DNA Extraction (2026-07-27)
+
+- **Kích hoạt Chế độ tư duy High (`thinking_budget=1024`) cho Gemini 3.5 Flash**:
+  - Nâng cấp `call_gemini` trong `engine/gemini_client.py` hỗ trợ `thinking_budget: int = 1024` mặc định cho `gemini-3.5-flash`.
+  - Tích hợp official SDK `google.genai` với `types.ThinkingConfig(thinking_budget=1024)` kết hợp fallback REST API JSON payload (`thinkingConfig: {"thinkingBudget": 1024}`).
+  - Xử lý mã hóa chuẩn Unicode/ASCII (`[OK]`) chống lỗi Windows console encoding.
+- **Trích xuất & Cố định Dữ liệu Trung gian Voice Lab (`profile_dna.json`)**:
+  - Nâng cấp Step 5 Publish Pipeline trong `ui/app.py`: Tự động xuất file `profile_dna.json` lưu giữ đầy đủ Voice DNA (12 chiều), Evidence Claims (quotes, confidence), câu trả lời phỏng vấn (Interview), và lựa chọn A/B Calibration khi xuất bản style.
+  - Khởi tạo và lưu trữ vĩnh viễn [skills/moment/va-natural/profile_dna.json](file:///d:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/skills/moment/va-natural/profile_dna.json) cho phong cách Vân Anh Natural (Moment mode).
+
+## Phiên bản: Voice Lab Schema v2 & Fail-Closed Refactor (2026-07-27)
+> **Tham chiếu:** [docs/2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)
+
+- Chuyển Voice DNA từ 12 chuỗi phẳng sang `DimensionProfile` có strength, confidence, do/avoid, examples, evidence IDs và provenance; reader tương thích v1, writer chỉ ghi v2.
+- Tách `prompts.py`/`parser.py`; Gemini trả structured JSON, analyzer fail-closed, quote được xác minh nguyên văn và confidence được tính bằng code.
+- Thêm adaptive routing theo token; một sample không chạy synthesis, input lớn mới chia batch.
+- Interview giới hạn 3 chiều yếu, dùng patch cần xác nhận; A/B lưu hidden mapping và cập nhật profile thật.
+- Compiler dùng base style xác định và full-template overlay, giữ Invariant Contract; override conflict không còn merge giả bằng comment.
+- Tách `publisher.py` khỏi UI, triển khai staging/validate/backup/atomic replace/rollback; archive v2 kiểm checksum và migrate v1 an toàn.
+- Voice Lab chỉ gọi Gemini API; Antigravity/OpenAI không thuộc runtime Voice Lab.
+- Hậu kiểm Claude Opus 4.6:
+  - Nới dung sai validate A/B thành `90–165` từ, trong khi prompt vẫn nhắm mục tiêu `100–150`.
+  - Gom `compute_profile_confidence()` dùng chung; phân tên `SKILL_LEVEL_INVARIANTS`/`IR_LEVEL_INVARIANTS`; xóa dead branch migration.
+  - Chuẩn hóa contract scalar legacy thành object; xóa `prompt`/`style_rules` dư thừa và cấm field ngoài Canonical IR contract.
+- Kiểm chứng cuối: 81/81 regression test pass, gồm 37 test Voice Lab; Streamlit AppTest có 0 exception; `compileall` và `git diff --check` đạt.
+
 ## Phiên bản: Guided Style Voice Lab V1 & Multi-Style Production Engine (V6.0 Final) (2026-07-26)
 > **Tham chiếu kế hoạch phê duyệt:**  
 > - [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)  

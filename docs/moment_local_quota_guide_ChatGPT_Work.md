@@ -1,76 +1,81 @@
-# Chỉ Dẫn Viết Moment Blog Bằng Local Model Quota Trên ChatGPT Work
+# Chỉ Dẫn Chạy Moment Blog Bằng Local Model Quota Trên ChatGPT Work
 
-Ngày: 2026-07-22
+Ngày cập nhật: 2026-07-26
 
 ## Mục tiêu
 
-Chạy `moment_blog_mode` bằng Local Model Quota thông qua `antigravity` file bridge, với input mặc định:
+Chạy workflow viết blog ngắn bằng `moment` mode, style `va-natural`, qua Local Model Quota bằng `antigravity` file bridge.
+
+Input chuẩn:
 
 ```text
-examples/blog_1.md
+examples/moment_1.md
 ```
 
-Lệnh chính:
+Lệnh workflow:
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_1.md --mode moment --client antigravity
+python engine/run_workflow.py --input examples/moment_1.md --mode moment --style va-natural --client antigravity
 ```
 
-Kết quả mong đợi:
+Kết quả cần đạt:
 
-- tạo run mới trong `runs/`;
-- chạy đủ 6 stage moment;
-- tạo `moment_edited.md` làm output chính;
-- giữ bài trong khoảng 300-600 từ, ngắn, hiện tại, trực giác;
-- không dùng OpenAI API quota.
+- tạo một run mới trong `runs/`;
+- chạy đủ 6 stage của moment workflow;
+- dùng style `skills/moment/va-natural/`;
+- dùng Antigravity bridge qua `runs/temp_llm/`;
+- tạo output chính `moment_edited.md` và bản copy xuất bản `final_blog.md`;
+- nội dung bài cuối không vượt quá 300 từ.
 
 ## Điều kiện trước khi chạy
 
-Cần có:
+Workspace:
 
-- repo đang ở thư mục `D:\Nghiên cứu AI\write_blog`;
-- `engine/config.local.yaml` đã cấu hình Local Model, ví dụ `GPT-OSS 120B (Medium)`;
-- bridge `engine/antigravity_bridge.py` đọc model theo từng `stage_id`;
-- model trong ChatGPT Work có khả năng đọc prompt file và ghi response file;
-- workflow moment đã tồn tại tại `flow/write_moment_blog.yaml`;
-- 6 skill moment đã tồn tại tại `skills/moment/reflective/`.
-
-Kiểm tra nhanh:
-
-```powershell
-python -m unittest tests.test_moment_blog_mode tests.test_antigravity_bridge tests.test_client_router
+```text
+D:\Nghiên cứu AI\write_blog
 ```
 
-## Cách chạy khuyến nghị
+Cần có các thành phần sau:
 
-Không chạy lệnh antigravity đồng bộ trong terminal nếu tool sẽ chờ tới khi process kết thúc. Workflow sẽ dừng lại ở mỗi stage để chờ file response.
+- workflow moment tại `flow/write_moment_blog.yaml`;
+- style `va-natural` tại `skills/moment/va-natural/`;
+- input tại `examples/moment_1.md`;
+- bridge tại `engine/antigravity_bridge.py`;
+- client router hỗ trợ `--client antigravity`;
+- `engine/config.local.yaml` hoặc fallback `engine/config.example.yaml` có model local phù hợp.
 
-Hãy start workflow bằng background process:
+Kiểm tra nhanh các file style:
 
 ```powershell
-$psi = [System.Diagnostics.ProcessStartInfo]::new()
-$psi.FileName = 'python'
-$psi.Arguments = 'engine/run_workflow.py --input examples/blog_1.md --mode moment --client antigravity'
-$psi.WorkingDirectory = 'D:\Nghiên cứu AI\write_blog'
-$psi.UseShellExecute = $true
-$psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-$p = [System.Diagnostics.Process]::Start($psi)
-$p.Id
+Get-ChildItem skills/moment/va-natural -File
 ```
 
-Sau đó theo dõi thư mục:
+Style hợp lệ cần có 6 file:
+
+```text
+sensory_capture.yaml
+inner_weather.yaml
+cosmic_signal_reader.yaml
+moment_writer.yaml
+breath_editor.yaml
+gentle_witness.yaml
+```
+
+## Cách chạy
+
+Workflow Antigravity là file bridge. Khi chạy, engine sẽ tạo prompt ở:
 
 ```text
 runs/temp_llm/
 ```
 
-Mỗi stage sẽ tạo một prompt:
+Mỗi stage tạo một file:
 
 ```text
 prompt_{stage}_{timestamp}.txt
 ```
 
-Cần đọc prompt đó và ghi response đúng tên:
+Người vận hành cần đọc prompt đó và ghi response cùng timestamp:
 
 ```text
 response_{stage}_{timestamp}.txt
@@ -79,11 +84,11 @@ response_{stage}_{timestamp}.txt
 Ví dụ:
 
 ```text
-prompt_sensory_capture_1784714692561.txt
-response_sensory_capture_1784714692561.txt
+prompt_sensory_capture_1785072981188.txt
+response_sensory_capture_1785072981188.txt
 ```
 
-Response bắt buộc có đúng 2 heading cấp cao:
+Response phải có đúng 2 heading cấp cao:
 
 ```markdown
 ## Artifact
@@ -95,7 +100,9 @@ Response bắt buộc có đúng 2 heading cấp cao:
 <tóm tắt ngắn cho stage sau>
 ```
 
-## Thứ tự 6 stage moment
+Lưu ý quan trọng: file response nên là UTF-8 không BOM. Nếu response có BOM trước `## Artifact`, parser có thể không nhận heading đầu tiên và ghi cả `Artifact/Handoff` vào output cuối.
+
+## Thứ tự 6 stage
 
 ```text
 sensory_capture
@@ -106,228 +113,227 @@ sensory_capture
 -> gentle_witness
 ```
 
-## Chỉ dẫn viết cho từng stage
+## Chỉ dẫn theo stage cho input `moment_1.md`
 
 ### 1. `sensory_capture`
 
 Nhiệm vụ:
 
-- chỉ ghi nhận cảnh, âm thanh, ánh sáng, nhiệt độ, thân thể;
-- tách quan sát khỏi diễn giải;
+- bắt khoảnh khắc trung tâm: hoa nở không vì ai;
+- ghi hình ảnh hoa sáng, xanh non, cánh mở tự nhiên;
+- đối chiếu nhẹ với con người hay cần công bằng, động viên, ghi nhận;
 - không rút bài học.
 
-Output nên có:
+Tinh thần nên giữ:
 
-- `central_moment`
-- `visible_scene`
-- `sensory_details`
-- `bodily_sensations`
-- `verbatim_fragments`
-- `uncertain_details`
+```text
+Hoa vô tư, người thì lỉnh kỉnh.
+Biết sống như hoa là đẹp, nhưng khó lắm người ơi.
+```
 
 ### 2. `inner_weather`
 
 Nhiệm vụ:
 
 - gọi tên thời tiết bên trong;
-- gắn cảm xúc với dấu vết cơ thể;
-- không phân tích tâm lý sâu.
+- gắn cảm xúc với thân thể;
+- giữ giọng tự chấp nhận, không bi lụy.
 
-Nên viết gần:
+Hướng phù hợp:
 
-- ấm lên;
-- nhẹ ra;
-- mở ra;
-- được vỗ về;
-- thấy ổn.
-
-Cần tránh:
-
-- tỉnh thức;
-- an lạc;
-- chuyển hóa;
-- bài học cuộc đời.
+```text
+mong được đủ
+mỏi nhẹ ở ngực và vai
+thôi trách mình vì chưa vô sự được ngay
+```
 
 ### 3. `cosmic_signal_reader`
 
 Nhiệm vụ:
 
-- tìm tín hiệu nhỏ, có căn cứ;
-- không biến tín hiệu thành lời tiên tri;
-- không nói thay vũ trụ bằng giọng quá chắc.
+- nghe tín hiệu nhỏ, có căn cứ;
+- không biến “người vô sự” thành tiêu chuẩn mới để ép mình;
+- giữ ẩn dụ hoa như một lời nhắc mềm.
 
-Với input `blog_1.md`, tín hiệu phù hợp:
+Tín hiệu phù hợp:
 
 ```text
-Mặt trời vẫn đến.
-Và trong khoảnh khắc này, mình ổn.
+Bớt xin phép một chút.
+Bớt chờ công nhận một chút.
+Quay về chăm cái gốc của mình.
 ```
 
 ### 4. `moment_writer`
 
 Nhiệm vụ:
 
-- viết bản nháp 300-600 từ;
-- chỉ giữ một khoảnh khắc trung tâm;
-- nhiều khoảng thở;
-- kết bằng dư âm, không kết bằng bài học.
+- viết bản nháp bài moment bằng tiếng Việt;
+- dùng giọng `va-natural`: thân mật, dịu, có “mình/tui”, hơi tự trêu;
+- giữ bài dưới 300 từ ngay từ bản nháp nếu input yêu cầu `desired_length: dưới 300 từ`.
 
-Cấu trúc nên dùng:
+Cấu trúc khuyến nghị:
 
 ```text
-Cảnh
--> Cảm giác thân thể
--> Tín hiệu nhỏ
--> Câu kết ngắn
+Nhìn hoa
+-> Hoa không cần công nhận
+-> Mình vẫn cần được thấy và được thương
+-> Người vô sự là không bỏ rơi mình trong lúc chờ hoa nở
 ```
 
 ### 5. `breath_editor`
 
 Nhiệm vụ:
 
-- cắt lặp;
-- làm câu nhẹ hơn;
-- không thêm ý mới;
-- giữ bài dưới 600 từ.
+- cắt nhẹ;
+- làm câu thở hơn;
+- không thêm insight mới;
+- bảo đảm bài cuối dưới 300 từ.
 
-Lưu ý parser:
-
-Artifact nên có 2 mục:
+Với style `va-natural`, artifact của stage này nên là chính bài cuối, không kèm edit log trong Artifact:
 
 ```markdown
-## Edited Blog
+## Artifact
 
-<bản đã edit>
+# Người vô sự
 
-## Edit Log
+<bài cuối dưới 300 từ>
 
-<các điểm đã cắt/chỉnh>
+## Handoff
+
+<xác nhận ngắn về các chỉnh sửa và số từ>
 ```
 
-Engine sẽ tách thành:
+Sau stage này engine ghi output chính:
 
-- `moment_edited.md`
-- `edit_log.md`
+```text
+moment_edited.md
+```
+
+Nếu muốn có bản xuất bản rõ ràng, copy nội dung bài cuối sang:
+
+```text
+final_blog.md
+```
 
 ### 6. `gentle_witness`
 
 Nhiệm vụ:
 
-- xác nhận bài còn thật, còn trong, còn là một khoảnh khắc sống;
+- xác nhận bài còn là một khoảnh khắc sống;
 - không rewrite;
-- không loop về editor;
-- không coaching.
+- không thêm lời khuyên;
+- kiểm tra bài không bị thành bài giảng.
 
-Output nên gồm:
+Kết luận mong muốn:
 
-- `what_still_feels_alive`
-- `what_felt_forced`
-- `what_should_remain_untouched`
-- `verdict`
+```text
+Đạt: dưới 300 từ, đúng tinh thần va-natural, ấm áp, thân mật, tự chấp nhận.
+```
+
+## Ghi response bằng UTF-8 không BOM trong PowerShell
+
+Nếu ghi response bằng PowerShell, ưu tiên cách này:
+
+```powershell
+$responsePath = 'runs/temp_llm/response_sensory_capture_1785072981188.txt'
+$text = @'
+## Artifact
+
+<artifact>
+
+## Handoff
+
+<handoff>
+'@
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+[System.IO.File]::WriteAllText((Resolve-Path $responsePath), $text, $utf8NoBom)
+```
+
+Tránh để ký tự BOM hoặc dòng trống lạ đứng trước `## Artifact`.
 
 ## Kiểm tra sau khi chạy
 
 Tìm run mới nhất:
 
 ```powershell
-Get-ChildItem runs -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 5 Name,LastWriteTime
+Get-ChildItem runs -Directory |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 5 Name,LastWriteTime
 ```
 
 Run thành công cần có:
 
 ```text
+input.md
+metadata.json
+run_log.md
+handoff_log.md
+step_outputs.json
 sensory_notes.md
 inner_weather.md
 signal_note.md
 moment_draft.md
 moment_edited.md
-edit_log.md
 witness_report.md
-handoff_log.md
-run_log.md
-step_outputs.json
-metadata.json
+final_blog.md
 ```
 
 Quét lỗi:
 
 ```powershell
-Select-String -Path 'runs\<run_folder>\run_log.md' -Pattern 'ERROR|Timeout|Traceback|Fallback'
-```
-
-Nếu không có output, chưa thấy lỗi rõ ràng.
-
-Đếm từ output chính:
-
-```powershell
-$text = Get-Content -Raw 'runs\<run_folder>\moment_edited.md'
-($text -split '\s+' | Where-Object { $_.Trim().Length -gt 0 }).Count
+Select-String -Path 'runs/<run_folder>/run_log.md' -Pattern 'ERROR|Timeout|Traceback|Fallback'
 ```
 
 Kiểm tra metadata:
 
-- `mode` phải là `moment`;
-- `dry_run` phải là `false`;
-- `stage_models` của 6 stage nên là Local Model;
-- `workflow_file` phải trỏ tới `flow/write_moment_blog.yaml`;
-- `total_artifact_estimated_tokens` và `total_handoff_estimated_tokens` nên có giá trị.
+```powershell
+Select-String -Path 'runs/<run_folder>/metadata.json' -Pattern '"workflow_file"|"input_file"|"style"|"mode"'
+```
 
-## Kết quả mẫu đã xác minh
-
-Run ngày 2026-07-22:
+Kỳ vọng:
 
 ```text
-runs/20260722_170452_moment_reflective_kết-nối
+workflow_file -> flow/write_moment_blog.yaml
+input_file    -> examples/moment_1.md
+style         -> va-natural
+mode          -> moment
+dry_run       -> false
+```
+
+Đếm từ bài cuối:
+
+```powershell
+$p = 'runs/<run_folder>/final_blog.md'
+$text = Get-Content -Raw -Encoding UTF8 -LiteralPath $p
+([regex]::Matches(($text -replace '#[^\s]+',''),'[\p{L}\p{N}]+')).Count
+```
+
+Kết quả phải nhỏ hơn hoặc bằng `300`.
+
+## Run đã xác minh
+
+Run ngày 2026-07-26:
+
+```text
+runs/20260726_203621_moment_va-natural_người-vô-sự
 ```
 
 Kết quả:
 
+- input: `examples/moment_1.md`;
+- mode: `moment`;
+- style: `va-natural`;
+- client: `antigravity` qua `runs/temp_llm/`;
 - chạy đủ 6 stage;
 - output chính: `moment_edited.md`;
-- khoảng 271 từ;
-- không thấy `ERROR`, `Timeout`, `Traceback`, `Fallback`;
-- `stage_models`: `GPT-OSS 120B (Medium)`;
-- test suite: `34/34 OK`.
-
-## Lỗi thường gặp
-
-### 1. Workflow treo ở một stage
-
-Nguyên nhân thường gặp:
-
-- chưa ghi `response_{stage}_{timestamp}.txt`;
-- response sai timestamp;
-- response sai tên stage;
-- response không có đúng 2 heading `## Artifact` và `## Handoff`.
-
-### 2. Mojibake trong terminal
-
-Terminal PowerShell có thể hiển thị sai tiếng Việt, nhưng file vẫn có thể là UTF-8. Ưu tiên mở file trong editor hỗ trợ UTF-8 để kiểm tra.
-
-### 3. Moment bị thành deep mini
-
-Cần cắt:
-
-- giải thích dài;
-- khái niệm lớn;
-- lời khuyên;
-- câu tổng kết quá chắc;
-- các đoạn “tôi đã nhận ra...”.
-
-### 4. `breath_editor` không tách được file
-
-Kiểm tra artifact của `breath_editor` có đúng:
-
-```markdown
-## Edited Blog
-## Edit Log
-```
-
-Không nên dùng heading `##` bên trong thân bài edited blog.
+- bản xuất bản: `final_blog.md`;
+- số từ bài cuối: 237;
+- không còn prompt đang chờ trong `runs/temp_llm/`;
+- không còn Python workflow process treo sau khi hoàn tất.
 
 ## Prompt điều phối nhanh cho ChatGPT Work
 
-Dùng prompt này trong một task mới khi cần chạy lại:
+Dùng prompt này khi cần chạy lại:
 
 ````markdown
 Bạn là Agentic Engineer trong workspace:
@@ -337,10 +343,8 @@ Bạn là Agentic Engineer trong workspace:
 Hãy chạy workflow:
 
 ```powershell
-python engine/run_workflow.py --input examples/blog_1.md --mode moment --client antigravity
+python engine/run_workflow.py --input examples/moment_1.md --mode moment --style va-natural --client antigravity
 ```
-
-Chạy bằng background process nếu terminal sẽ bị block.
 
 Theo dõi `runs/temp_llm/`. Với mỗi file:
 
@@ -350,7 +354,7 @@ hãy đọc prompt và ghi file response tương ứng:
 
 `response_{stage}_{timestamp}.txt`
 
-Response phải có đúng:
+Response phải là UTF-8 không BOM và có đúng:
 
 ```markdown
 ## Artifact
@@ -371,24 +375,12 @@ Stage order:
 5. `breath_editor`
 6. `gentle_witness`
 
-Với `breath_editor`, artifact phải có:
+Yêu cầu riêng:
 
-```markdown
-## Edited Blog
-
-<bản blog đã edit>
-
-## Edit Log
-
-<log chỉnh sửa>
-```
-
-Sau khi hoàn tất, kiểm tra run mới nhất có đủ file, quét `run_log.md` với pattern `ERROR|Timeout|Traceback|Fallback`, đếm số từ `moment_edited.md`, đọc `metadata.json`, rồi báo lại:
-
-- run folder;
-- output chính;
-- số từ;
-- model/stage_models;
-- lỗi nếu có;
-- kết luận chất lượng moment.
+- dùng đúng style `va-natural`;
+- với `moment_writer` và `breath_editor`, giữ bài dưới 300 từ;
+- artifact của `breath_editor` chỉ nên chứa bài cuối, không kèm edit log;
+- sau khi hoàn tất, tạo hoặc xác nhận `final_blog.md`;
+- đếm từ `final_blog.md`;
+- báo lại run folder, output chính, số từ, mode/style, và lỗi nếu có.
 ````

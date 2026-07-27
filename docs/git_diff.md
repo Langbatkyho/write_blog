@@ -1,5 +1,108 @@
 # Tổng hợp Git Diff và Thay đổi Code
 
+## 11. Gemini 3.5 Flash High Thinking Mode & Profile DNA Extraction (2026-07-27)
+
+### 1. Trích xuất & Cố định Dữ liệu Trung gian Voice Lab (`profile_dna.json`)
+- **`ui/app.py`**:
+  ```diff
+  + # Save intermediate analysis & Voice DNA log
+  + profile_log = {
+  +     "name": st.session_state.vl_style_name,
+  +     "slug": slug,
+  +     "mode": mode,
+  +     "updated_at": meta["updated_at"],
+  +     "dna": st.session_state.vl_dna.model_dump() if st.session_state.vl_dna else {},
+  +     "evidence": [c.model_dump() for c in st.session_state.vl_claims] if st.session_state.vl_claims else [],
+  +     "interview_answers": st.session_state.vl_answers,
+  +     "calibration_selected": st.session_state.vl_calibration.get("selected"),
+  + }
+  + write_text(staging_dir / "profile_dna.json", json.dumps(profile_log, ensure_ascii=False, indent=2))
+  ```
+- **`skills/moment/va-natural/profile_dna.json`** (File mới):
+  Lưu vĩnh viễn cấu trúc Voice DNA (12 chiều), Evidence Claims (quotes, confidence), và danh sách quy tắc biên dịch 6 agents của phong cách Vân Anh Natural (Moment mode).
+
+### 2. Kích hoạt Chế độ tư duy High cho Gemini 3.5 Flash (`thinking_budget=1024`)
+- **`engine/gemini_client.py`**:
+  ```diff
+  + try:
+  +     from google import genai
+  +     from google.genai import types
+  +     _HAS_GENAI_SDK = True
+  + except ImportError:
+  +     _HAS_GENAI_SDK = False
+
+  - def call_gemini(..., max_retries: int = 3) -> str:
+  + def call_gemini(..., thinking_budget: int = 1024, max_retries: int = 3) -> str:
+  +     # Strategy 1: google.genai SDK
+  +     gen_config = types.GenerateContentConfig(temperature=temperature, max_output_tokens=max_output_tokens)
+  +     if thinking_budget and thinking_budget > 0:
+  +         gen_config.thinking_config = types.ThinkingConfig(thinking_budget=thinking_budget)
+  +     # Strategy 2: REST API fallback
+  +     if thinking_budget and thinking_budget > 0:
+  +         generation_config["thinkingConfig"] = {"thinkingBudget": thinking_budget}
+  -     print(f"[GEMINI] ✅ Response received ({len(result)} chars)")
+  +     print(f"[GEMINI] [OK] Response received ({len(result)} chars)")  # Sửa UnicodeEncodeError
+  ```
+
+## 10. Voice Lab Schema v2 & Fail-Closed Refactor (2026-07-27)
+
+> **Tham chiếu:** [docs/2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)
+
+### Schema và compatibility
+
+- **`engine/voice_lab/models.py`**:
+  ```diff
+  - VoiceDNA: 12 trường str phẳng
+  + VoiceDNA: 12 trường DimensionProfile
+  + schema_version = 2
+  + revision, analysis_status, warnings, interview_history, calibration_history
+  + AnalysisResult / AnalysisError / CompileResult / MergeResult / PublishResult
+  + compute_profile_confidence(profile)
+  ```
+- `EvidenceClaim.quote` được migrate sang `exact_quote`; active evidence bắt buộc truy được về `sample_id`.
+- Canonical IR chỉ giữ invariant snapshot, overlays và `effective_skill`; xóa `prompt`/`style_rules` phẳng, cấm field ngoài contract.
+- `migration.py` đọc v1 idempotent; legacy thiếu evidence trả `dna=None`, `incomplete_legacy_data`, draft.
+
+### Gemini analysis và prompt
+
+- **Thêm mới**:
+  - `engine/voice_lab/prompts.py`: prompt builder và JSON response schemas.
+  - `engine/voice_lab/parser.py`: strict parse, exact-quote validation và confidence deterministic.
+- **`engine/voice_lab/analyzer.py`**:
+  ```diff
+  - nối sample trực tiếp + parse JSON thủ công + fallback DNA giả
+  + JSON-serialize untrusted samples
+  + structured Gemini output
+  + adaptive single-pass / multi-pass theo token
+  + fail-closed AnalysisError
+  + confidence = 0.45*coverage + 0.35*consistency + 0.20*quote_validity
+  ```
+- **`engine/gemini_client.py`** chuyển `response_mime_type` và JSON schema cho cả SDK/REST, vẫn dùng retry/backoff/key rotation tập trung tại client.
+
+### Interview, A/B và compile
+
+- Interview chỉ chọn tối đa 3 dimension yếu; patch cần người dùng xác nhận trước khi sửa profile.
+- A/B lưu hidden `shuffle_mapping`; lựa chọn cập nhật strength/examples/history. Prompt nhắm `100–150` từ, validator cho dung sai `90–165`.
+- Compiler bỏ base discovery bằng `iterdir()`, dùng `base_style_slug` xác định và full-template overlay.
+- Contract scalar legacy được chuẩn hóa thành `{"reference": ...}`; invariant skill/IR được đặt tên và kiểm tra riêng.
+- Overrides trả conflict explicit; không còn comment giả “LLM resolved”.
+
+### Archive, publish và UI
+
+- **Thêm `engine/voice_lab/publisher.py`**:
+  ```text
+  unique staging -> YAML/workflow/invariant validation -> immutable backup
+  -> tombstone atomic replace -> rollback/cleanup
+  ```
+- Chặn profile chưa complete/confirmed và chặn ghi đè protected system style.
+- Archive manifest v2 kiểm checksum/path traversal, migrate v1 trong bộ nhớ và reject future schema.
+- `ui/app.py` dùng service mới; interview/A-B cập nhật profile thật; đổi mode sẽ reset Voice Lab session để tránh compile chéo Deep/Moment.
+
+### Kiểm thử
+
+- `tests/test_voice_lab.py`: 37 test cho schema, migration, injection, malformed output, Gemini JSON schema, quote, confidence, adaptive routing, interview, A/B, compiler, override, archive, Deep/Moment publish và rollback.
+- Kết quả toàn dự án: **81/81 test pass**; Streamlit AppTest **0 exception**; `compileall` và `git diff --check` đạt.
+
 ## 9. Guided Style Voice Lab V1 & Multi-Style Production Engine (2026-07-26)
 > **Tham chiếu kế hoạch phê duyệt:**  
 > - [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)  

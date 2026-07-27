@@ -1,58 +1,97 @@
-from typing import Dict, Any
+from __future__ import annotations
 
-def resolve_conflict_with_llm(base_val: Any, current_val: Any, override_val: Any, key: str) -> Any:
-    """
-    Fallback for when a 3-way diff encounters a conflict that cannot be trivially merged.
-    """
-    # In a real system, this would prompt an LLM to merge base_val, current_val and override_val.
-    if isinstance(current_val, str) and isinstance(override_val, str):
-        return f"{override_val}\n# Note: LLM resolved conflict between current and override."
-    return override_val
+from typing import Any, Dict
 
-def merge_overrides(base_ir: Dict[str, Any], current_ir: Dict[str, Any], overrides_ir: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Merge user overrides into the current Canonical IR using a Three-way diff approach based on ID.
-    Enforces the Invariant Contract by protecting core agent properties.
-    """
-    if base_ir.get("id") != current_ir.get("id") or current_ir.get("id") != overrides_ir.get("id"):
+from engine.voice_lab.models import CanonicalIR, MergeConflict, MergeResult
+
+
+IR_LEVEL_INVARIANTS = {
+    "id",
+    "schema_version",
+    "agent_id",
+    "filename",
+    "workflow_order",
+    "base_style_slug",
+    "base_hash",
+    "invariants",
+}
+
+
+def merge_overrides(
+    base_ir: Dict[str, Any],
+    current_ir: Dict[str, Any],
+    overrides_ir: Dict[str, Any],
+) -> MergeResult:
+    """Deterministic three-way merge; ambiguous changes remain explicit."""
+    ids = {base_ir.get("id"), current_ir.get("id"), overrides_ir.get("id")}
+    if len(ids) != 1 or None in ids:
         raise ValueError("Cannot merge IRs with mismatched IDs")
 
-    invariant_fields = {
-        "agent_id", "filename", "output_contract", "handoff_contract", "workflow_order", "context_policy", "id"
-    }
-    
     merged = dict(current_ir)
-    
-    # All keys across the three dicts
-    all_keys = set(base_ir.keys()) | set(current_ir.keys()) | set(overrides_ir.keys())
-    
-    for key in all_keys:
-        if key in invariant_fields:
+    conflicts = []
+    keys = set(base_ir) | set(current_ir) | set(overrides_ir)
+    for key in sorted(keys):
+        base = base_ir.get(key)
+        current = current_ir.get(key)
+        override = overrides_ir.get(key)
+        if key in IR_LEVEL_INVARIANTS:
+            if override != base or current != base:
+                conflicts.append(
+                    MergeConflict(
+                        key=key,
+                        base_value=base,
+                        current_value=current,
+                        override_value=override,
+                        reason="invariant_modified",
+                    )
+                )
             continue
-            
-        b = base_ir.get(key)
-        c = current_ir.get(key)
-        o = overrides_ir.get(key)
-        
-        # 3-way diff logic
-        if c == o:
-            continue # no conflict, already matches
-        elif b == c and b != o:
-            # Only overrides changed it
-            merged[key] = o
-        elif b == o and b != c:
-            # Only current changed it, keep current
-            merged[key] = c
+        if current == override:
+            continue
+        if current == base and override != base:
+            merged[key] = override
+        elif override == base and current != base:
+            merged[key] = current
         else:
-            # Both changed it differently (Conflict)
-            if isinstance(c, list) and isinstance(o, list):
-                # Simple list merge: deduplicate while preserving order
-                new_list = list(c)
-                for item in o:
-                    if item not in new_list:
-                        new_list.append(item)
-                merged[key] = new_list
-            else:
-                merged[key] = resolve_conflict_with_llm(b, c, o, key)
-            
-    return merged
+            conflicts.append(
+                MergeConflict(
+                    key=key,
+                    base_value=base,
+                    current_value=current,
+                    override_value=override,
+                    reason="both_sides_changed",
+                )
+            )
+    return MergeResult(merged_ir=merged, conflicts=conflicts)
+
+
+def apply_conflict_resolutions(
+    result: MergeResult,
+    resolutions: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Apply explicit user choices and revalidate Canonical IR + invariants."""
+    unresolved = {item.key: item for item in result.conflicts}
+    invariant_conflicts = [
+        item.key
+        for item in result.conflicts
+        if item.reason == "invariant_modified"
+    ]
+    if invariant_conflicts:
+        raise ValueError(
+            "Không thể resolve thay đổi invariant: "
+            + ", ".join(sorted(invariant_conflicts))
+        )
+    missing = sorted(set(unresolved) - set(resolutions))
+    unknown = sorted(set(resolutions) - set(unresolved))
+    if missing:
+        raise ValueError("Thiếu lựa chọn cho conflict: " + ", ".join(missing))
+    if unknown:
+        raise ValueError("Resolution không khớp conflict: " + ", ".join(unknown))
+
+    merged = dict(result.merged_ir)
+    merged.update(resolutions)
+    artifact = CanonicalIR.model_validate(merged)
+    for key, expected in artifact.invariants.items():
+        if key in artifact.effective_skill and artifact.effective_skill[key] != expected:
+            raise ValueError(f"Resolution làm thay đổi invariant '{key}'.")
+    return artifact.model_dump()
