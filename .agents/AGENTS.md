@@ -9,7 +9,11 @@
 ## 2. Phân loại dữ liệu
 
 - `runs/` là dữ liệu chạy nghiệp vụ của người dùng, không phải thư mục tạm cho test.
-- Dữ liệu bên trong `runs/` phải được xem là dữ liệu người dùng: mặc định chỉ đọc, không sửa, ghi đè, di chuyển hoặc xóa.
+- Mỗi thư mục run đã tồn tại hoặc đã hoàn tất trong `runs/` là dữ liệu người dùng: mặc định chỉ đọc; không sửa, ghi đè, di chuyển hoặc xóa nếu không có yêu cầu cụ thể.
+- Khi người dùng yêu cầu chạy workflow nghiệp vụ thật, bao gồm Local Model Quota/Antigravity, agent được phép tạo một thư mục run mới, collision-safe trong `runs/` và ghi input, metadata, artifact, handoff, report của chính lần chạy đó.
+- Quyền tạo run mới không cho phép sửa hoặc tái sử dụng thư mục của run cũ. Sau khi lần chạy hoàn tất, thư mục run mới trở thành dữ liệu người dùng và mặc định chỉ đọc.
+- Khi người dùng yêu cầu học/phân tích từ một run cũ, agent được phép tạo output mới theo cơ chế append-only trong thư mục con dành riêng cho lần học/phân tích; không được ghi đè artifact đã có.
+- `runs/temp_llm/` là ngoại lệ tương thích tạm thời: Local Model/Antigravity Bridge được phép tạo, đọc và dọn các file trung gian do chính lần chạy hiện tại tạo ra tại đây cho đến khi bridge được refactor. Ngoại lệ này không cho phép sửa hoặc xóa file của lần chạy khác.
 - Input trong `examples/` là fixture minh họa/kiểm thử, không phải input do người dùng cung cấp.
 - Artifact do test, dry-run, smoke test, UI test hoặc agent validation tạo ra là dữ liệu tạm và phải được cô lập khỏi `runs/`.
 
@@ -69,7 +73,8 @@
 ### Sau khi chạy
 
 - So sánh trạng thái `runs/` trước và sau.
-- Kiểm tra artifact chỉ tồn tại trong thư mục tạm đã định.
+- Với test, dry-run hoặc agent validation: kiểm tra artifact chỉ tồn tại trong thư mục tạm đã định; ngoại trừ file bridge trung gian tại `runs/temp_llm/` theo ngoại lệ ở Mục 2.
+- Với workflow nghiệp vụ thật: kiểm tra artifact chỉ nằm trong thư mục run mới được tạo và các file bridge trung gian hợp lệ tại `runs/temp_llm/`.
 - Báo rõ số test pass/fail, API có được gọi hay không và artifact được lưu ở đâu.
 - Nếu `runs/` thay đổi ngoài ý muốn: dừng, không tự xóa, báo ngay danh sách thay đổi và nguyên nhân.
 
