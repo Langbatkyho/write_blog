@@ -1,11 +1,11 @@
 # Báo cáo tiến độ và chỉ dẫn bàn giao cho Agent kế tiếp
 
-**Ngày cập nhật:** 27/07/2026
+**Ngày cập nhật:** 28/07/2026
 **Repository:** `D:\Nghiên cứu AI\write_blog`
 **Nhánh hiện tại:** `main`
-**Checkpoint ổn định:** `b850b7267f7f90eae3ac645ef02aea93cd8f24e4`
-**Commit:** `b850b72 refactor: stabilize workflow and voice lab P0`
-**Trạng thái:** P0 hoàn tất và sử dụng được; P1 chưa bắt đầu.
+**Checkpoint code ổn định:** `7d2576d`
+**Chuỗi commit P1:** `ea7d08d` → `9a003ee` → `bebd980` → `7d2576d`
+**Trạng thái:** P0 và P1 hoàn tất; workflow sử dụng được.
 
 ---
 
@@ -338,13 +338,11 @@ docs/2026-07-27-project-progress-agent-handoff.md
 
 ---
 
-## 8. Backlog P1 được đề xuất
+## 8. P1 đã triển khai
 
-P1 là tùy chọn. P0 đã đủ để workflow hoạt động.
+P1 được triển khai tuần tự, mỗi mục có regression xanh và checkpoint riêng.
 
-Không triển khai đồng thời nhiều mục P1.
-
-### P1.1 — UI acceptance và visual verification
+### P1.1 — UI acceptance và visual verification ✅
 
 **Ưu tiên cao nhất.**
 
@@ -399,7 +397,7 @@ Tiêu chí hoàn tất:
 - `runs/` bất biến.
 - Commit riêng.
 
-### P1.2 — Parser strict và model telemetry
+### P1.2 — Parser strict và model telemetry ✅
 
 Mục tiêu:
 
@@ -421,7 +419,7 @@ Rủi ro:
 
 Không thay model mặc định nếu người dùng chưa phê duyệt.
 
-### P1.3 — Style editor full-transaction validation
+### P1.3 — Style editor full-transaction validation ✅
 
 Mục tiêu:
 
@@ -444,7 +442,7 @@ Tiêu chí:
 - Rename/save/delete có failure tests.
 - Không dùng thư mục style thật làm fixture.
 
-### P1.4 — Voice Lab schema và migration hardening
+### P1.4 — Voice Lab schema và migration hardening ✅
 
 Mục tiêu:
 
@@ -465,7 +463,7 @@ File dự kiến:
 - Không bật `extra="forbid"` hàng loạt nếu chưa có migration test.
 - Phải giữ khả năng đọc profile v1/v2 đã xuất bản.
 
-### P1.5 — Architecture hygiene và tài liệu
+### P1.5 — Architecture hygiene và tài liệu ✅
 
 Mục tiêu:
 
@@ -607,14 +605,9 @@ Không tự cleanup dữ liệu người dùng khi phát hiện bất thường.
 
 ---
 
-## 12. Rủi ro P1 đã biết nhưng không chặn sử dụng
+## 12. Rủi ro còn lại không chặn sử dụng
 
-- Parser strict chưa từ chối mọi top-level section dư.
-- Gemini router descriptor có thể chưa đồng nhất hoàn toàn với model thực thi.
-- Style editor chưa validate toàn style trước replace.
-- Alias style chưa có uniqueness contract toàn mode.
-- Một số Pydantic model legacy còn chấp nhận field dư.
-- UI mới có smoke test, chưa có full interaction/visual acceptance.
+- Envelope Markdown không thể phân biệt một heading H2 nội bộ với “section dư” tùy ý; parser vì vậy khóa duy nhất hai heading contract `Artifact/Handoff` và cho phép H2 trong Artifact.
 - `docs/2026-07-27-voice-lab-refactor-plan.md` có blank-line-at-EOF trong thay đổi ngoài P0.
 - `.pytest_cache` trên Windows từng phát warning quyền truy cập; không ảnh hưởng regression ngoài sandbox.
 
@@ -624,36 +617,16 @@ Không cần sửa các mục này để chạy workflow hiện tại.
 
 ## 13. Điểm tiếp tục được khuyến nghị
 
-Agent tiếp theo nên bắt đầu:
-
-```text
-P1.1 — UI acceptance và visual verification
-```
-
-Trình tự:
-
-1. Chỉ audit UI/test hiện tại.
-2. Lập test matrix.
-3. Báo matrix trước khi sửa.
-4. Thêm interaction tests bằng mock.
-5. Chạy targeted tests.
-6. Visual check.
-7. Chỉ sửa UI nếu có lỗi tái hiện.
-8. Full regression.
-9. Commit checkpoint riêng.
-
-Không bắt đầu P1.2 khi P1.1 chưa có báo cáo xanh.
+Không còn task P1. Chỉ bắt đầu P2 hoặc tính năng mới khi người dùng phê duyệt phạm vi mới.
 
 ---
 
 ## 14. Tóm tắt ngắn cho agent tiếp quản
 
 ```text
-P0 đã hoàn tất tại commit b850b72.
-111 tests pass; không API thật; runs/ bất biến.
+P0 và P1 đã hoàn tất.
+120 tests + 4 parser subtests pass; không API thật; runs/ bất biến.
 Worktree còn thay đổi nội dung/style của người dùng, không được reset hoặc commit lẫn.
 Voice Lab Gemini-only.
-P1 chưa bắt đầu.
-Task kế tiếp: P1.1 UI acceptance/visual verification.
-Mỗi checkpoint phải xanh, báo cáo và commit riêng trước khi chuyển bước.
+Không còn task P1; task tiếp theo cần phạm vi mới được người dùng phê duyệt.
 ```

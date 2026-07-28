@@ -4,7 +4,7 @@
 > - [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)
 > - [docs/2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)
 >
-> **Cập nhật:** 2026-07-27
+> **Cập nhật:** 2026-07-28
 > **Dự án:** Mindful Writing OS - Dual Writing Modes & Voice Lab Schema v2
 
 ---
@@ -106,6 +106,16 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
   - Không dùng subagent trong vòng triển khai schema v2; code được sửa và audit tuần tự trên cùng worktree để tránh xung đột với thay đổi người dùng.
 - **Kết quả:** 81/81 regression test pass, gồm 37 test Voice Lab; Streamlit AppTest 0 exception.
 
+### 2.8. GPT-5.6 Sol / Codex Main Agent (P1 Hardening)
+
+- Triển khai tuần tự P1.1–P1.4, mỗi mục có checkpoint riêng.
+- Bổ sung UI acceptance và visual verification; sửa state style chéo mode.
+- Siết parser envelope và đồng bộ model telemetry Gemini với request thực tế.
+- Transaction hóa validation toàn style và uniqueness của alias.
+- Tách migration v1 khỏi runtime schema v2 fail-closed.
+- Không dùng subagent; không gọi API thật; không chạm dữ liệu run/style của người dùng.
+- **Kết quả:** 120/120 test pass, 4 parser subtest pass; `runs/` giữ nguyên.
+
 ---
 
 ## 3. Nhật Ký Tiến Trình Triển Khai (Execution Timeline)
@@ -127,6 +137,7 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
 | 2026-07-27 | GPT-5.6 Sol | Triển khai Voice Lab schema v2 | Structured Gemini pipeline, full-template compiler, archive/publisher v2, UI adapter |
 | 2026-07-27 | Claude Opus 4.6 | Audit implementation Voice Lab v2 | Xác nhận phần lớn contract; đề xuất các vector tinh chỉnh |
 | 2026-07-27 | GPT-5.6 Sol | Thực thi audit recommendations và regression | 81/81 test pass; 37 test Voice Lab; UI 0 exception |
+| 2026-07-28 | GPT-5.6 Sol | Triển khai P1.1–P1.4 theo checkpoint | UI acceptance, parser/model telemetry, style transaction, migration fail-closed; 120/120 test pass |
 
 ---
 

@@ -4,7 +4,6 @@ import time
 import urllib.error
 import urllib.request
 import warnings
-from pathlib import Path
 from typing import Any
 
 def get_api_key(config: dict[str, Any]) -> str:

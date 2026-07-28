@@ -1,5 +1,13 @@
 # Tổng hợp Git Diff và Thay đổi Code
 
+## 12. P1 Architecture Hardening (2026-07-28)
+
+- `ea7d08d`: UI acceptance; widget editor/workbench được namespace theo mode.
+- `9a003ee`: strict `Artifact/Handoff`; Gemini model resolver dùng chung cho telemetry và request.
+- `bebd980`: validate toàn style staging và alias namespace trước transaction commit.
+- `7d2576d`: Voice Lab strict models; migration v1 tách khỏi runtime contract.
+- Test tăng từ 111 lên **120**, toàn bộ pass; không gọi API thật; `runs/` bất biến.
+
 ## 11. Gemini 3.5 Flash High Thinking Mode & Profile DNA Extraction (2026-07-27)
 
 ### 1. Trích xuất & Cố định Dữ liệu Trung gian Voice Lab (`profile_dna.json`)

@@ -1,5 +1,14 @@
 # Lịch sử Thay đổi (Changelog)
 
+## P1 Hardening hoàn tất (2026-07-28)
+
+- **P1.1 UI acceptance:** thêm interaction tests cho 4 tab, đổi mode, Workbench in-memory và Voice Lab 5 bước bằng fake; sửa widget style giữ sai giá trị khi chuyển Deep/Moment.
+- **P1.2 Parser/telemetry:** strict parser khóa envelope `Artifact/Handoff` nhưng giữ heading H2 trong bài; Gemini descriptor và request dùng chung model theo stage.
+- **P1.3 Style transaction:** save/create/rename validate toàn staging theo Flow–Skill contract; chặn trùng slug/`previous_slugs`; rollback giữ nguyên style cũ.
+- **P1.4 Voice Lab migration:** runtime schema v2 fail-closed; v1 chỉ qua migration adapter rõ ràng; profile v2 hiện có vẫn đọc được.
+- Kiểm chứng: **120/120 test pass**, 4 parser subtest pass, không API thật, `runs/` giữ nguyên 852 file/1.601.381 byte.
+- Checkpoint: `ea7d08d`, `9a003ee`, `bebd980`, `7d2576d`.
+
 ## Phiên bản: Gemini 3.5 Flash High Thinking Mode & Profile DNA Extraction (2026-07-27)
 
 - **Kích hoạt Chế độ tư duy High (`thinking_budget=1024`) cho Gemini 3.5 Flash**:

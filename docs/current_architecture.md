@@ -5,7 +5,7 @@
 > - [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)  
 > - [docs/2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)
 >
-> **Cập nhật ngày:** 2026-07-27
+> **Cập nhật ngày:** 2026-07-28
 
 Dự án `mindful_writing_os` đã được nâng cấp toàn diện lên **Kiến Trúc Quản Trị Phong Cách & Voice Lab V6.0 (Guided Style Voice Lab & Multi-Style Engine)** trên nền tảng **Hệ Hai Writing Modes**:
 
@@ -98,8 +98,8 @@ Voice Lab hiện chỉ dùng `engine/gemini_client.py`; không gọi OpenAI API 
 - `EvidenceClaim` lưu `sample_id`, `exact_quote`, offsets, stance và trạng thái active/rejected.
 - `StyleProfile` tách `schema_version` khỏi `revision`, lưu warning, interview/calibration history và trạng thái phân tích.
 - `CanonicalIR` chỉ giữ contract chính thức: invariant snapshot, style overlays và `effective_skill` đầy đủ. Ba contract runtime được chuẩn hóa thành object; scalar legacy được bọc bằng `{"reference": ...}`.
-- Canonical IR từ chối field dư; `prompt`/`style_rules` phẳng không còn là nguồn dữ liệu song song.
-- Reader tự migrate v1 sang v2; legacy thiếu evidence luôn ở trạng thái `incomplete_legacy_data` và bị chặn publish.
+- Toàn bộ runtime model Voice Lab từ chối field dư; `prompt`/`style_rules` phẳng không còn là nguồn dữ liệu song song.
+- Reader v1 là migration adapter tách biệt; contract v2 không tự migrate hoặc âm thầm bỏ field. Legacy thiếu evidence luôn ở trạng thái `incomplete_legacy_data` và bị chặn publish.
 
 ### 2.2. Quy Trình Xuất Bản An Toàn 4 Tầng (Publish Safety Pipeline)
 Khi nhấn Publish một phong cách mới trong Voice Lab, hệ thống thực thi 4 bước bảo vệ giao dịch:
@@ -126,10 +126,14 @@ Hệ thống hỗ trợ chạy workflow hoàn toàn bằng **Local Model Quota**
 
 ### 2.6. Trạng thái kiểm chứng
 
-- 81/81 regression test toàn dự án pass.
-- 37 test chuyên biệt Voice Lab bao phủ schema/migration, injection, structured output, exact quote, confidence, adaptive routing, interview, A/B, compiler, overrides, archive và publish/rollback.
+- 120/120 regression test toàn dự án pass; 4 subtest parser strict pass.
+- UI acceptance bao phủ 4 tab, đổi mode hai chiều, Workbench template/custom in-memory và Voice Lab đến Compile Review bằng fake.
+- Parser production khóa duy nhất `## Artifact`/`## Handoff` theo đúng thứ tự nhưng vẫn giữ H2 nội bộ của bài blog.
+- Gemini router descriptor và request dùng cùng model global/per-stage.
+- Style save/create/rename validate toàn staging theo Flow–Skill contract; alias collision bị chặn trước replace.
+- Voice Lab v2 fail-closed; v1 chỉ được đọc qua migration adapter. `profile_dna.json` hiện có đã được kiểm tra tương thích ở chế độ chỉ đọc.
 - Deep và Moment mode đều được test compile/publish đủ required agents.
-- Streamlit AppTest khởi động không có exception.
+- Streamlit AppTest và kiểm tra trực quan không có exception/overflow; style widget được namespace theo mode.
 - `compileall` và `git diff --check` đạt.
 
 ---

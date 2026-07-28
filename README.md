@@ -59,10 +59,14 @@ Các đặc tính an toàn chính:
 
 - Adaptive single/multi-pass dựa trên token budget.
 - Không tạo DNA/evidence/A-B giả khi Gemini hoặc parser lỗi.
-- Schema v2 đọc được profile/archive v1; dữ liệu mới chỉ ghi v2.
+- Schema v2 fail-closed; profile/archive v1 chỉ đi qua migration adapter, dữ liệu mới chỉ ghi v2.
 - Protected system style không thể bị Voice Lab ghi đè.
 - Voice Lab chỉ gọi trực tiếp Gemini API qua `engine/gemini_client.py`; OpenAI/Antigravity vẫn dành cho workflow bên ngoài Voice Lab.
 - Deep mode compile 7 agent; Moment mode compile 6 agent theo `AGENT_FILENAME_MAP` và `DIMENSION_AGENTS`.
+- Style editor validate toàn bộ staging theo Flow–Skill contract trước replace; slug/alias duy nhất trong từng mode.
+- UI acceptance bao phủ 4 tab, chuyển mode, Workbench in-memory và Voice Lab 5 bước bằng fake Gemini.
+
+Trạng thái P1 ngày 28/07/2026: **120/120 regression test pass**, không gọi API thật và `runs/` bất biến trong kiểm thử.
 
 Kế hoạch và audit triển khai: `docs/2026-07-27-voice-lab-refactor-plan-final.md`.
 
