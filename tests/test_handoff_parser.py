@@ -6,7 +6,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.parser import build_context_package, parse_stage_response  # noqa: E402
+from engine.parser import (  # noqa: E402
+    StageResponseError,
+    build_context_package,
+    parse_stage_response,
+)
 from engine.workflow import derive_artifact_file_contents  # noqa: E402
 
 
@@ -32,6 +36,64 @@ Compact handoff body.
         self.assertEqual(artifact, "Only artifact content.")
         self.assertEqual(handoff, "Only artifact content.")
         self.assertTrue(used_fallback)
+
+    def test_strict_parser_accepts_exact_contract(self) -> None:
+        response = """## Artifact
+
+Nội dung đầy đủ.
+
+### Chi tiết hợp lệ
+
+Một mục con.
+
+## Tiêu đề H2 thuộc Artifact
+
+Nội dung bài viết.
+
+## Handoff
+
+Tóm tắt bàn giao.
+"""
+        artifact, handoff, used_fallback = parse_stage_response(
+            response, strict=True
+        )
+        self.assertIn("### Chi tiết hợp lệ", artifact)
+        self.assertIn("## Tiêu đề H2 thuộc Artifact", artifact)
+        self.assertEqual(handoff, "Tóm tắt bàn giao.")
+        self.assertFalse(used_fallback)
+
+    def test_strict_parser_rejects_extra_duplicate_or_reordered_sections(self) -> None:
+        invalid_responses = (
+            """## Artifact
+A
+## Artifact
+B
+## Handoff
+H
+""",
+            """## Handoff
+H
+## Artifact
+A
+""",
+            """## Artifact
+A
+## Handoff
+H
+## Handoff
+H2
+""",
+            """Preamble
+## Artifact
+A
+## Handoff
+H
+""",
+        )
+        for response in invalid_responses:
+            with self.subTest(response=response):
+                with self.assertRaises(StageResponseError):
+                    parse_stage_response(response, strict=True)
 
     def test_context_package_uses_policy(self) -> None:
         step = {

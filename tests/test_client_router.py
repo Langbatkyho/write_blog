@@ -115,6 +115,21 @@ class TestCreateRoutingClient(unittest.TestCase):
         self.assertFalse(local["api_capable"])
         self.assertTrue(external["api_capable"])
 
+    def test_gemini_descriptor_uses_stage_model_configuration(self):
+        router = create_routing_client({}, fallback="gemini")
+        config = {
+            "gemini": {
+                "model": "gemini-global",
+                "stages": {
+                    "writing_agent": {"model": "gemini-stage"},
+                },
+            }
+        }
+        stage = router.describe_stage("writing_agent", config)
+        fallback = router.describe_stage("story_architect", config)
+        self.assertEqual(stage["model"], "gemini-stage")
+        self.assertEqual(fallback["model"], "gemini-global")
+
 
 if __name__ == "__main__":
     unittest.main()

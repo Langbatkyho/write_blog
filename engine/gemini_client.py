@@ -103,11 +103,35 @@ GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{mode
 DEFAULT_MODEL = "gemini-3.5-flash"
 
 
+def get_gemini_model(
+    config: dict[str, Any] | None,
+    stage_id: str | None = None,
+) -> str:
+    gemini_config = (config or {}).get("gemini", {})
+    if not isinstance(gemini_config, dict):
+        raise ValueError("Cấu hình 'gemini' phải là object.")
+    model = gemini_config.get("model", DEFAULT_MODEL)
+    stages = gemini_config.get("stages", {})
+    if not isinstance(stages, dict):
+        raise ValueError("Cấu hình 'gemini.stages' phải là object.")
+    stage_config = stages.get(stage_id or "", {})
+    if stage_config and not isinstance(stage_config, dict):
+        raise ValueError(
+            f"Cấu hình Gemini cho stage '{stage_id}' phải là object."
+        )
+    if isinstance(stage_config, dict):
+        model = stage_config.get("model", model)
+    model_name = str(model).strip()
+    if not model_name:
+        raise ValueError("Gemini model không được để trống.")
+    return model_name
+
+
 def call_gemini(
     prompt: str,
     config: dict[str, Any] | None = None,
     stage_id: str | None = None,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
     temperature: float = 0.7,
     max_output_tokens: int = 4096,
     thinking_budget: int = 1024,
@@ -118,9 +142,10 @@ def call_gemini(
     and High Thinking Mode (thinking_budget=1024).
     Compatible signature with call_openai / call_antigravity.
     """
+    config = dict(config or {})
+    model = model or get_gemini_model(config, stage_id)
     _rate_limit()
     api_key = _next_key()
-    config = dict(config or {})
     response_mime_type = config.get("response_mime_type") or config.get("responseMimeType")
     response_schema = config.get("response_schema") or config.get("responseSchema")
     is_json_schema = isinstance(response_schema, dict) and (

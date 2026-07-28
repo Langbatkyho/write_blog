@@ -176,9 +176,9 @@ def create_routing_client(
 
             model = str(get_openai_options(config, stage_id).get("model"))
         else:
-            from engine.gemini_client import DEFAULT_MODEL
+            from engine.gemini_client import get_gemini_model
 
-            model = str(config.get("gemini", {}).get("model", DEFAULT_MODEL))
+            model = get_gemini_model(config, stage_id)
         return {
             "provider": provider,
             "model": model,

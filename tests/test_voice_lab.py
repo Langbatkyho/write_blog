@@ -272,6 +272,7 @@ def test_gemini_client_forwards_json_schema_to_rest(monkeypatch):
 
     def fake_urlopen(request, timeout):
         captured["payload"] = json.loads(request.data)
+        captured["url"] = request.full_url
         return FakeResponse()
 
     monkeypatch.setattr(gemini_client, "_HAS_GENAI_SDK", False)
@@ -285,7 +286,14 @@ def test_gemini_client_forwards_json_schema_to_rest(monkeypatch):
             config={
                 "response_mime_type": "application/json",
                 "response_schema": schema,
+                "gemini": {
+                    "model": "gemini-global",
+                    "stages": {
+                        "voice_lab_test": {"model": "gemini-stage"},
+                    },
+                },
             },
+            stage_id="voice_lab_test",
             thinking_budget=0,
             max_retries=1,
         )
@@ -294,6 +302,7 @@ def test_gemini_client_forwards_json_schema_to_rest(monkeypatch):
     generation = captured["payload"]["generationConfig"]
     assert generation["responseMimeType"] == "application/json"
     assert generation["responseJsonSchema"] == schema
+    assert "/models/gemini-stage:generateContent" in captured["url"]
 
 
 def test_analyzer_uses_multi_pass_only_when_token_budget_requires(monkeypatch):
