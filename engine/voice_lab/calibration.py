@@ -29,6 +29,7 @@ DEFAULT_CONTENT_BRIEF = (
 )
 CALIBRATION_MIN_WORDS = 90
 CALIBRATION_MAX_WORDS = 165
+DIRECT_USER_CONFIRMATION_CONFIDENCE = 0.95
 
 
 def calibrate_ab(
@@ -135,10 +136,16 @@ def apply_calibration_selection(
     updated = profile.model_copy(deep=True)
     dimension = getattr(updated.dna, session.dimension)
     before_strength = dimension.strength
+    before_confidence = dimension.confidence
     direction = session.shuffle_mapping[selected]
     delta = 0.15 if direction == "amplified" else -0.15
     dimension.strength = max(0.0, min(1.0, before_strength + delta))
-    dimension.confidence = max(dimension.confidence, 0.95)
+    # A blind A/B choice is direct user confirmation, so the plan permits
+    # confidence up to 0.95. The record below preserves the exact provenance.
+    dimension.confidence = max(
+        dimension.confidence,
+        DIRECT_USER_CONFIRMATION_CONFIDENCE,
+    )
     dimension.source = "calibration"
     selected_text = session.variant_a if selected == "A" else session.variant_b
     if selected_text not in dimension.examples:
@@ -154,6 +161,8 @@ def apply_calibration_selection(
             selected_text=selected_text,
             before_strength=before_strength,
             after_strength=dimension.strength,
+            before_confidence=before_confidence,
+            after_confidence=dimension.confidence,
         )
     )
     updated.revision += 1

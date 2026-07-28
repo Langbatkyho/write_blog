@@ -18,6 +18,12 @@ Dự án `mindful_writing_os` đã được nâng cấp toàn diện lên **Ki�
 
 ```text
 write_blog/
+├── AGENTS.md                  # Bắt buộc mọi agent đọc .agents/AGENTS.md
+├── .agents/
+│   ├── AGENTS.md              # RULES về dữ liệu, API, test, I/O và hoàn tất
+│   └── agentic-workflow-architect/
+│       ├── SKILL.md           # Quy trình refactor contract-first
+│       └── references/        # Invariants, patterns và checklist
 ├── engine/
 │   ├── __init__.py           # Package definition
 │   ├── utils.py              # Xử lý đường dẫn và đọc/ghi YAML, text
@@ -27,8 +33,17 @@ write_blog/
 │   ├── client_router.py      # Định tuyến stage-to-client mapping (--client-map, openai/antigravity/gemini)
 │   ├── antigravity_bridge.py # Giao tiếp qua file-bridge cho Local Model Quota
 │   ├── learning.py           # Quản lý prompts & offline/online learning phân tách theo mode
-│   ├── style_manager.py      # [NEW V5.0] Style Service CRUD, Group-based Validator, Alias Wiring
-│   ├── workflow.py           # Workflow Orchestrator (Strict Discovery resolution & flow routing)
+│   ├── style_contracts.py    # Contract metadata/slug/style namespace
+│   ├── style_repository.py   # Transaction repository cho style CRUD
+│   ├── style_manager.py      # Style service, validation và alias wiring
+│   ├── workflow.py           # Facade/orchestrator workflow
+│   ├── workflow_contracts.py # Runtime contracts và kiểu dữ liệu workflow
+│   ├── workflow_execution.py # Thực thi stage qua LLM client được inject
+│   ├── workflow_persistence.py # Run directory, metadata và checkpoint
+│   ├── workflow_context.py   # Context assembly Artifact/Handoff
+│   ├── workflow_resolution.py # Mode/style/flow/skill resolution
+│   ├── workflow_artifacts.py # Chuẩn hóa và ghi artifact
+│   ├── workflow_learning.py  # Điều phối learning loop
 │   ├── run_workflow.py       # CLI Entrypoint hỗ trợ Fail-Fast `--mode`, `--style`, `--client`
 │   └── voice_lab/            # Guided Style Voice Lab schema v2
 │       ├── __init__.py       # Voice Lab package init
@@ -36,14 +51,26 @@ write_blog/
 │       ├── prompts.py        # Prompt builders + Gemini JSON response schemas
 │       ├── parser.py         # Parse strict JSON, xác minh exact quote, tính confidence
 │       ├── analyzer.py       # Adaptive single/multi-pass Gemini analysis
-│       ├── interview.py      # Interview patch + Blind A/B có shuffle mapping
+│       ├── interview.py      # Compatibility facade cho interview/calibration
+│       ├── interview_routing.py # Chọn dimension yếu, tối đa 3 câu/vòng
+│       ├── profile_patch.py  # Propose/apply interview patch có xác nhận
+│       ├── calibration.py    # Blind A/B, provenance và cập nhật profile
 │       ├── compiler.py       # Full-template overlay qua Adjacency Matrix
 │       ├── overrides.py      # Three-way diff, conflict explicit
 │       ├── migration.py      # Reader v1 -> v2, legacy incomplete state
 │       ├── archive.py        # Archive v2 + checksum + safe import
 │       └── publisher.py      # Staging/validate/backup/atomic rollback service
 ├── ui/                       # [UPGRADED V6.0] Streamlit Local UI Experience
-│   ├── app.py                # Giao diện quản trị 4 Tabs + 5-Step Guided Voice Lab Wizard & Publish Pipeline
+│   ├── app.py                # Composition root và render 4 tab
+│   ├── state.py              # Session-state contract và reset theo mode
+│   ├── controllers/
+│   │   ├── workflow_controller.py # Use case workflow/preview
+│   │   └── voice_lab_controller.py # Use case Voice Lab/compile/publish
+│   ├── views/
+│   │   ├── gallery.py       # Style Gallery
+│   │   ├── voice_lab.py     # Studio và wizard 5 bước
+│   │   ├── editor.py        # YAML editor
+│   │   └── workbench.py     # Preview và layer inspector
 │   └── styles.css            # Dark Theme CSS (Slate Gray, Warm Gold, Electric Cyan)
 ├── examples/
 │   ├── blog_input_template.md        # Input mẫu cho Deep Blog Mode
@@ -81,10 +108,10 @@ write_blog/
 
 ### 2.1. Gói Quản Trị Giọng Văn 5 Bước (Guided Style Voice Lab Package)
 Module `engine/voice_lab/` cung cấp quy trình khép kín giúp người dùng kiến tạo phong cách viết riêng từ mẫu văn bản thực tế:
-- **Bước 1: Nạp Mẫu & Phân Tích**: Đóng gói sample không tin cậy bằng JSON, định tuyến single/multi-pass theo token và gọi trực tiếp Gemini API với structured JSON output.
+- **Bước 1: Nạp Mẫu & Phân Tích**: Đóng gói sample không tin cậy bằng JSON, định tuyến single/multi-pass bằng estimator bảo thủ cho Unicode và gọi trực tiếp Gemini API với structured JSON output. Estimator là guardrail offline, không phải số token thanh toán chính xác.
 - **Bước 2: DNA & Evidence Review**: Trích xuất 12 chiều thành `DimensionProfile`; quote phải khớp nguyên văn với sample. Evidence sai bị reject để audit và không tham gia confidence.
 - **Bước 3: Guided Interview**: Chọn tối đa 3 chiều yếu nhất, tạo `ProfilePatch`; chỉ áp dụng sau khi người dùng duyệt và lưu provenance.
-- **Bước 4: Blind A/B Calibration**: Chỉ thay một dimension, ẩn mapping A/B; lựa chọn cập nhật thật vào strength/examples/history của profile.
+- **Bước 4: Blind A/B Calibration**: Chỉ thay một dimension, ẩn mapping A/B; lựa chọn trực tiếp của người dùng có thể nâng confidence tới `0.95` và phải lưu before/after cùng provenance trong history.
 - **Bước 5: Biên Dịch & Xuất Bản An Toàn (Compiler & Publish Safety Pipeline)**: 
   - **Adjacency Matrix (`DIMENSION_AGENTS`)**: Ánh xạ từ các chiều DNA sang đúng danh sách Agent chịu trách nhiệm trong từng Mode.
   - **Full-template overlay**: Base style được chọn rõ ràng; compiler giữ nguyên toàn bộ role/tasks/input/output/workflow và chỉ thêm vùng `voice_lab_style`.
@@ -106,7 +133,7 @@ Khi nhấn Publish một phong cách mới trong Voice Lab, hệ thống thực 
 1. **Staging**: Ghi full effective skills, profile v2 và metadata vào thư mục giao dịch riêng cùng filesystem.
 2. **Contract Validation**: Kiểm tra YAML schema, required agents, workflow references và invariant snapshot.
 3. **Backup**: Tạo bản sao lưu dự phòng nếu style đã tồn tại.
-4. **Atomic Replace & Rollback**: Tráo đổi thư mục bằng `os.replace`; lỗi giữa giao dịch sẽ phục hồi tombstone và dọn staging.
+4. **Atomic Replace & Rollback**: Tráo đổi thư mục bằng `os.replace`; lỗi giữa giao dịch sẽ phục hồi tombstone và dọn staging. Nếu chính rollback thất bại, hệ thống giữ tombstone, trả `PublishRollbackError` cùng đường dẫn phục hồi thủ công.
 
 ### 2.3. Hỗ Trợ Local Model Quota qua Antigravity Bridge
 Hệ thống hỗ trợ chạy workflow hoàn toàn bằng **Local Model Quota** thông qua Antigravity Bridge (`--client antigravity`):
@@ -126,7 +153,7 @@ Hệ thống hỗ trợ chạy workflow hoàn toàn bằng **Local Model Quota**
 
 ### 2.6. Trạng thái kiểm chứng
 
-- 120/120 regression test toàn dự án pass; 4 subtest parser strict pass.
+- 124/124 regression test toàn dự án pass; 4 subtest parser strict pass.
 - UI acceptance bao phủ 4 tab, đổi mode hai chiều, Workbench template/custom in-memory và Voice Lab đến Compile Review bằng fake.
 - Parser production khóa duy nhất `## Artifact`/`## Handoff` theo đúng thứ tự nhưng vẫn giữ H2 nội bộ của bài blog.
 - Gemini router descriptor và request dùng cùng model global/per-stage.
@@ -135,6 +162,15 @@ Hệ thống hỗ trợ chạy workflow hoàn toàn bằng **Local Model Quota**
 - Deep và Moment mode đều được test compile/publish đủ required agents.
 - Streamlit AppTest và kiểm tra trực quan không có exception/overflow; style widget được namespace theo mode.
 - `compileall` và `git diff --check` đạt.
+
+### 2.7. Lớp quản trị Agentic
+
+- `AGENTS.md` ở repository root bắt buộc mọi agent đọc `.agents/AGENTS.md`.
+- RULES phân loại `runs/` là dữ liệu nghiệp vụ: run cũ chỉ đọc; workflow thật được tạo run mới collision-safe; test/dry-run phải dùng vùng tạm.
+- `runs/temp_llm/` là ngoại lệ tương thích có giới hạn cho file bridge của chính lần chạy hiện tại.
+- Test mặc định dùng fake/mock, không gọi API thật; Voice Lab chỉ dùng Gemini API.
+- Skill `agentic-workflow-architect` bắt buộc cho thay đổi workflow, engine, contract, provider, compiler, publisher và rollback.
+- Trình tự refactor chuẩn: contract → engine → prompt → integration → verification.
 
 ---
 
@@ -145,3 +181,12 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 2. **🎨 Style Studio & Voice Lab Wizard**: Tích hợp 5 bước thiết kế giọng văn trực quan (Nạp mẫu -> Evidence -> Interview -> Blind Calibration -> Publish Safety Pipeline).
 3. **💻 YAML Code Editor**: Soạn thảo live YAML prompt kèm bộ kiểm duyệt Group-Based Validator.
 4. **🧪 Live Workbench & Layer Inspector**: Soạn và so sánh trực tiếp Canonical IR (tri thức nguyên bản) với Effective YAML (kỹ năng được biên dịch), mô phỏng định tuyến mà không tốn Quota.
+
+---
+
+## 4. Trạng thái Refactor P0–P2
+
+- **P0 — Modularization:** `ui/app.py` chỉ còn composition/render; state, view và controller được tách. `workflow.py` trở thành facade; execution, persistence, context, resolution, artifact và learning có module riêng. `interview.py` trở thành compatibility facade cho routing, profile patch và calibration.
+- **P1 — Contract hardening:** UI acceptance, parser strict, Gemini stage model telemetry, style transaction, alias namespace và migration v1/v2 fail-closed.
+- **P2 — Audit hardening:** bỏ compiler legacy fallback, token guardrail Unicode, calibration provenance và lỗi rollback thứ cấp có cấu trúc.
+- Sau mỗi gate, workflow vẫn sử dụng được; regression cuối đạt **124/124 test + 4 parser subtest**, không gọi API thật và không thay đổi `runs/`.

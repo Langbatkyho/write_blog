@@ -109,10 +109,6 @@ def get_affected_agents(changed_dimensions: List[str], mode: str = "deep") -> Li
 
 def _load_base_skill(mode: str, base_style_slug: str, filename: str) -> dict:
     candidate = resolve_path(f"skills/{mode}/{base_style_slug}/{filename}")
-    if not candidate.exists() and mode == "deep":
-        legacy = resolve_path(f"skills/{base_style_slug}/{filename}")
-        if legacy.exists():
-            candidate = legacy
     if not candidate.exists():
         raise FileNotFoundError(
             f"Base skill không tồn tại: mode={mode}, "

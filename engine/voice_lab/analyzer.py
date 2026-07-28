@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 from typing import Any, Dict, Iterable, List
 
@@ -30,11 +31,41 @@ DEFAULT_CONTEXT_TOKENS = 200_000
 INPUT_BUDGET_RATIO = 0.70
 CHUNK_OVERLAP_CHARS = 400
 MAX_ANALYSIS_BATCHES = 24
+ASCII_CHARS_PER_TOKEN = 4
+NON_ASCII_CHARS_PER_TOKEN = 2
 
 
 def estimate_tokens(text: str) -> int:
-    """Conservative tokenizer-free estimate suitable for routing."""
-    return max(1, (len(text) + 3) // 4)
+    """Estimate routing cost conservatively without calling Gemini.
+
+    This is a guardrail, not a billing tokenizer. Non-ASCII characters receive
+    a larger allowance because Vietnamese diacritics and CJK text can tokenize
+    more densely than plain ASCII.
+    """
+    if not text:
+        return 0
+    ascii_count = sum(ord(char) < 128 for char in text)
+    non_ascii_count = len(text) - ascii_count
+    return max(
+        1,
+        math.ceil(ascii_count / ASCII_CHARS_PER_TOKEN)
+        + math.ceil(non_ascii_count / NON_ASCII_CHARS_PER_TOKEN),
+    )
+
+
+def _max_chunk_end(content: str, start: int, token_budget: int) -> int:
+    """Return the largest non-empty slice end that fits the estimated budget."""
+    low = start + 1
+    high = len(content)
+    best = low
+    while low <= high:
+        middle = (low + high) // 2
+        if estimate_tokens(content[start:middle]) <= token_budget:
+            best = middle
+            low = middle + 1
+        else:
+            high = middle - 1
+    return best
 
 
 def _context_budget() -> int:
@@ -110,16 +141,15 @@ def _chunk_samples(
     samples: List[Dict[str, str]],
     token_budget: int,
 ) -> List[List[Dict[str, str]]]:
-    char_budget = max(2_000, token_budget * 4)
     units: List[Dict[str, str]] = []
     for sample in samples:
         content = sample["content"]
-        if len(content) <= char_budget:
+        if estimate_tokens(content) <= token_budget:
             units.append(sample)
             continue
         start = 0
         while start < len(content):
-            end = min(len(content), start + char_budget)
+            end = _max_chunk_end(content, start, token_budget)
             units.append(
                 {
                     "sample_id": sample["sample_id"],

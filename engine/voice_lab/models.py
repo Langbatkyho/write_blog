@@ -107,6 +107,11 @@ class CalibrationRecord(StrictModel):
     selected_text: str
     before_strength: float
     after_strength: float
+    before_confidence: Optional[float] = None
+    after_confidence: Optional[float] = None
+    confirmation_source: Literal["blind_ab_user_selection"] = (
+        "blind_ab_user_selection"
+    )
     confirmed_at: dt.datetime = Field(default_factory=utc_now)
 
 

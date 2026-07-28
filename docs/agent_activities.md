@@ -106,7 +106,18 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
   - Không dùng subagent trong vòng triển khai schema v2; code được sửa và audit tuần tự trên cùng worktree để tránh xung đột với thay đổi người dùng.
 - **Kết quả:** 81/81 regression test pass, gồm 37 test Voice Lab; Streamlit AppTest 0 exception.
 
-### 2.8. GPT-5.6 Sol / Codex Main Agent (P1 Hardening)
+### 2.8. GPT-5.6 Sol / Codex Main Agent (RULES, SKILL và P0)
+
+- Điều tra các run dry-run ngoài ý muốn và xác định fixture/example đã bị dùng như input nghiệp vụ.
+- Tạo RULES bắt buộc cho phân loại dữ liệu, API boundary, I/O, cleanup, UI verification và checkpoint.
+- Tạo skill `agentic-workflow-architect` theo contract-first, fail-closed và transaction-safe.
+- Refactor tuần tự ba cụm lớn:
+  - UI → state/controllers/views.
+  - Workflow → contracts/execution/persistence/context/resolution/artifacts/learning.
+  - Voice Lab interview → routing/profile patch/calibration.
+- Duy trì Gate A/P0 xanh trước khi chuyển phase; không dùng subagent và không gọi API thật.
+
+### 2.9. GPT-5.6 Sol / Codex Main Agent (P1 Hardening)
 
 - Triển khai tuần tự P1.1–P1.4, mỗi mục có checkpoint riêng.
 - Bổ sung UI acceptance và visual verification; sửa state style chéo mode.
@@ -115,6 +126,15 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
 - Tách migration v1 khỏi runtime schema v2 fail-closed.
 - Không dùng subagent; không gọi API thật; không chạm dữ liệu run/style của người dùng.
 - **Kết quả:** 120/120 test pass, 4 parser subtest pass; `runs/` giữ nguyên.
+
+### 2.10. GPT-5.6 Sol / Codex Main Agent (P2 Audit Hardening)
+
+- Đối chiếu audit Claude với code và plan thay vì áp dụng máy móc.
+- Đồng bộ architecture map; xóa compiler legacy fallback.
+- Thay token guardrail để bảo thủ hơn với Unicode và chia chunk theo estimated budget.
+- Giữ confidence `0.95` cho xác nhận A/B trực tiếp theo plan, đồng thời lưu before/after và provenance.
+- Thêm `PublishRollbackError`; bảo toàn tombstone nếu chính thao tác restore thất bại.
+- **Kết quả:** 124/124 test pass, 4 parser subtest pass; không API thật; `runs/` bất biến.
 
 ---
 
@@ -137,7 +157,9 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
 | 2026-07-27 | GPT-5.6 Sol | Triển khai Voice Lab schema v2 | Structured Gemini pipeline, full-template compiler, archive/publisher v2, UI adapter |
 | 2026-07-27 | Claude Opus 4.6 | Audit implementation Voice Lab v2 | Xác nhận phần lớn contract; đề xuất các vector tinh chỉnh |
 | 2026-07-27 | GPT-5.6 Sol | Thực thi audit recommendations và regression | 81/81 test pass; 37 test Voice Lab; UI 0 exception |
+| 2026-07-27–28 | GPT-5.6 Sol | Tạo RULES/SKILL và triển khai Gate A/P0 | Cô lập test khỏi `runs/`; tách UI/workflow/interview thành module có trách nhiệm rõ |
 | 2026-07-28 | GPT-5.6 Sol | Triển khai P1.1–P1.4 theo checkpoint | UI acceptance, parser/model telemetry, style transaction, migration fail-closed; 120/120 test pass |
+| 2026-07-28 | GPT-5.6 Sol | Triển khai P2 từ audit chéo | Architecture map; compiler fail-fast; Unicode token guardrail; calibration provenance; secondary rollback safety; 124/124 test pass |
 
 ---
 
@@ -151,3 +173,6 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
 6. **Một Nguồn Contract:** Canonical IR giữ `effective_skill` đầy đủ; không duy trì đồng thời các bản `prompt`/`style_rules` phẳng dễ lệch pha.
 7. **Provider Boundary Rõ Ràng:** Voice Lab dùng Gemini trực tiếp; router OpenAI/Antigravity thuộc workflow khác và không bị kéo vào module phân tích giọng văn.
 8. **Audit Phải Có Regression:** Mỗi khuyến nghị được khóa bằng test cụ thể, sau đó chạy toàn bộ regression và UI smoke test.
+9. **RULES và SKILL khác vai trò:** RULES bảo vệ dữ liệu/vận hành; SKILL hướng dẫn quyết định kiến trúc. Không trộn hai nguồn thành prompt tùy chọn.
+10. **Gate nhỏ bảo vệ khả năng sử dụng:** Chỉ chuyển P0 → P1 → P2 khi phase trước xanh; hết quota tại checkpoint không làm workflow rơi vào trạng thái sửa dở.
+11. **Không áp dụng audit máy móc:** Đề xuất phải đối chiếu plan, consumer và test. Ví dụ rollback “restore trước cleanup” bị bác bỏ; thay vào đó xử lý lỗi rollback thứ cấp.

@@ -76,3 +76,23 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 65. *"Bạn hãy khởi động trình quản lý Voice Lab để tôi test"*
 66. *"Bạn hãy ghi nhận lại toàn bộ thành quả thực hiện Kế hoạch multi-style và Voice Lab dự án này (tính từ sau lần git push trước) bổ sung vào các tài liệu trong thư mục docs: Kiến trúc hiện tại, Change log, Git Diff, User Prompts, Agent Activities /goal"*
 
+## Giai đoạn 10: Voice Lab Refactor, Agentic RULES/SKILL và P0–P2 (2026-07-27–28)
+
+> **Tham chiếu:** `docs/2026-07-27-voice-lab-refactor-plan-final.md`, `docs/2026-07-27-voice-lab-rules-skill-refactor-summary.md`, `docs/2026-07-27-project-progress-agent-handoff.md`
+
+67. *Đọc kế hoạch, kiến trúc và source Voice Lab; đánh giá logic/prompt AI cực kỳ cô đọng.*
+68. *Lập kế hoạch chi tiết sửa logic, prompt và chỉ rõ các điểm cần refactor code.*
+69. *Ghi kế hoạch vào docs để tham vấn chuyên gia; phản biện nối tiếp ý kiến Gemini và Claude.*
+70. *Làm rõ Voice Lab chỉ dùng Gemini API; không dùng Antigravity Bridge, có thể thử OpenAI sau.*
+71. *Lập bản kế hoạch final `2026-07-27-voice-lab-refactor-plan-final.md` và cập nhật tài liệu dự án.*
+72. *Điều tra nguyên nhân các run không do người dùng nhập có chủ đề “chiều-mưa-qua-khung-cửa-sổ-quán-cà-phê”.*
+73. *Đề xuất và tạo RULES/Skill dựa trên mẫu `happiness_teller`; dọn đúng các dry-run đã được phê duyệt.*
+74. *Dùng RULES/SKILL phân tích refactor `ui/app.py`, `engine/workflow.py`, `engine/voice_lab/interview.py` và phần còn lại của workflow.*
+75. *Tạo tài liệu tổng hợp để phản biện chéo với Gemini 3.1 Pro và Claude Opus 4.6; ghi các vòng phản biện vào docs.*
+76. *Rà soát tình trạng chạy kéo dài, chia nhỏ task, xác định rõ Gate A và thời điểm bắt đầu sửa code.*
+77. *Phê duyệt Gate A, P0 và Git checkpoint; yêu cầu bảo đảm workflow vẫn dùng được nếu hết quota giữa các phase.*
+78. *Tạo báo cáo tiến độ/handoff đủ chi tiết để agent khác tiếp quản.*
+79. *Điều chỉnh RULES: cho phép workflow thật tạo run mới; run cũ chỉ đọc; tạm giữ ngoại lệ `runs/temp_llm/`.*
+80. *Phê duyệt triển khai P1.*
+81. *Đọc audit Claude Opus 4.6, phản biện cô đọng theo ba mục và triển khai ngay các điểm đã thống nhất.*
+82. *Cập nhật toàn bộ kế hoạch refactor và RULES/SKILL vào sáu tài liệu theo dõi dự án.*

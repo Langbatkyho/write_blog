@@ -1,5 +1,24 @@
 # Lịch sử Thay đổi (Changelog)
 
+## RULES, SKILL và P0 Modularization (2026-07-27–28)
+
+- Tạo `AGENTS.md` và `.agents/AGENTS.md`, áp dụng cho toàn repository.
+- Phân biệt run nghiệp vụ, run cũ, test artifact và ngoại lệ tạm `runs/temp_llm/`; cấm test/dry-run ghi vào `runs/`.
+- Tạo skill `.agents/agentic-workflow-architect/` cùng architecture invariants, workflow patterns và refactor checklist.
+- Tách UI thành `state.py`, `controllers/`, `views/`; `ui/app.py` chỉ điều phối/render.
+- Tách workflow thành contracts, execution, persistence, context, resolution, artifacts và learning; `workflow.py` giữ vai trò facade.
+- Tách Voice Lab interview thành routing, profile patch và calibration; `interview.py` giữ compatibility imports.
+- Áp dụng Gate A/P0 theo checkpoint nhỏ để workflow luôn sử dụng được nếu dừng vì quota.
+
+## P2 Audit Hardening (2026-07-28)
+
+- Đồng bộ bản đồ module engine/UI với code sau refactor.
+- Compiler bỏ fallback `skills/{slug}`; thiếu base chuẩn sẽ fail-fast.
+- Token estimator Voice Lab bảo thủ hơn với Unicode và chia chunk theo estimated budget.
+- Calibration lưu confidence trước/sau cùng provenance xác nhận A/B.
+- Publisher giữ tombstone và trả lỗi có cấu trúc nếu rollback thứ cấp thất bại.
+- Kiểm chứng: **124/124 test pass**, 4 parser subtest pass; không gọi API thật; `runs/` bất biến.
+
 ## P1 Hardening hoàn tất (2026-07-28)
 
 - **P1.1 UI acceptance:** thêm interaction tests cho 4 tab, đổi mode, Workbench in-memory và Voice Lab 5 bước bằng fake; sửa widget style giữ sai giá trị khi chuyển Deep/Moment.

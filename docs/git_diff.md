@@ -1,5 +1,32 @@
 # Tổng hợp Git Diff và Thay đổi Code
 
+## 14. RULES, SKILL và P0 Refactor
+
+- **Governance**
+  - `AGENTS.md` → trỏ bắt buộc tới `.agents/AGENTS.md`.
+  - `.agents/AGENTS.md` → contract vận hành cho `runs/`, test, API, cleanup, UI verification và multi-agent.
+  - `.agents/agentic-workflow-architect/` → skill contract-first cùng ba reference chuyên biệt.
+- **UI**
+  - `ui/app.py` → composition root.
+  - Thêm `ui/state.py`, `ui/controllers/*`, `ui/views/*`.
+- **Workflow**
+  - `engine/workflow.py` → facade.
+  - Thêm `workflow_contracts.py`, `workflow_execution.py`, `workflow_persistence.py`, `workflow_context.py`, `workflow_resolution.py`, `workflow_artifacts.py`, `workflow_learning.py`.
+- **Style/Voice Lab**
+  - Thêm `style_contracts.py`, `style_repository.py`.
+  - Tách `interview_routing.py`, `profile_patch.py`, `calibration.py`; `interview.py` giữ compatibility facade.
+- **Verification**
+  - Thêm contract/runtime/UI tests; mọi test ghi file dùng vùng tạm và fake provider.
+
+## 13. P2 Audit Hardening (2026-07-28)
+
+- `compiler.py`: xóa legacy path fallback, khóa layout `skills/<mode>/<style>/`.
+- `analyzer.py`: estimator phân biệt ASCII/Unicode; chunk không vượt estimated budget.
+- `models.py`/`calibration.py`: lưu provenance và confidence trước/sau xác nhận A/B.
+- `publisher.py`: thêm `PublishRollbackError`, giữ tombstone khi restore thất bại.
+- `current_architecture.md`: bổ sung module engine/Voice Lab và cấu trúc controller/view UI.
+- Test tăng từ 120 lên **124**, toàn bộ pass; không gọi API thật.
+
 ## 12. P1 Architecture Hardening (2026-07-28)
 
 - `ea7d08d`: UI acceptance; widget editor/workbench được namespace theo mode.

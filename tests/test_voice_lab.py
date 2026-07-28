@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from engine import gemini_client
-from engine.voice_lab import analyzer, interview
+from engine.voice_lab import analyzer, compiler, interview
 from engine.voice_lab.archive import export_style, import_style
 from engine.voice_lab.compiler import (
     AGENT_FILENAME_MAP,
@@ -45,7 +45,7 @@ from engine.voice_lab.prompts import (
     build_calibration_prompt,
     build_interview_patch_prompt,
 )
-from engine.voice_lab.publisher import publish_style
+from engine.voice_lab.publisher import PublishRollbackError, publish_style
 
 
 def _confirmed_profile(mode: str = "deep") -> StyleProfile:
@@ -367,6 +367,22 @@ def test_analyzer_uses_multi_pass_only_when_token_budget_requires(monkeypatch):
     assert result.usage["api_calls"] == len(calls)
 
 
+def test_token_estimator_is_conservative_for_vietnamese_and_empty_text():
+    assert analyzer.estimate_tokens("") == 0
+    assert analyzer.estimate_tokens("a" * 400) == 100
+    assert analyzer.estimate_tokens("ắ" * 400) == 200
+
+
+def test_chunking_keeps_each_vietnamese_unit_within_token_budget():
+    batches = analyzer._chunk_samples(
+        [{"sample_id": "sample_1", "content": "Tiếng Việt có dấu. " * 200}],
+        token_budget=120,
+    )
+    units = [unit for batch in batches for unit in batch]
+    assert len(units) > 1
+    assert all(analyzer.estimate_tokens(unit["content"]) <= 120 for unit in units)
+
+
 def test_analyzer_rejects_unbounded_batch_count_before_calling_gemini(monkeypatch):
     monkeypatch.setattr(analyzer, "_context_budget", lambda: 100)
     monkeypatch.setattr(
@@ -480,6 +496,9 @@ def test_calibration_tracks_hidden_mapping_and_updates_profile(monkeypatch):
     assert record.selected_direction == direction
     assert record.selected_text == session.variant_a
     assert updated.dna.tone.source == "calibration"
+    assert record.before_confidence == profile.dna.tone.confidence
+    assert record.after_confidence == 0.95
+    assert record.confirmation_source == "blind_ab_user_selection"
     assert session.selected is None
     with pytest.raises(ValueError, match="đã được áp dụng"):
         apply_calibration_selection(updated, session, "A")
@@ -543,6 +562,20 @@ def test_compiler_is_deterministic_and_preserves_full_base_template():
     assert "tone" in artifact.style_overlays
     assert artifact.effective_skill["voice_lab_style"]["schema_version"] == 2
     assert isinstance(artifact.output_contract, dict)
+
+
+def test_compiler_does_not_fallback_to_legacy_skill_layout(tmp_path, monkeypatch):
+    legacy = tmp_path / "skills" / "reflective" / "writing_agent.yaml"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text("name: legacy\n", encoding="utf-8")
+    monkeypatch.setattr(
+        compiler,
+        "resolve_path",
+        lambda relative: tmp_path / relative,
+    )
+
+    with pytest.raises(FileNotFoundError, match="Base skill không tồn tại"):
+        compiler._load_base_skill("deep", "reflective", "writing_agent.yaml")
 
 
 def test_compiler_normalizes_legacy_scalar_contracts_to_objects(monkeypatch):
@@ -904,3 +937,50 @@ def test_publish_rolls_back_when_atomic_replace_fails(tmp_path, monkeypatch):
     assert marker.read_text(encoding="utf-8") == "original"
     assert not list(runtime.parent.glob("rollback-test.staging-*"))
     assert not list(runtime.parent.glob("rollback-test.old-*"))
+
+
+def test_publish_preserves_tombstone_when_secondary_rollback_fails(
+    tmp_path, monkeypatch
+):
+    _write_test_flow(tmp_path, "deep")
+    profile = _confirmed_profile()
+    compiled = compile_style(profile, "deep")
+    first = publish_style(
+        profile,
+        compiled,
+        name="Original",
+        slug="rollback-secondary",
+        workspace_root=tmp_path,
+    )
+    runtime = Path(first.runtime_dir)
+    (runtime / "marker.txt").write_text("original", encoding="utf-8")
+
+    real_replace = __import__("os").replace
+    calls = {"count": 0}
+
+    def fail_publish_and_restore(source, target):
+        calls["count"] += 1
+        if calls["count"] in {2, 3}:
+            raise OSError(f"forced replace failure {calls['count']}")
+        return real_replace(source, target)
+
+    monkeypatch.setattr(
+        "engine.voice_lab.publisher.os.replace",
+        fail_publish_and_restore,
+    )
+    with pytest.raises(PublishRollbackError) as exc:
+        publish_style(
+            profile,
+            compiled,
+            name="Replacement",
+            slug="rollback-secondary",
+            workspace_root=tmp_path,
+        )
+
+    assert isinstance(exc.value.publish_error, OSError)
+    assert isinstance(exc.value.rollback_error, OSError)
+    assert exc.value.recovery_path.exists()
+    assert (exc.value.recovery_path / "marker.txt").read_text(
+        encoding="utf-8"
+    ) == "original"
+    assert not list(runtime.parent.glob("rollback-secondary.staging-*"))

@@ -22,6 +22,24 @@ from engine.voice_lab.compiler import (
 from engine.voice_lab.models import CompileResult, PublishResult, StyleProfile
 
 
+class PublishRollbackError(RuntimeError):
+    """Publish failed and the previous runtime could not be restored."""
+
+    def __init__(
+        self,
+        publish_error: Exception,
+        rollback_error: Exception,
+        recovery_path: Path,
+    ) -> None:
+        super().__init__(
+            "Publish thất bại và rollback cũng thất bại. "
+            f"Dữ liệu cũ còn tại: {recovery_path}"
+        )
+        self.publish_error = publish_error
+        self.rollback_error = rollback_error
+        self.recovery_path = recovery_path
+
+
 def _root_path(workspace_root: Optional[Path]) -> Path:
     return workspace_root.resolve() if workspace_root else resolve_path(".").resolve()
 
@@ -210,13 +228,23 @@ def publish_style(
             os.replace(runtime_dir, tombstone)
             runtime_moved = True
         os.replace(staging_dir, runtime_dir)
-    except Exception:
+    except Exception as publish_error:
         if runtime_dir.exists() and runtime_moved:
             shutil.rmtree(runtime_dir, ignore_errors=True)
+        rollback_error: Exception | None = None
         if runtime_moved and tombstone.exists():
-            os.replace(tombstone, runtime_dir)
+            try:
+                os.replace(tombstone, runtime_dir)
+            except Exception as exc:
+                rollback_error = exc
         if staging_dir.exists():
             shutil.rmtree(staging_dir, ignore_errors=True)
+        if rollback_error is not None:
+            raise PublishRollbackError(
+                publish_error,
+                rollback_error,
+                tombstone,
+            ) from publish_error
         raise
 
     if tombstone.exists():

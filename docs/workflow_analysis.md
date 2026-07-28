@@ -96,18 +96,47 @@ Nhìn lại toàn bộ lịch sử tiến hóa dự án (từ script monolith 89
 - **Khắc phục tư duy nhân bản (Duplication Trap):** Khi GPT-5.6 Sol lập kế hoạch Dual Modes, ý tưởng đầu tiên là copy flow file thành `write_deep_blog.yaml` và hardcode whitelist. Chính **Claude Opus 4.6** qua bước Audit nghiêm ngặt đã chỉ ra việc nhân bản này tạo ra 95% nợ kỹ thuật (technical debt), thúc đẩy **Gemini 3.1 Pro** và **Gemini 3.6 Flash** tái cấu trúc theo hướng định tuyến động (`resolve_workflow_file`, `resolve_step_skill_path`).
 - **Bảo vệ ranh giới module (Module Boundary Hygiene):** Khi tích hợp Antigravity Bridge, việc vá lỗi ngầm qua `try...except` trong client cũ đã bị bác bỏ hoàn toàn để thay bằng mô hình **Dependency Injection (`LlmClient`)** chuẩn hóa từ CLI entrypoint.
 
+## Bài học 17: `runs/` là dữ liệu nghiệp vụ, không phải sandbox
+
+Fixture trong `examples/` từng bị dùng để tạo nhiều dry-run có cùng chủ đề trong `runs/`. Test/dry-run từ nay phải dùng output root tạm; workflow thật chỉ tạo run mới collision-safe; run đã hoàn tất mặc định chỉ đọc. `runs/temp_llm/` chỉ là ngoại lệ tương thích có giới hạn cho file bridge của lần chạy hiện tại.
+
+## Bài học 18: RULES và SKILL phải tách vai trò
+
+- `.agents/AGENTS.md` là policy bắt buộc về dữ liệu, API, thao tác phá hủy, test và tiêu chí hoàn tất.
+- `agentic-workflow-architect/SKILL.md` hướng dẫn quyết định kiến trúc theo contract → engine → prompt → integration → verification.
+- RULES có hiệu lực cao hơn SKILL khi liên quan đến an toàn dữ liệu và I/O.
+
+## Bài học 19: Refactor theo Gate để hệ thống luôn dùng được
+
+P0 chỉ tách module và giữ facade tương thích; P1 siết contract; P2 xử lý audit hardening. Mỗi phase phải regression xanh trước khi chuyển tiếp. Vì vậy dừng do quota tại checkpoint không làm workflow rơi vào trạng thái sửa dở.
+
+## Bài học 20: Refactor theo trách nhiệm, không theo số dòng
+
+- UI tách state, view và controller.
+- Workflow tách execution, persistence, context, resolution, artifacts và learning.
+- Interview giữ facade; routing, profile patch và calibration thành domain module riêng.
+
+Module mới chỉ hợp lệ khi có consumer thực tế và regression test.
+
+## Bài học 21: Heuristic và rollback cần nói đúng giới hạn
+
+- Token estimator chỉ là guardrail offline, không phải số token chính xác của Gemini.
+- Xác nhận A/B trực tiếp có thể nâng confidence tới `0.95`, nhưng phải lưu before/after và provenance.
+- Transaction phải xử lý cả rollback failure, bảo toàn tombstone và trả đường dẫn phục hồi thủ công.
+
 ---
 
 # 5. Đánh Giá & Đề Xuất Tổng Hợp Thành Skill Kiến Trúc Sư (`agentic-workflow-architect`)
 
 ### 5.1. Có thể tổng hợp các bài học này thành Skill không?
 **CÓ, HOÀN TOÀN KHẢ THI VÀ CỰC KỲ CẦN THIẾT!**  
-16 bài học trên không chỉ là kinh nghiệm riêng của dự án viết blog, mà thực chất là **bộ quy chuẩn kiến trúc nền tảng (Architectural Design Patterns & Guardrails)** cho bất kỳ hệ thống AI Agentic đa tác tử (Multi-Agent Systems), AI Workflows, hoặc hệ thống sinh nội dung phức tạp nào.
+21 bài học trên không chỉ là kinh nghiệm riêng của dự án viết blog, mà thực chất là **bộ quy chuẩn kiến trúc nền tảng (Architectural Design Patterns & Guardrails)** cho bất kỳ hệ thống AI Agentic đa tác tử (Multi-Agent Systems), AI Workflows, hoặc hệ thống sinh nội dung phức tạp nào.
 
 Nếu không được đóng gói thành một Skill độc lập, trong các dự án sau (hoặc các giai đoạn mở rộng tiếp theo), các AI Agent thế hệ mới sẽ tiếp tục lặp lại những sai lầm kinh điển: viết script monolith, để bùng nổ token ngữ cảnh, dùng conditional hardcode, nhân bản code lặp, hoặc để các agent dẫm chân lên vai trò của nhau.
 
-### 5.2. Đề Xuất Cấu Trúc Skill mới: `agentic-workflow-architect`
-Đề xuất thiết lập một Skill hệ thống chuẩn thuộc không gian kỹ năng của AI (đặt tại `.gemini/antigravity/skills/agentic_workflow_architect/SKILL.md` hoặc `skills/system/agentic_workflow_architect/SKILL.md`), được kích hoạt mỗi khi Agent nhận nhiệm vụ: *thiết kế workflow mới, bổ sung AI Agent, tái cấu trúc engine, hoặc xây dựng hệ thống multi-agent collaboration*.
+### 5.2. Trạng thái triển khai Skill: `agentic-workflow-architect`
+
+Skill đã được triển khai tại `.agents/agentic-workflow-architect/SKILL.md` và được `.agents/AGENTS.md` bắt buộc kích hoạt khi thay đổi workflow, engine, prompt contract, schema, provider, learning, compiler, archive, publisher hoặc rollback.
 
 #### **Khung Nội Dung Cốt Lõi Của Skill (`SKILL.md`):**
 
@@ -142,3 +171,9 @@ description: >
 5. **Trụ Cột 5: Điều Phối Multi-Agent Tuần Tự (Sequential Multi-Agent Governance)**
    - Trong một đợt nâng cấp phức tạp, bắt buộc Agent 1 hoàn tất Refactoring nền tảng (Thư mục, Engine, Contract test) trước khi Agent 2 làm nhiệm vụ Prompt Engineering hoặc tạo YAML mới, loại bỏ hoàn toàn rủi ro Race Condition trên test suites và file dùng chung.
 
+### 5.3. Thành phần đã triển khai
+
+- `SKILL.md`: trigger, quy trình, bất biến và tiêu chí bàn giao.
+- `references/architecture-invariants.md`: contract, module boundary, provider, I/O và compatibility.
+- `references/workflow-design-patterns.md`: Artifact/Handoff, context policy và orchestration.
+- `references/refactor-checklist.md`: discovery, change design, verification và cleanup.
