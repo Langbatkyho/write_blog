@@ -21,7 +21,7 @@ def render_workbench(styles: list[dict], mode: str) -> None:
     style = st.selectbox(
         "Chọn Style kiểm chứng:",
         options=[item["slug"] for item in styles],
-        key="wb_style_select",
+        key=f"wb_style_select_{mode}",
     )
     source = st.radio(
         "Nguồn văn bản:",

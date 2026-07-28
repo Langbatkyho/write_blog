@@ -21,7 +21,7 @@ def render_editor(styles: list[dict], mode: str, code_editor=None) -> None:
         "Chọn Style để chỉnh sửa:",
         options=slugs,
         index=slugs.index(current),
-        key="editor_style_select",
+        key=f"editor_style_select_{mode}",
     )
     st.session_state.selected_style_slug = selected_slug
     try:
@@ -33,7 +33,9 @@ def render_editor(styles: list[dict], mode: str, code_editor=None) -> None:
             else files
         )
         selected_file = st.selectbox(
-            "Chọn file YAML:", options=all_files, key="editor_file_select"
+            "Chọn file YAML:",
+            options=all_files,
+            key=f"editor_file_select_{mode}_{selected_slug}",
         )
         file_path = Path(detail["directory"]) / selected_file
         content = read_text(file_path) if file_path.exists() else "# File not found"
