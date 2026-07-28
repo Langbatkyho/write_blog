@@ -5,6 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -139,6 +141,17 @@ class TestStyleManager(unittest.TestCase):
         validated = validate_style_contract("deep", "test-rename-old")
         self.assertEqual(validated, "test-rename-new")
 
+        # An old slug is now a reserved alias and cannot be reused.
+        reused, reuse_error = create_style(
+            "deep",
+            "Alias Collision",
+            "test-rename-old",
+            "Desc",
+            clone_from="reflective",
+        )
+        self.assertFalse(reused)
+        self.assertIn("trùng", reuse_error)
+
         delete_style("deep", "test-rename-new")
 
     def test_create_style_rollback_on_failure(self) -> None:
@@ -169,6 +182,36 @@ class TestStyleManager(unittest.TestCase):
         )
 
         delete_style("deep", "test-save-atomic")
+
+    def test_save_validates_entire_staged_style_before_commit(self) -> None:
+        created, message = create_style(
+            "deep",
+            "Full Contract",
+            "test-save-atomic",
+            "Desc",
+            clone_from="reflective",
+        )
+        self.assertTrue(created, message)
+        target = self.path(
+            "skills/deep/test-save-atomic/story_architect.yaml"
+        )
+        original = read_text(target)
+        modified = yaml.safe_load(original)
+        modified["output"]["name"] = "wrong-output.md"
+
+        saved, error, _ = save_style_file(
+            "deep",
+            "test-save-atomic",
+            "story_architect.yaml",
+            yaml.safe_dump(modified, allow_unicode=True, sort_keys=False),
+        )
+
+        self.assertFalse(saved)
+        self.assertIn("Flow–Skill mismatch", error)
+        self.assertEqual(read_text(target), original)
+        self.assertFalse(
+            list(target.parent.parent.glob(".test-save-atomic.staging-*"))
+        )
 
     def test_save_and_rename_rollback_on_commit_failure(self) -> None:
         success, msg = create_style(

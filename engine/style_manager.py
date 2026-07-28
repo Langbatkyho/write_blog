@@ -4,7 +4,12 @@ from pathlib import Path
 from typing import Any, Tuple, List, Dict, Optional
 import yaml
 
-from engine.utils import resolve_path, write_text, load_yaml
+from engine.utils import resolve_path, write_text, load_yaml, read_text
+from engine.workflow_contracts import (
+    WorkflowDefinition,
+    validate_step_skill_contract,
+    validate_workflow_artifact_set,
+)
 from engine.style_repository import (
     clone_to_staging,
     commit_staged_directory,
@@ -87,6 +92,105 @@ def resolve_style_by_slug_or_alias(mode: str, slug: str) -> Optional[str]:
 
     return None
 
+
+def _validate_alias_namespace(
+    mode_dir: Path,
+    *,
+    candidate_slug: str,
+    candidate_aliases: list[str],
+    exclude_slug: str | None = None,
+) -> None:
+    claims: dict[str, str] = {}
+
+    def claim(value: str, owner: str) -> None:
+        previous = claims.get(value)
+        if previous is not None:
+            raise ValueError(
+                f"Slug/alias '{value}' bị trùng giữa '{previous}' và '{owner}'."
+            )
+        claims[value] = owner
+
+    if mode_dir.is_dir():
+        for directory in mode_dir.iterdir():
+            if (
+                not directory.is_dir()
+                or directory.name.startswith(".")
+                or directory.name == exclude_slug
+            ):
+                continue
+            claim(directory.name, f"slug:{directory.name}")
+            meta_path = directory / "style_meta.yaml"
+            if not meta_path.exists():
+                continue
+            metadata = validate_style_metadata(
+                load_yaml(meta_path),
+                expected_slug=directory.name,
+            )
+            for alias in metadata.get("previous_slugs", []):
+                claim(alias, f"alias:{directory.name}")
+
+    candidate_values = [candidate_slug, *candidate_aliases]
+    if len(candidate_values) != len(set(candidate_values)):
+        raise ValueError("Slug hiện tại và previous_slugs không được trùng nhau.")
+    for value in candidate_values:
+        claim(value, f"candidate:{candidate_slug}")
+
+
+def validate_style_directory(
+    mode: str,
+    slug: str,
+    style_dir: Path,
+    workflow_path: Optional[Path] = None,
+    *,
+    namespace_exclude_slug: str | None = None,
+) -> None:
+    meta_path = style_dir / "style_meta.yaml"
+    metadata: dict[str, Any] = {
+        "slug": slug,
+        "mode": mode,
+        "previous_slugs": [],
+    }
+    if meta_path.exists():
+        metadata = validate_style_metadata(
+            load_yaml(meta_path), expected_slug=slug, expected_mode=mode
+        )
+    _validate_alias_namespace(
+        style_dir.parent,
+        candidate_slug=slug,
+        candidate_aliases=list(metadata.get("previous_slugs", [])),
+        exclude_slug=namespace_exclude_slug or slug,
+    )
+
+    if workflow_path is None:
+        flow_name = (
+            "write_moment_blog.yaml" if mode == "moment" else "write_blog.yaml"
+        )
+        workflow_path = resolve_path(f"flow/{flow_name}")
+    workflow = load_yaml(workflow_path)
+    definition = WorkflowDefinition.from_dict(workflow, expected_mode=mode)
+    skills: dict[str, dict[str, Any]] = {}
+    missing_files: list[str] = []
+    for step in definition.steps:
+        filename = Path(step.skill).name
+        skill_path = style_dir / filename
+        if not skill_path.is_file():
+            missing_files.append(filename)
+            continue
+        content = read_text(skill_path)
+        valid, error, _ = validate_style_yaml(content, filename, mode)
+        if not valid:
+            raise ValueError(f"Skill '{filename}' không hợp lệ: {error}")
+        skill = yaml.safe_load(content)
+        validate_step_skill_contract(step, skill)
+        skills[step.id] = skill
+    if missing_files:
+        raise ValueError(
+            f"Style '{slug}' (mode: {mode}) vi phạm hợp đồng Flow. "
+            f"Thiếu các file skill bắt buộc: {missing_files}"
+        )
+    validate_workflow_artifact_set(definition, skills)
+
+
 def validate_style_contract(mode: str, style: str, workflow_path: Optional[Path] = None) -> str:
     resolved = resolve_style_by_slug_or_alias(mode, style)
     if not resolved:
@@ -98,38 +202,14 @@ def validate_style_contract(mode: str, style: str, workflow_path: Optional[Path]
     style_dir = resolve_path(f"skills/{mode}/{style}")
     if not style_dir.is_dir() and mode == "deep":
         style_dir = resolve_path(f"skills/{style}")
-    meta_path = style_dir / "style_meta.yaml"
-    if meta_path.exists():
-        validate_style_metadata(
-            load_yaml(meta_path), expected_slug=style, expected_mode=mode
-        )
-
-    # Determine workflow path if not provided
-    if not workflow_path:
-        flow_name = "write_moment_blog.yaml" if mode == "moment" else "write_blog.yaml"
-        workflow_path = resolve_path(f"flow/{flow_name}")
-
-    if workflow_path.exists():
-        try:
-            workflow = load_yaml(workflow_path)
-            steps = workflow.get("steps", [])
-            missing_files = []
-            for step in steps:
-                skill_filename = Path(step["skill"]).name
-                p1 = resolve_path(f"skills/{mode}/{style}/{skill_filename}")
-                p2 = resolve_path(f"skills/{style}/{skill_filename}")
-                if not p1.exists() and not (mode == "deep" and p2.exists()):
-                    missing_files.append(skill_filename)
-            if missing_files:
-                raise ValueError(
-                    f"Style '{style}' (mode: {mode}) vi phạm hợp đồng Flow. Thiếu các file skill bắt buộc: {missing_files}"
-                )
-        except ValueError as ve:
-            raise ve
-        except Exception as e:
-            raise ValueError(
-                f"Không thể validate Flow contract tại {workflow_path}: {e}"
-            ) from e
+    try:
+        validate_style_directory(mode, style, style_dir, workflow_path)
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError(
+            f"Không thể validate Flow/style contract tại {workflow_path}: {exc}"
+        ) from exc
 
     return style
 
@@ -250,6 +330,7 @@ def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[
                 meta_path,
                 yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
             )
+        validate_style_directory(mode, slug, staging_dir)
         commit_staged_directory(staging_dir, style_dir)
         return True, "", warn
     except Exception as e:
@@ -299,6 +380,7 @@ def create_style(
             meta_path,
             yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
         )
+        validate_style_directory(mode, slug, staging_dir)
         commit_staged_directory(staging_dir, target_dir)
         return True, ""
     except Exception as e:
@@ -358,6 +440,12 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
         write_text(
             staging_dir / "style_meta.yaml",
             yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
+        )
+        validate_style_directory(
+            mode,
+            new_slug,
+            staging_dir,
+            namespace_exclude_slug=old_slug,
         )
         if old_slug == new_slug:
             commit_staged_directory(staging_dir, style_dir)
