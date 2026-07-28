@@ -3,8 +3,12 @@ Hoa chẳng vì ai mà nở, cứ tươi xinh rạng rỡ hết nhựa sống, c
 ---------------
 
 Không nhớ lần đầu mình thấy Sử Quân Tử là bao giờ, cuối cấp 2 hay chuẩn bị vào Đại học; trong những buổi học thêm ở nhà các thầy cô trên Hạ Hồi, Thi Sách, Lãn Ông,  Tràng Tiền,…hay những ngày rong chơi, lang thang khắp ngõ nhỏ phố to của Hà Nội cũ. Chỉ nhớ là mình đã ngỡ ngàng rung rinh trước một giàn xanh mướt lá với những chùm bông 5 cánh xinh xắn màu hồng nhạt toả ra hương thơm ngọt ngào đến diệu kỳ, rủ xuống từ tường rào một ngôi nhà kiểu Pháp. Mình mê lắm vì lúc đó mình ở mạn Đại La như nhà quê, xung quanh toàn ruộng và hố bom, chỉ quen hoa găng, dâm bụt, bìm bìm, hoa giấy… chưa hề biết loài hoa này. 
+
+
 Lần thứ hai (và sau này nhiều lần nữa), mình không chỉ gặp lại mà được thoả sức chiêm ngưỡng, check-in, hít hà cơ man là các sắc hoa Sử Quân Tử khi có dịp đi chơi Hội An - hoa Giun/Jun nở tưng bừng khắp các con phố (ở đây người ta gọi như vậy, ban đầu mình hơi có chút bất bình vì ai nỡ đặt tên hoa xấu thế, sau này quen rồi lại thấy tên dân dã dễ thương 😍). Một trong rất nhiều lý do mình yêu Hội An cũng vì những giàn xanh tươi rực rỡ thơm ngát này. (Dù được dặn dò ít lại gần vì rắn lục rất thích trú trong cây nhất là những giàn lớn xanh um - nghe vừa sợ vừa thú vị vì mình cứ hình dung ra chuyện con rắn “gian xảo tiểu nhân” nương nhờ “bóng quân tử” 😁)
 Hoa Giun ưa nắng và đất giàu chất, ẩm xốp và dễ thoát nước, hơi khó tính 1 chút, không như hoa giấy càng cằn khô càng rực rỡ. Nhà bố mẹ mình đã từng trồng một cây nhưng hầu như chỉ xanh lá, có lẽ do ít nắng và bí nước, không hợp đất. Rồi cây được dọn bỏ để hai cụ già yếu đỡ lọ mọ mất sức chăm trồng… 
+
+
 Sử Quân Tử giờ có thêm giống cánh kép, bông xoe tròn rực rỡ, dường như thơm nồng nàn hơn, sai hoa hơn, được ưa trồng khá nhiều. Mình thì vẫn thích bông cánh đơn vì nó cho mình cảm giác nhẹ nhõm, bình yên hơn mỗi khi ngắm nhìn.
 
 ----------------

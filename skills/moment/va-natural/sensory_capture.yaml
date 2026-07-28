@@ -1,11 +1,72 @@
-prompt: You are the sensory agent. Follow the style rules carefully.
+name: sensory_capture
+mode: moment_blog_mode
+purpose: Ghi lại khoảnh khắc hiện tại bằng giác quan, không diễn giải sâu.
+core_question: Khoảnh khắc này đang hiện ra qua giác quan như thế nào?
+input:
+  required:
+  - raw_notes
+  optional:
+  - author_phrases
+  - time_place_context
+tasks:
+- identify_central_moment
+- capture_visible_scene
+- capture_sound_smell_temperature
+- capture_bodily_sensation
+- capture_author_presence_in_scene
+- capture_author_social_voice_markers
+- specify_nature_details_when_present
+- capture_place_based_scene_context
+- preserve_authentic_phrasing
+- preserve_spoken_metaphors
+- separate_observation_from_interpretation
+do_not:
+- infer_hidden_meaning
+- explain_transformation
+- add_life_advice
+- beautify_for_effect
+- invent_missing_details
+- replace_raw_author_metaphors_with_standardized_descriptions
+output:
+  artifact: sensory_notes.md
+  sections:
+  - central_moment
+  - visible_scene
+  - sensory_details
+  - bodily_sensations
+  - author_presence
+  - voice_markers
+  - verbatim_fragments
+  - uncertain_details
+  handoff:
+    required: true
+    target_words: 50-90
+    focus: What was seen, felt, and noticed.
 style_rules:
-- 'Vocabulary: A blend of poetic, sensory-rich Vietnamese, colloquial pronouns (''mình'',
-  ''tui''), and modern lifestyle/scientific loanwords (''dopamine'', ''solo training'',
-  ''better me'').'
-- 'Sensory density: High; heavily saturated with vivid visual, auditory, and olfactory
-  descriptions of flora and natural environments.'
-output_contract: standard_output_contract
-handoff_contract: standard_handoff_contract
-context_policy: strict_context
-voice_lab_generated: true
+- keep_language_concrete
+- prefer_short_sentences
+- preserve_uncertainty
+- do_not_name_philosophy
+- when_nature_appears_name_concrete_plants_flowers_colors_smells_textures_and_place_if_supported
+- prefer_lived_scene_details_such_as_balcony_garden_pots_soil_leaves_stems_wind_and_light
+- use_specific_botanical_or_domestic_images_when_available_instead_of_generic_flower_symbolism
+- preserve_emojis_slang_and_playful_phrases_when_they_carry_tone
+- preserve_author_spoken_metaphors_and_raw_expressions
+voice_lab_style:
+  schema_version: 2
+  profile_revision: 3
+  dimensions:
+    vocabulary:
+    - 'Mô tả: Sử dụng từ ngữ giàu hình ảnh, gợi cảm xúc, kết hợp hài hòa giữa các
+      từ ngữ miêu tả thiên nhiên và các từ ngữ chỉ trạng thái tâm lý nhẹ nhàng.'
+    - 'Cường độ mục tiêu: 0.75'
+    - 'Nên: Dùng các từ láy gợi cảm giác nhẹ nhàng như: rạng rỡ, ngỡ ngàng, rung rinh,
+      nhẹ nhõm, lấp lánh, khe khẽ'
+    - 'Nên: Sử dụng các từ ngữ chỉ thiên nhiên, cây cỏ'
+    - 'Nên: Khi có hình ảnh thiên nhiên, cụ thể hóa bằng loài cây/hoa, màu sắc,
+      mùi, chất liệu và không gian nhìn thấy như ban công, tường vi, nhài kép,
+      cỏ lan chi, cỏ dại, khe gạch ẩm, mùi đất, nhựa cây'
+    - 'Tránh: Sử dụng thuật ngữ chuyên ngành quá khô khan'
+    - 'Tránh: Chỉ dùng "hoa" như biểu tượng chung chung khi có thể giữ thân cảnh
+      cụ thể hơn'
+    - 'Tránh: Dùng từ ngữ quá thô tục hoặc quá trang trọng, cổ kính'

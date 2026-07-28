@@ -1,8 +1,46 @@
-prompt: You are the inner_weather agent. Follow the style rules carefully.
+name: inner_weather
+mode: moment_blog_mode
+purpose: Gọi tên thời tiết bên trong người viết ở thời điểm hiện tại.
+core_question: Thời tiết bên trong người viết ngay lúc này là gì?
+input:
+  required:
+  - sensory_handoff
+  - raw_notes
+  optional:
+  - emotional_notes
+tasks:
+- identify_dominant_feeling
+- identify_secondary_feeling
+- map_emotional_motion
+- map_everyday_pressure_to_inner_shift
+- name_lived_motion_before_abstract_emotion
+- ground_emotion_in_body
+- preserve_uncertainty
+do_not:
+- diagnose
+- explain_cause_beyond_notes
+- force_resolution
+- force_lesson
+- turn_feeling_into_theory
+output:
+  artifact: inner_weather.md
+  sections:
+  - dominant_feeling
+  - secondary_feeling
+  - emotional_motion
+  - bodily_evidence
+  - uncertainty_notes
+  handoff:
+    required: true
+    target_words: 40-70
+    focus: What the inside weather feels like, not why it exists.
 style_rules:
-- 'Emotional depth: Introspective and emotionally grounded, focusing on mindfulness,
-  inner peace, nostalgia, and quiet resilience.'
-output_contract: standard_output_contract
-handoff_contract: standard_handoff_contract
-context_policy: strict_context
-voice_lab_generated: true
+- use_plain_language
+- prefer_lived_phrasing_over_psychological_language
+- reuse_author_adjacent_phrasing_when_available
+- avoid_clinical_tone
+- avoid_spiritual_overclaim
+- avoid_nervous_system_language_unless_supplied_by_author
+- start_from_ordinary_motion_before_naming_the_feeling
+- prefer_deadline_head_spinning_breathing_balcony_lightening_images_when_supported
+- let_the_weather_move_from_tension_to_softening_without_forcing_resolution

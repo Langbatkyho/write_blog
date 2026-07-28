@@ -1,61 +1,347 @@
 {
-  "name": "Van Anh Natural",
+  "schema_version": 2,
+  "revision": 3,
   "slug": "va-natural",
   "mode": "moment",
-  "updated_at": "2026-07-26T15:00:00Z",
-  "provenance": "voice_lab_generated",
+  "status": "confirmed",
+  "provenance": "user_generated",
+  "confidence": 0.7857,
   "dna": {
-    "tone": "Reflective, gentle, warm, and deeply self-accepting with a touch of nostalgic whimsy.",
-    "vocabulary": "A blend of poetic, sensory-rich Vietnamese, colloquial pronouns ('mình', 'tui'), and modern lifestyle/scientific loanwords ('dopamine', 'solo training', 'better me').",
-    "rhythm": "Calm, meditative, and breathing-oriented, punctuated by playful conversational pauses.",
-    "humor": "Soft, self-deprecating, and playful (e.g., calling oneself 'vô dụng' or joking about battling 'con lười').",
-    "sensory_density": "High; heavily saturated with vivid visual, auditory, and olfactory descriptions of flora and natural environments."
+    "tone": {
+      "description": "Giọng văn nhẹ nhàng, tự sự, mang tính chiêm nghiệm và hướng nội, tạo cảm giác bình yên, gần gũi.",
+      "strength": 0.8,
+      "confidence": 0.6625,
+      "do": [
+        "Sử dụng các từ ngữ mang tính chia sẻ, tâm tình",
+        "Thể hiện sự trân trọng những khoảnh khắc bình dị thường ngày"
+      ],
+      "avoid": [
+        "Sử dụng giọng điệu giáo điều, phán xét gay gắt",
+        "Dùng ngôn từ đao to búa lớn, đanh thép"
+      ],
+      "examples": [],
+      "evidence_ids": [
+        "86ef85c5-84f2-491a-b670-0990e9c09707"
+      ],
+      "source": "analysis"
+    },
+    "vocabulary": {
+      "description": "Sử dụng từ ngữ giàu hình ảnh, gợi cảm xúc, kết hợp hài hòa giữa các từ ngữ miêu tả thiên nhiên và các từ ngữ chỉ trạng thái tâm lý nhẹ nhàng.",
+      "strength": 0.75,
+      "confidence": 0.6625,
+      "do": [
+        "Dùng các từ láy gợi cảm giác nhẹ nhàng như: rạng rỡ, ngỡ ngàng, rung rinh, nhẹ nhõm, lấp lánh, khe khẽ",
+        "Sử dụng các từ ngữ chỉ thiên nhiên, cây cỏ"
+      ],
+      "avoid": [
+        "Sử dụng thuật ngữ chuyên ngành quá khô khan",
+        "Dùng từ ngữ quá thô tục hoặc quá trang trọng, cổ kính"
+      ],
+      "examples": [],
+      "evidence_ids": [
+        "1dff29db-b285-4417-b802-305bcc6ad0f6"
+      ],
+      "source": "analysis"
+    },
+    "sentence_structure": {
+      "description": "Đa dạng cấu trúc câu, thỉnh thoảng ngắt câu ngắn để tạo khoảng nghỉ nhưng tránh phân mảnh quá mức.",
+      "strength": 0.5499999999999999,
+      "confidence": 0.95,
+      "do": [
+        "Sử dụng đa dạng các cấu trúc câu khác nhau",
+        "Thỉnh thoảng ngắt câu ngắn để tạo điểm thở cho người đọc"
+      ],
+      "avoid": [
+        "Phân mảnh câu quá mức",
+        "Lạm dụng viết câu ngắn liên tục gây vụn vặt"
+      ],
+      "examples": [
+        "Hôm nay tui quyết định tắt hết tất cả các thông báo trên điện thoại của mình. Sau đó tui chọn ngồi yên lặng bên cửa sổ trong vài phút ngắn ngủi. Tui nhìn ngắm những tán cây xanh mướt đang đung đưa nhẹ nhàng ngoài kia. Khi không gian xung quanh trở nên hoàn toàn im ắng, tui cảm thấy tâm hồn mình nhẹ nhõm hơn rất nhiều. Sự tĩnh lặng ấm áp này đã giúp tui lắng nghe được những suy nghĩ thật sự của bản thân. Tui nhận ra rằng mình cần những khoảng lặng như thế này để nạp lại năng lượng sau những ngày mệt mỏi. Hóa ra những câu trả lời mà tui tìm kiếm bấy lâu nay luôn nằm sẵn ở bên trong tâm hồn mình. 🌿 Chúc mọi người một ngày thật bình yên nhé! 💫"
+      ],
+      "evidence_ids": [],
+      "source": "calibration"
+    },
+    "rhythm": {
+      "description": "Nhịp điệu tự do như múa đương đại, chuyển động linh hoạt theo cảm xúc với đầy đủ sắc thái nhanh, chậm, mềm mại, mạnh mẽ.",
+      "strength": 0.8,
+      "confidence": 0.95,
+      "do": [
+        "Thay đổi nhịp điệu linh hoạt theo mạch cảm xúc",
+        "Kết hợp hài hòa giữa các đoạn nhịp nhanh, chậm, mềm mại và mạnh mẽ"
+      ],
+      "avoid": [
+        "Duy trì một nhịp điệu đều đều, đơn điệu suốt bài viết"
+      ],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "interview"
+    },
+    "formatting": {
+      "description": "Sử dụng emoji thường xuyên và thoải mái để bộc lộ cảm xúc.",
+      "strength": 0.8,
+      "confidence": 0.95,
+      "do": [
+        "Sử dụng emoji thường xuyên trong bài viết",
+        "Dùng emoji một cách thoải mái để thể hiện cảm xúc tự nhiên"
+      ],
+      "avoid": [
+        "Hạn chế emoji hoặc viết theo phong cách quá nghiêm túc, khô khan"
+      ],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "interview"
+    },
+    "humor": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+    },
+    "sensory_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+    },
+    "emoji": {
+      "description": "Sử dụng emoji một cách tự nhiên ở cuối câu hoặc cuối đoạn để biểu thị cảm xúc tích cực, nhẹ nhàng hoặc tự trào.",
+      "strength": 0.7,
+      "confidence": 0.6625,
+      "do": [
+        "Sử dụng các emoji biểu thị sự bình yên, vui vẻ hoặc nỗ lực như: 😇, 🌱, 😁, 😍, 😎💪, 🥰"
+      ],
+      "avoid": [
+        "Lạm dụng quá nhiều emoji liên tiếp trong một câu",
+        "Sử dụng các emoji mang tính tiêu cực, giận dữ"
+      ],
+      "examples": [],
+      "evidence_ids": [
+        "af65626c-d4f3-4d6a-8bd0-2d341cecd1ca"
+      ],
+      "source": "analysis"
+    },
+    "metaphor_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+    },
+    "emotional_depth": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+    },
+    "pacing": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+    },
+    "perspective": {
+      "description": "Sử dụng ngôi kể thứ nhất (mình, tui) để chia sẻ trải nghiệm cá nhân, tạo sự kết nối trực tiếp và thân mật với người đọc.",
+      "strength": 0.85,
+      "confidence": 0.6625,
+      "do": [
+        "Xưng 'mình' hoặc 'tui' để kể về trải nghiệm, suy nghĩ cá nhân"
+      ],
+      "avoid": [
+        "Sử dụng ngôi kể khách quan, giấu mình hoàn toàn"
+      ],
+      "examples": [],
+      "evidence_ids": [
+        "cfd266e5-8936-4d1a-af21-300d55c37b26"
+      ],
+      "source": "analysis"
+    }
   },
   "evidence": [
     {
-      "dimension": "vocabulary",
-      "claim": "Pha trộn từ ngữ thơ mộng, đại từ thân mật (mình, tui) và thuật ngữ hiện đại (dopamine, solo training).",
-      "quote": "mình solo training với con lười...",
-      "confidence": 0.95
-    },
-    {
-      "dimension": "sensory_density",
-      "claim": "Mật độ giác quan cao, ngập tràn hình ảnh thiên nhiên và môi trường sống.",
-      "quote": "mùi mưa xới đất lá chuối non...",
-      "confidence": 0.98
-    },
-    {
+      "id": "86ef85c5-84f2-491a-b670-0990e9c09707",
+      "sample_id": "sample_1",
       "dimension": "tone",
-      "claim": "Giọng văn phản tư nhẹ nhàng, chấp nhận bản thân, ấm áp.",
-      "quote": "chấp nhận sự vô dụng dịu dàng của ngày hôm nay...",
-      "confidence": 0.92
+      "claim": "Giọng văn mang tính chiêm nghiệm, tự sự nhẹ nhàng về cuộc sống và con người",
+      "exact_quote": "Một người làm được như hoa, an vui với phiên bản tốt nhất của mình, thấy đủ với chính mình, là #người_vô_sự phải không 😇🌱  Biết vậy mà khó lắm người ơi 😁",
+      "quote_start": 201,
+      "quote_end": 354,
+      "stance": "support",
+      "status": "active",
+      "rejection_reason": null
+    },
+    {
+      "id": "1dff29db-b285-4417-b802-305bcc6ad0f6",
+      "sample_id": "sample_2",
+      "dimension": "vocabulary",
+      "claim": "Sử dụng từ ngữ giàu hình ảnh, gợi cảm xúc nhẹ nhàng, bình yên",
+      "exact_quote": "Mình thì vẫn thích bông cánh đơn vì nó cho mình cảm giác nhẹ nhõm, bình yên hơn mỗi khi ngắm nhìn.",
+      "quote_start": 1706,
+      "quote_end": 1804,
+      "stance": "support",
+      "status": "active",
+      "rejection_reason": null
+    },
+    {
+      "id": "cfd266e5-8936-4d1a-af21-300d55c37b26",
+      "sample_id": "sample_3",
+      "dimension": "perspective",
+      "claim": "Sử dụng ngôi kể thứ nhất 'tui' để chia sẻ trải nghiệm cá nhân",
+      "exact_quote": "Vậy là tui đã “solo training” được hơn 2 tuần nghiêm túc rùi đó. 😇 Mùa hè nóng nực bụi bặm… khó nhất thường là lúc bắt đầu buổi tập/chạy ngoài trời.",
+      "quote_start": 0,
+      "quote_end": 148,
+      "stance": "support",
+      "status": "active",
+      "rejection_reason": null
+    },
+    {
+      "id": "af65626c-d4f3-4d6a-8bd0-2d341cecd1ca",
+      "sample_id": "sample_4",
+      "dimension": "emoji",
+      "claim": "Sử dụng emoji để tăng tính biểu cảm nhẹ nhàng, tích cực",
+      "exact_quote": "Nhưng mình tin, những kẻ nghiện vitamin xanh 🌱 như chúng mình có một cách nạp năng lượng giống nhau.",
+      "quote_start": 704,
+      "quote_end": 804,
+      "stance": "support",
+      "status": "active",
+      "rejection_reason": null
     }
   ],
-  "agents_rules_compiled": {
-    "sensory_capture": [
-      "Vocabulary: A blend of poetic, sensory-rich Vietnamese, colloquial pronouns ('mình', 'tui'), and modern lifestyle/scientific loanwords ('dopamine', 'solo training', 'better me').",
-      "Sensory density: High; heavily saturated with vivid visual, auditory, and olfactory descriptions of flora and natural environments."
-    ],
-    "inner_weather": [
-      "Tone: Reflective, gentle, warm, and deeply self-accepting with a touch of nostalgic whimsy.",
-      "Rhythm: Calm, meditative, and breathing-oriented, punctuated by playful conversational pauses."
-    ],
-    "cosmic_signal_reader": [
-      "Tone: Reflective, gentle, warm, and deeply self-accepting with a touch of nostalgic whimsy.",
-      "Humor: Soft, self-deprecating, and playful (e.g., calling oneself 'vô dụng' or joking about battling 'con lười')."
-    ],
-    "moment_writer": [
-      "Tone: Reflective, gentle, warm, and deeply self-accepting with a touch of nostalgic whimsy.",
-      "Vocabulary: A blend of poetic, sensory-rich Vietnamese, colloquial pronouns ('mình', 'tui'), and modern lifestyle/scientific loanwords ('dopamine', 'solo training', 'better me').",
-      "Rhythm: Calm, meditative, and breathing-oriented, punctuated by playful conversational pauses.",
-      "Humor: Soft, self-deprecating, and playful (e.g., calling oneself 'vô dụng' or joking about battling 'con lười').",
-      "Sensory density: High; heavily saturated with vivid visual, auditory, and olfactory descriptions of flora and natural environments."
-    ],
-    "breath_editor": [
-      "Rhythm: Calm, meditative, and breathing-oriented, punctuated by playful conversational pauses."
-    ],
-    "gentle_witness": [
-      "Tone: Reflective, gentle, warm, and deeply self-accepting with a touch of nostalgic whimsy."
-    ]
-  }
+  "rejected_evidence": [],
+  "analysis_status": "complete",
+  "analysis_warnings": [
+    "Chưa đủ evidence cho các chiều: sentence_structure, rhythm, formatting, humor, sensory_density, metaphor_density, emotional_depth, pacing"
+  ],
+  "interview_history": [
+    {
+      "question_id": "b39af3c6-ef00-4db9-a780-61492c854dca",
+      "dimension": "sentence_structure",
+      "answer": "tôi muốn sự đa dạng về cấu trúc câu. Tuy nhiên tôi không muốn phân mảnh quá, chỉ thỉnh thoảng ngắt và ngắn để tạo điểm thở thôi",
+      "before": {
+        "description": "",
+        "strength": 0.5,
+        "confidence": 0.0,
+        "do": [],
+        "avoid": [],
+        "examples": [],
+        "evidence_ids": [],
+        "source": "analysis"
+      },
+      "after": {
+        "description": "Đa dạng cấu trúc câu, thỉnh thoảng ngắt câu ngắn để tạo khoảng nghỉ nhưng tránh phân mảnh quá mức.",
+        "strength": 0.5499999999999999,
+        "confidence": 0.95,
+        "do": [
+          "Sử dụng đa dạng các cấu trúc câu khác nhau",
+          "Thỉnh thoảng ngắt câu ngắn để tạo điểm thở cho người đọc"
+        ],
+        "avoid": [
+          "Phân mảnh câu quá mức",
+          "Lạm dụng viết câu ngắn liên tục gây vụn vặt"
+        ],
+        "examples": [
+          "Hôm nay tui quyết định tắt hết tất cả các thông báo trên điện thoại của mình. Sau đó tui chọn ngồi yên lặng bên cửa sổ trong vài phút ngắn ngủi. Tui nhìn ngắm những tán cây xanh mướt đang đung đưa nhẹ nhàng ngoài kia. Khi không gian xung quanh trở nên hoàn toàn im ắng, tui cảm thấy tâm hồn mình nhẹ nhõm hơn rất nhiều. Sự tĩnh lặng ấm áp này đã giúp tui lắng nghe được những suy nghĩ thật sự của bản thân. Tui nhận ra rằng mình cần những khoảng lặng như thế này để nạp lại năng lượng sau những ngày mệt mỏi. Hóa ra những câu trả lời mà tui tìm kiếm bấy lâu nay luôn nằm sẵn ở bên trong tâm hồn mình. 🌿 Chúc mọi người một ngày thật bình yên nhé! 💫"
+        ],
+        "evidence_ids": [],
+        "source": "calibration"
+      },
+      "confirmed_at": "2026-07-27T07:41:56.856883Z"
+    },
+    {
+      "question_id": "510db972-d0e2-4eb7-98d7-eaada5626aa8",
+      "dimension": "rhythm",
+      "answer": "Tôi thích bài viết có nhịp điệu của múa đương đại: chuyển động tự do theo cảm xúc và đủ mọi nhịp điệu nhanh chậm mềm mại mạnh mẽ",
+      "before": {
+        "description": "",
+        "strength": 0.5,
+        "confidence": 0.0,
+        "do": [],
+        "avoid": [],
+        "examples": [],
+        "evidence_ids": [],
+        "source": "analysis"
+      },
+      "after": {
+        "description": "Nhịp điệu tự do như múa đương đại, chuyển động linh hoạt theo cảm xúc với đầy đủ sắc thái nhanh, chậm, mềm mại, mạnh mẽ.",
+        "strength": 0.8,
+        "confidence": 0.95,
+        "do": [
+          "Thay đổi nhịp điệu linh hoạt theo mạch cảm xúc",
+          "Kết hợp hài hòa giữa các đoạn nhịp nhanh, chậm, mềm mại và mạnh mẽ"
+        ],
+        "avoid": [
+          "Duy trì một nhịp điệu đều đều, đơn điệu suốt bài viết"
+        ],
+        "examples": [],
+        "evidence_ids": [],
+        "source": "interview"
+      },
+      "confirmed_at": "2026-07-27T07:41:56.856883Z"
+    },
+    {
+      "question_id": "fd49b9fe-01f0-4123-a7ea-5c79d456d03d",
+      "dimension": "formatting",
+      "answer": "tôi thích sử dụng thoải mái emoji thường xuyên để thể hiện cảm xúc",
+      "before": {
+        "description": "",
+        "strength": 0.5,
+        "confidence": 0.0,
+        "do": [],
+        "avoid": [],
+        "examples": [],
+        "evidence_ids": [],
+        "source": "analysis"
+      },
+      "after": {
+        "description": "Sử dụng emoji thường xuyên và thoải mái để bộc lộ cảm xúc.",
+        "strength": 0.8,
+        "confidence": 0.95,
+        "do": [
+          "Sử dụng emoji thường xuyên trong bài viết",
+          "Dùng emoji một cách thoải mái để thể hiện cảm xúc tự nhiên"
+        ],
+        "avoid": [
+          "Hạn chế emoji hoặc viết theo phong cách quá nghiêm túc, khô khan"
+        ],
+        "examples": [],
+        "evidence_ids": [],
+        "source": "interview"
+      },
+      "confirmed_at": "2026-07-27T07:41:56.856883Z"
+    }
+  ],
+  "calibration_history": [
+    {
+      "session_id": "954954e5-e7d9-4f48-8cb1-9cc8808fc7d5",
+      "dimension": "sentence_structure",
+      "selected_label": "A",
+      "selected_direction": "restrained",
+      "selected_text": "Hôm nay tui quyết định tắt hết tất cả các thông báo trên điện thoại của mình. Sau đó tui chọn ngồi yên lặng bên cửa sổ trong vài phút ngắn ngủi. Tui nhìn ngắm những tán cây xanh mướt đang đung đưa nhẹ nhàng ngoài kia. Khi không gian xung quanh trở nên hoàn toàn im ắng, tui cảm thấy tâm hồn mình nhẹ nhõm hơn rất nhiều. Sự tĩnh lặng ấm áp này đã giúp tui lắng nghe được những suy nghĩ thật sự của bản thân. Tui nhận ra rằng mình cần những khoảng lặng như thế này để nạp lại năng lượng sau những ngày mệt mỏi. Hóa ra những câu trả lời mà tui tìm kiếm bấy lâu nay luôn nằm sẵn ở bên trong tâm hồn mình. 🌿 Chúc mọi người một ngày thật bình yên nhé! 💫",
+      "before_strength": 0.7,
+      "after_strength": 0.5499999999999999,
+      "confirmed_at": "2026-07-27T08:12:16.938617Z"
+    }
+  ],
+  "base_style_slug": "reflective",
+  "is_draft": false,
+  "created_at": "2026-07-27T07:30:33.747355Z",
+  "updated_at": "2026-07-27T08:12:16.938617Z"
 }

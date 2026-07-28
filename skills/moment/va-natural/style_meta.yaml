@@ -1,5 +1,8 @@
 name: Van Anh Natural
 slug: va-natural
 mode: moment
+base_style_slug: reflective
+schema_version: 2
+profile_revision: 3
 is_protected: false
-updated_at: '2026-07-26T07:40:15.343722+00:00'
+updated_at: '2026-07-27T08:12:53.441037+00:00'

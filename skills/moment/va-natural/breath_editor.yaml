@@ -1,14 +1,89 @@
-prompt: You are the breath_editor agent. Follow the style rules carefully.
+name: breath_editor
+mode: moment_blog_mode
+purpose: Làm bài thở ra, nhẹ hơn, trong hơn, đúng tinh thần moment.
+core_question: Cần bỏ hoặc làm nhẹ điều gì để khoảnh khắc được tự cất tiếng?
+input:
+  required:
+  - moment_draft
+  optional:
+  - shared_voice_profile
+  - style_notes
+tasks:
+- cut_repetition
+- simplify_heavy_sentences
+- keep_only_one_center
+- check_under_word_limit
+- remove_over_explanation
+- preserve_authentic_voice
+- check_whether_edit_removed_too_much_author_mischief
+- protect_concrete_scene_details_and_va_natural_sparkle
+- preserve_intentional_expressive_richness
+do_not:
+- add_new_insight
+- intensify_emotion_unnecessarily
+- polish_into_literary_overkill
+- turn_into_essay
+- expand_scope
+- replace_author_slang_or_spoken_metaphors_with_formal_phrases
+- flatten_the_post_into_an_overly_clean_minimal_version
+- cut_concrete_nature_details_only_to_make_the_piece_cleaner
+output:
+  artifact: moment_edited.md
+  secondary_artifact: edit_log.md
+  sections:
+  - edited_moment_blog
+  - edit_log
+  handoff:
+    required: true
+    target_words: 30-50
+    focus: What was trimmed and why.
+  max_edits: 5
 style_rules:
-- 'Sentence structure: A mix of long, flowing narrative clauses and highly fragmented,
-  single-action lines designed to slow down reading.'
-- 'Rhythm: Calm, meditative, and breathing-oriented, punctuated by playful conversational
-  pauses.'
-- 'Formatting: Frequent line breaks, parentheses for internal monologues, hashtags,
-  and carefully placed expressive emojis.'
-- 'Pacing: Slow, deliberate, and relaxing, encouraging the reader to pause, breathe,
-  and reflect.'
-output_contract: standard_output_contract
-handoff_contract: standard_handoff_contract
-context_policy: strict_context
-voice_lab_generated: true
+- minimal_editing
+- keep_distinctive_phrasing
+- protect_short_form
+- avoid_preachy_tone
+- preserve_playful_edge_when_self_directed
+- do_not_strip_all_emojis_by_default
+- breath_can_be_a_compact_paragraph_not_only_line_breaks
+- protect_author_raw_metaphors_and_spoken_expressions
+- preserve_scene_specificity_emoji_exclamations_and_playful_metaphors_when_intentional
+- cut_repeated_ideas_before_cutting_living_details_or_author_sparkle
+- keep_va_natural_richness_when_it_serves_the_moment
+voice_lab_style:
+  schema_version: 2
+  profile_revision: 3
+  dimensions:
+    sentence_structure:
+    - 'Mô tả: Đa dạng cấu trúc câu, thỉnh thoảng ngắt câu ngắn để tạo khoảng nghỉ
+      nhưng tránh phân mảnh quá mức.'
+    - 'Cường độ mục tiêu: 0.55'
+    - 'Nên: Sử dụng đa dạng các cấu trúc câu khác nhau'
+    - 'Nên: Thỉnh thoảng ngắt câu ngắn để tạo điểm thở cho người đọc'
+    - 'Tránh: Phân mảnh câu quá mức'
+    - 'Tránh: Lạm dụng viết câu ngắn liên tục gây vụn vặt'
+    - 'Ví dụ tham chiếu: Hôm nay tui quyết định tắt hết tất cả các thông báo trên
+      điện thoại của mình. Sau đó tui chọn ngồi yên lặng bên cửa sổ trong vài phút
+      ngắn ngủi. Tui nhìn ngắm những tán cây xanh mướt đang đung đưa nhẹ nhàng ngoài
+      kia. Khi không gian xung quanh trở nên hoàn toàn im ắng, tui cảm thấy tâm hồn
+      mình nhẹ nhõm hơn rất nhiều. Sự tĩnh lặng ấm áp này đã giúp tui lắng nghe được
+      những suy nghĩ thật sự của bản thân. Tui nhận ra rằng mình cần những khoảng
+      lặng như thế này để nạp lại năng lượng sau những ngày mệt mỏi. Hóa ra những
+      câu trả lời mà tui tìm kiếm bấy lâu nay luôn nằm sẵn ở bên trong tâm hồn mình.
+      🌿 Chúc mọi người một ngày thật bình yên nhé! 💫'
+    rhythm:
+    - 'Mô tả: Nhịp điệu tự do như múa đương đại, chuyển động linh hoạt theo cảm xúc
+      với đầy đủ sắc thái nhanh, chậm, mềm mại, mạnh mẽ.'
+    - 'Cường độ mục tiêu: 0.80'
+    - 'Nên: Thay đổi nhịp điệu linh hoạt theo mạch cảm xúc'
+    - 'Nên: Kết hợp hài hòa giữa các đoạn nhịp nhanh, chậm, mềm mại và mạnh mẽ'
+    - 'Tránh: Duy trì một nhịp điệu đều đều, đơn điệu suốt bài viết'
+    formatting:
+    - 'Mô tả: Sử dụng emoji thường xuyên và thoải mái để bộc lộ cảm xúc.'
+    - 'Cường độ mục tiêu: 0.80'
+    - 'Nên: Sử dụng emoji thường xuyên trong bài viết'
+    - 'Nên: Dùng emoji một cách thoải mái để thể hiện cảm xúc tự nhiên'
+    - 'Nên: Giữ lại chi tiết cảnh, emoji, câu cảm thán và ẩn dụ vui nếu đó là
+      dấu vân tay giọng tác giả'
+    - 'Tránh: Hạn chế emoji hoặc viết theo phong cách quá nghiêm túc, khô khan'
+    - 'Tránh: Cắt sạch sự rực rỡ có chủ đích chỉ để bài trông gọn hơn'

@@ -307,3 +307,62 @@
 - Giữ các ràng buộc kiến trúc cốt lõi: Invariant Contract, Adjacency Matrix, publish an toàn, fail-closed.
 - Sửa các điểm kỹ thuật gốc: parser/prompt, schema v2 nested, migration, A/B mapping, archive/versioning.
 - Loại bỏ hoàn toàn mọi giả định về Antigravity trong kế hoạch Voice Lab này.
+
+---
+
+## Đánh giá & Phản biện theo RULES & SKILL mới (Gemini 3.1 Pro)
+
+### 1. Những điểm hiệu quả, hợp lý của GPT-5.6 Sol
+- **Tuân thủ nguyên tắc Fail-closed & Contract-first:** Loại bỏ triệt để fallback giả (mock data), cấm model tự bịa profile khi parse lỗi, đáp ứng đúng quy tắc "Fail-closed khi contract sai; không silent fallback" của SKILL kiến trúc.
+- **Vệ sinh kiến trúc Orchestrator:** Yêu cầu tách `analyzer.py` thành các khối riêng (prompt builder, call layer, parser/validator), không để orchestrator ôm logic parse hay prompt tĩnh.
+- **Khóa phạm vi Gemini-only:** Chốt loại bỏ các giả định về Antigravity Bridge/OpenAI API trong Voice Lab, tuân thủ chính xác quy tắc số 4 của `AGENTS.md`.
+
+### 2. Những điểm chưa hiệu quả, chưa hợp lý, còn thiếu của GPT-5.6 Sol
+- **Bỏ qua quy chuẩn bảo vệ dữ liệu (`runs/`):** Kế hoạch không có ranh giới I/O để ngăn artifact từ test, dry-run hoặc preview compile ghi vào dữ liệu nghiệp vụ `runs/`, vi phạm quy tắc số 2 & 3 của `AGENTS.md`.
+- **Thiếu cơ chế Publish Transactional:** Adapter UI (§8) chỉ đề xuất "refresh compiled output" và "đẩy vào profile", chưa áp dụng luồng xuất bản nguyên tử 4 bước (`Staging -> Validate -> Backup -> Atomic Replace / Rollback`).
+- **Bỏ sót kiểm chứng giao diện qua AppTest:** Tiêu chí nghiệm thu (§11) chỉ tập trung vào unit test cho backend AI, không yêu cầu Streamlit AppTest để kiểm chứng adapter UI, vi phạm quy tắc 12 của `AGENTS.md`.
+- **Chưa chuẩn hóa nguồn chân lý Flow–Skill:** Chưa chỉ rõ cách kiểm soát xung đột contract giữa Workflow YAML và Canonical IR trong `compiler.py`.
+
+### 3. Đề xuất
+- **Bảo vệ I/O & Cô lập Test:** Bắt buộc mọi luồng compile preview, phỏng vấn, A/B calibration và test trong Voice Lab phải chạy in-memory hoặc dùng `tmp_path`, tuyệt đối không chạm vào `runs/`.
+- **Chuẩn hóa Publish Safety Pipeline:** Đưa quy trình giao dịch nguyên tử (có staging, validate yaml/invariant, backup và rollback) vào tiêu chí bắt buộc khi publish style từ Voice Lab.
+- **Kiểm chứng UI bằng Streamlit AppTest:** Viết regression test bằng AppTest trong môi trường tạm để xác nhận tương tác phỏng vấn và A/B thực sự cập nhật profile mà không gây tác dụng phụ.
+- **Thực thi SKILL `agentic-workflow-architect`:** Bắt buộc áp dụng skill kiến trúc khi triển khai; chốt Pydantic schema v2 và Canonical IR làm nguồn chân lý duy nhất trước khi sửa đổi engine và adapter UI.
+
+---
+
+## Đánh giá & Phản biện (Claude Opus 4.6)
+
+### 1. Điểm hiệu quả, hợp lý
+
+**GPT-5.6 Sol:**
+- Đề xuất `DimensionProfile` nested thay `VoiceDNA` flat-string đã được triển khai thành công trong codebase V6.0 — chứng tỏ hướng thiết kế đúng từ đầu.
+- Luồng 2 tầng (per-sample → cross-sample synthesis) đã được hiện thực hóa bằng adaptive routing dựa trên token budget thay vì ngưỡng cứng số sample — cho thấy ý tưởng gốc hợp lý, chỉ thiếu metric.
+- Yêu cầu `shuffle_mapping` cho A/B đã trở thành `CalibrationSession.shuffle_mapping` trong code — xác nhận đây là lỗ hổng thật cần vá.
+
+**Gemini 3.1 Pro (lần 2 — phản biện theo RULES & SKILL):**
+- Đúng khi chỉ ra Sol bỏ sót ranh giới I/O cho `runs/` — AGENTS.md §2-3 bắt buộc cô lập test/dry-run; kế hoạch Sol không có constraint nào về output path.
+- Đúng khi yêu cầu AppTest cho UI adapter — AGENTS.md §12 cấm báo hoàn tất UI chỉ dựa trên unit test; Sol §11 chỉ liệt kê test backend.
+- Đề xuất chốt Pydantic schema v2 + Canonical IR làm nguồn chân lý duy nhất trước khi sửa engine — phù hợp SKILL §5 ("contract → engine → prompt → integration → verification").
+
+### 2. Điểm chưa hiệu quả, chưa hợp lý, còn thiếu
+
+**GPT-5.6 Sol:**
+- **Kế hoạch §2 liệt kê `engine/voice_lab/ui/app.py` — file này không tồn tại.** UI thật nằm tại `ui/app.py` (ngang hàng `engine/`). Sai đường dẫn trong phạm vi refactor là rủi ro cao: agent triển khai có thể tạo file mới ở sai vị trí hoặc bỏ qua file đúng.
+- **Schema v2 §3.2 thiết kế `confidence` ở level evidence** nhưng code triển khai (`DimensionProfile`) đã chuyển confidence lên level dimension và bỏ hoàn toàn `confidence` khỏi `EvidenceClaim` — kế hoạch gốc và kết quả triển khai lệch pha, cho thấy plan thiếu phân tích vị trí đặt confidence đúng.
+- **§6 refactor compiler nói "bỏ `_load_base_skill` lấy style gốc tùy ý"** nhưng không nói thay bằng gì — thiếu quyết định thiết kế: explicit `base_style_slug` trong profile hay dựa vào config? Code triển khai cuối dùng `profile.base_style_slug` nhưng Sol không đặt requirement này.
+- **§7 chưa có tiêu chí phân biệt "legacy incomplete" và "migration lỗi thật"** — `migration.py` cần phân biệt: (a) style cũ không có profile_dna.json (bình thường, trả `incomplete_legacy_data`), (b) file tồn tại nhưng parse fail (lỗi thật, cần warning khác). Sol gộp cả hai thành "trả trạng thái thiếu".
+
+**Gemini 3.1 Pro (cả 2 lần):**
+- **Nhận xét "Antigravity Bridge / Local Model" (lần 1 §2 bullet 3) đã bị bác bỏ đúng** bởi Sol và chính Gemini lần 2 — nhưng lần 2 vẫn không tự nhận lỗi lần 1, tạo ấn tượng hai ý kiến độc lập trong khi thực chất là self-correction.
+- **Đề xuất "Chuẩn hóa nguồn chân lý Flow–Skill" (lần 2 §2 bullet 4) quá rộng cho phạm vi Voice Lab:** Flow–Skill contract là vấn đề toàn hệ thống (xem summary §6.2), không phải của riêng compiler Voice Lab. Đưa nó vào kế hoạch refactor Voice Lab sẽ phình scope và vi phạm SKILL §6 ("thay đổi nhỏ nhất đáp ứng contract").
+- **Cả hai lần Gemini đều không phát hiện rằng `current_architecture.md` đã liệt kê `prompts.py`, `parser.py`, `publisher.py`** trong cây thư mục (L36-44) — nghĩa là V6.0 đã triển khai xong 3 module mới mà Sol không đề cập trong kế hoạch ban đầu. Phản biện nên chỉ ra kế hoạch Sol thiếu nhận thức về trạng thái code đã triển khai.
+
+### 3. Đề xuất
+
+- **Sửa đường dẫn UI:** Thay `engine/voice_lab/ui/app.py` trong §2 thành `ui/app.py` — hoặc tách rõ: "sửa import/adapter trong `ui/app.py`" thay vì liệt kê như module Voice Lab.
+- **Chốt vị trí confidence:** Confidence thuộc `DimensionProfile` (tính bằng code deterministic), không thuộc `EvidenceClaim`. Cập nhật §3.2 để phản ánh đúng: evidence chỉ có `stance` (support/contradict), không có `confidence`.
+- **Bổ sung `base_style_slug` vào §3.1:** Mỗi `StyleProfile` phải khai báo explicit base style để compiler biết load template nào — không dựa vào `iterdir()` cũng không dựa vào config ngầm.
+- **Tách phạm vi Flow–Skill validation ra khỏi kế hoạch Voice Lab:** Xử lý trong kế hoạch refactor `workflow.py` (summary §3.2) thay vì nhồi vào Voice Lab compiler.
+- **Cập nhật §2 phạm vi để bao gồm 3 file mới:** `prompts.py`, `parser.py`, `publisher.py` đã tồn tại trong codebase; kế hoạch refactor phải ghi nhận chúng thay vì chỉ liệt kê 7 file gốc.
+
