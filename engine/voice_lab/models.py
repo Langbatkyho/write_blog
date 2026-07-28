@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from typing import Any, Dict, Iterator, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 SCHEMA_VERSION = 2
@@ -28,7 +28,11 @@ def utc_now() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
 
 
-class DimensionProfile(BaseModel):
+class StrictModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class DimensionProfile(StrictModel):
     description: str = ""
     strength: float = Field(default=0.5, ge=0.0, le=1.0)
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -39,7 +43,7 @@ class DimensionProfile(BaseModel):
     source: Literal["analysis", "interview", "calibration", "legacy"] = "analysis"
 
 
-class VoiceDNA(BaseModel):
+class VoiceDNA(StrictModel):
     tone: DimensionProfile = Field(default_factory=DimensionProfile)
     vocabulary: DimensionProfile = Field(default_factory=DimensionProfile)
     sentence_structure: DimensionProfile = Field(default_factory=DimensionProfile)
@@ -53,17 +57,6 @@ class VoiceDNA(BaseModel):
     pacing: DimensionProfile = Field(default_factory=DimensionProfile)
     perspective: DimensionProfile = Field(default_factory=DimensionProfile)
 
-    @field_validator(*VOICE_DIMENSIONS, mode="before")
-    @classmethod
-    def migrate_flat_dimension(cls, value: Any) -> Any:
-        if isinstance(value, str):
-            return {
-                "description": value,
-                "confidence": 0.0,
-                "source": "legacy",
-            }
-        return value
-
     def non_empty_dimensions(self) -> Dict[str, DimensionProfile]:
         return {
             name: getattr(self, name)
@@ -72,7 +65,7 @@ class VoiceDNA(BaseModel):
         }
 
 
-class EvidenceClaim(BaseModel):
+class EvidenceClaim(StrictModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     sample_id: str = ""
     dimension: str
@@ -84,34 +77,20 @@ class EvidenceClaim(BaseModel):
     status: Literal["active", "rejected"] = "active"
     rejection_reason: Optional[str] = None
 
-    @model_validator(mode="before")
-    @classmethod
-    def migrate_v1_claim(cls, value: Any) -> Any:
-        if not isinstance(value, dict):
-            return value
-        data = dict(value)
-        if "exact_quote" not in data and "quote" in data:
-            data["exact_quote"] = data.pop("quote")
-        evidence_ids = data.pop("evidence_ids", [])
-        if not data.get("sample_id") and evidence_ids:
-            data["sample_id"] = str(evidence_ids[0])
-        data.pop("confidence", None)
-        return data
-
     @property
     def quote(self) -> str:
         """Compatibility alias for the v1 UI."""
         return self.exact_quote
 
 
-class InterviewQuestion(BaseModel):
+class InterviewQuestion(StrictModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     dimension: str
     question: str
     context: str
 
 
-class InterviewRecord(BaseModel):
+class InterviewRecord(StrictModel):
     question_id: str
     dimension: str
     answer: str
@@ -120,7 +99,7 @@ class InterviewRecord(BaseModel):
     confirmed_at: dt.datetime = Field(default_factory=utc_now)
 
 
-class CalibrationRecord(BaseModel):
+class CalibrationRecord(StrictModel):
     session_id: str
     dimension: str
     selected_label: Literal["A", "B"]
@@ -131,7 +110,7 @@ class CalibrationRecord(BaseModel):
     confirmed_at: dt.datetime = Field(default_factory=utc_now)
 
 
-class CalibrationSession(BaseModel):
+class CalibrationSession(StrictModel):
     session_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     dimension: str
     content_brief: str
@@ -147,11 +126,11 @@ class CalibrationSession(BaseModel):
         yield self.variant_b
 
 
-class StyleProfile(BaseModel):
+class StyleProfile(StrictModel):
     schema_version: Literal[2] = SCHEMA_VERSION
     revision: int = Field(default=1, ge=1)
     slug: str
-    mode: str
+    mode: Literal["deep", "moment"]
     status: Literal["draft", "confirmed"] = "draft"
     provenance: str = "user_generated"
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -168,21 +147,6 @@ class StyleProfile(BaseModel):
     is_draft: bool = True
     created_at: dt.datetime = Field(default_factory=utc_now)
     updated_at: dt.datetime = Field(default_factory=utc_now)
-
-    @model_validator(mode="before")
-    @classmethod
-    def migrate_v1_profile(cls, value: Any) -> Any:
-        if not isinstance(value, dict):
-            return value
-        data = dict(value)
-        version = data.get("schema_version", 1)
-        if str(version) in {"1", "1.0"}:
-            data["schema_version"] = 2
-            data["revision"] = int(data.pop("profile_version", 1))
-            data.setdefault("analysis_status", "partial")
-            data.setdefault("analysis_warnings", ["Profile v1 đã được chuyển sang schema v2."])
-            data.setdefault("is_draft", True)
-        return data
 
     @model_validator(mode="after")
     def enforce_publish_state(self) -> "StyleProfile":
@@ -206,7 +170,7 @@ def compute_profile_confidence(profile: StyleProfile) -> float:
     )
 
 
-class AnalysisResult(BaseModel):
+class AnalysisResult(StrictModel):
     profile: StyleProfile
     rejected_evidence: List[EvidenceClaim] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
@@ -240,9 +204,7 @@ class AnalysisError(RuntimeError):
         self.detail = detail
 
 
-class CanonicalIR(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class CanonicalIR(StrictModel):
     id: str
     schema_version: Literal[2] = SCHEMA_VERSION
     agent_id: str
@@ -258,7 +220,7 @@ class CanonicalIR(BaseModel):
     effective_skill: Dict[str, Any]
 
 
-class CompileResult(BaseModel):
+class CompileResult(StrictModel):
     artifacts: Dict[str, CanonicalIR]
     warnings: List[str] = Field(default_factory=list)
 
@@ -284,7 +246,7 @@ class CompileResult(BaseModel):
         )
 
 
-class MergeConflict(BaseModel):
+class MergeConflict(StrictModel):
     key: str
     base_value: Any = None
     current_value: Any = None
@@ -292,7 +254,7 @@ class MergeConflict(BaseModel):
     reason: str
 
 
-class MergeResult(BaseModel):
+class MergeResult(StrictModel):
     merged_ir: Dict[str, Any]
     conflicts: List[MergeConflict] = Field(default_factory=list)
 
@@ -301,7 +263,7 @@ class MergeResult(BaseModel):
         return not self.conflicts
 
 
-class PublishResult(BaseModel):
+class PublishResult(StrictModel):
     runtime_dir: str
     backup_path: Optional[str] = None
     warnings: List[str] = Field(default_factory=list)

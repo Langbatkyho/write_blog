@@ -98,12 +98,14 @@ def _analysis_json(quote: str, sample_id: str = "sample_1") -> str:
 
 def test_schema_v1_flat_dna_migrates_to_nested_v2():
     profile = StyleProfile.model_validate(
+        migrate_profile_data(
         {
             "slug": "legacy",
             "mode": "deep",
             "profile_version": 3,
             "dna": {"tone": "ấm áp", "rhythm": "chậm"},
         }
+        )
     )
     assert profile.schema_version == 2
     assert profile.revision == 3
@@ -111,6 +113,34 @@ def test_schema_v1_flat_dna_migrates_to_nested_v2():
     assert profile.dna.tone.source == "legacy"
     assert profile.dna.tone.confidence == 0
     assert profile.is_draft
+
+
+def test_current_profile_contract_rejects_extra_fields():
+    current = _confirmed_profile().model_dump(mode="json")
+    current["unexpected"] = "must fail closed"
+    with pytest.raises(ValueError):
+        StyleProfile.model_validate(current)
+    with pytest.raises(ValueError):
+        migrate_profile_data(current)
+
+
+def test_legacy_adapter_rejects_unknown_fields_but_accepts_known_v1_fields():
+    legacy = {
+        "slug": "legacy",
+        "mode": "deep",
+        "name": "Legacy Name",
+        "interview_answers": {"q1": "answer"},
+        "calibration_selected": "A",
+        "dna": {"tone": "ấm áp"},
+    }
+    migrated = migrate_profile_data(legacy)
+    assert migrated["analysis_status"] == "incomplete_legacy_data"
+    assert migrated["is_draft"] is True
+    assert any("interview_answers" in item for item in migrated["analysis_warnings"])
+
+    legacy["unknown_legacy_field"] = True
+    with pytest.raises(ValueError, match="field không hỗ trợ"):
+        migrate_profile_data(legacy)
 
 
 def test_migration_is_idempotent():
