@@ -1,0 +1,25 @@
+D:\Nghiên cứu AI\write_blog\docs\2026-07-27-voice-lab-refactor-plan-final.md
+D:\Nghiên cứu AI\write_blog\docs\2026-07-27-voice-lab-refactor-plan.md
+D:\Nghiên cứu AI\write_blog\docs\2026-07-27-voice-lab-rules-skill-refactor-summary.md
+D:\Nghiên cứu AI\write_blog\docs\agent_activities.md
+D:\Nghiên cứu AI\write_blog\docs\changelog.md
+D:\Nghiên cứu AI\write_blog\docs\current_architecture.md
+D:\Nghiên cứu AI\write_blog\docs\git_diff.md
+D:\Nghiên cứu AI\write_blog\docs\initial_plan.md
+D:\Nghiên cứu AI\write_blog\docs\moment_local_quota_guide_AntiGravity.md
+D:\Nghiên cứu AI\write_blog\docs\moment_local_quota_guide_ChatGPT_Work.md
+D:\Nghiên cứu AI\write_blog\docs\token_optimization_report.md
+D:\Nghiên cứu AI\write_blog\docs\ui_user_guide.md
+D:\Nghiên cứu AI\write_blog\docs\user_prompts.md
+D:\Nghiên cứu AI\write_blog\docs\workflow_analysis.md
+D:\Nghiên cứu AI\write_blog\engine\config.example.yaml
+D:\Nghiên cứu AI\write_blog\examples\blog_1.md
+D:\Nghiên cứu AI\write_blog\examples\blog_Ket_noi_v1.md
+D:\Nghiên cứu AI\write_blog\examples\blog_input_template.md
+D:\Nghiên cứu AI\write_blog\examples\finals\1_break.md
+D:\Nghiên cứu AI\write_blog\examples\finals\2_ket_noi.md
+D:\Nghiên cứu AI\write_blog\examples\finals\VA writing style.md
+D:\Nghiên cứu AI\write_blog\examples\finals\VA_ket_noi_thien_nhien.md
+D:\Nghiên cứu AI\write_blog\examples\finals\VA_ngheo_ma_hanh_phuc.md
+D:\Nghiên cứu AI\write_blog\examples\finals\VA_nguoi_vo_su.md
+D:\Nghiên cứu AI\write_blog\examples\finals\VA_vitamin_xanh.md

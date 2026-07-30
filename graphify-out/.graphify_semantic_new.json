@@ -1,0 +1,1316 @@
+{
+  "nodes": [
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_agents_project_agent_instructions",
+      "label": "Project Agent Instructions",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\.agents\\AGENTS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_agentic_workflow_architect_skill_agentic_workflow_architect",
+      "label": "Agentic Workflow Architect",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\.agents\\agentic-workflow-architect\\SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_agentic_workflow_architect_agents_openai_openai_config",
+      "label": "OpenAI Config",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\.agents\\agentic-workflow-architect\\agents\\openai.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_agentic_workflow_architect_references_architecture_invariants_architecture_invariants",
+      "label": "Architecture Invariants",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\.agents\\agentic-workflow-architect\\references\\architecture-invariants.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_agentic_workflow_architect_references_refactor_checklist_refactor_checklist",
+      "label": "Refactor Checklist",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\.agents\\agentic-workflow-architect\\references\\refactor-checklist.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_agentic_workflow_architect_references_workflow_design_patterns_workflow_design_patterns",
+      "label": "Workflow Design Patterns",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\.agents\\agentic-workflow-architect\\references\\workflow-design-patterns.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_agents_project_agent_instructions_global",
+      "label": "Project Agent Instructions Global",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\AGENTS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_readme_mindful_blog_workflow",
+      "label": "Mindful Blog Workflow",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_10_code_review_report_code_review_report",
+      "label": "Code Review Report",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-10-code-review-report.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_10_handoff_layer_implementation_log_handoff_layer",
+      "label": "Handoff Layer",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-10-handoff-layer-implementation-log.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_10_refactoring_log_engine_refactoring",
+      "label": "Engine Refactoring",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-10-refactoring-log.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_14_code_review_report_editorial_workflow_redesign_review",
+      "label": "Editorial Workflow Redesign Review",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-14-code-review-report.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_14_editorial_workflow_redesign_editorial_workflow_redesign",
+      "label": "Editorial Workflow Redesign",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-14-editorial-workflow-redesign.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_14_refactoring_log_redesign_refactoring",
+      "label": "Redesign Refactoring",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-14-refactoring-log.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_15_client_routing_implementation_log_client_routing",
+      "label": "Client Routing",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-15-client-routing-implementation-log.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_20_antigravity_workflow_run_log_antigravity_workflow_run",
+      "label": "Antigravity Workflow Run",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-20-antigravity-workflow-run-log.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_20_multi_style_implementation_log_multi_style_implementation",
+      "label": "Multi Style Implementation",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-20-multi-style-implementation-log.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_final_mindful_writing_os_final",
+      "label": "Mindful Writing OS Final",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-final.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_mindful_writing_os_plan",
+      "label": "Mindful Writing OS Plan",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_25_guided_style_voice_lab_plan_guided_style_voice_lab_plan",
+      "label": "Guided Style Voice Lab Plan",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-25-guided-style-voice-lab-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_25_multi_editable_style_upgrade_plan_final_multi_editable_style_final",
+      "label": "Multi Editable Style Final",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-25-multi-editable-style-upgrade-plan-final.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_25_multi_editable_style_upgrade_plan_multi_editable_style_plan",
+      "label": "Multi Editable Style Plan",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-25-multi-editable-style-upgrade-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_26_guided_style_voice_lab_plan_final_voice_lab_final_plan",
+      "label": "Voice Lab Final Plan",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-26-guided-style-voice-lab-plan-final.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_27_project_progress_agent_handoff_agent_handoff",
+      "label": "Agent Handoff",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-27-project-progress-agent-handoff.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_27_rules_skill_refactor_plan_rules_skill_refactor",
+      "label": "Rules Skill Refactor",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-27-rules-skill-refactor-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_deep_blog_mode",
+      "label": "Deep Blog Mode",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_moment_blog_mode",
+      "label": "Moment Blog Mode",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_readme_deep_blog_mode",
+      "label": "Deep Blog Mode",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_readme_moment_blog_mode",
+      "label": "Moment Blog Mode",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_25_guided_style_voice_lab_plan_voice_dna",
+      "label": "Voice DNA",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-25-guided-style-voice-lab-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_current_architecture_md_guided_style_voice_lab",
+      "label": "Guided Style Voice Lab",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\current_architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_current_architecture_md_publish_safety_pipeline",
+      "label": "Publish Safety Pipeline",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\current_architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "engine_voice_lab_models_py_dimensionprofile",
+      "label": "DimensionProfile",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\engine\\voice_lab\\models.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "engine_voice_lab_models_py_evidenceclaim",
+      "label": "EvidenceClaim",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\engine\\voice_lab\\models.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "engine_voice_lab_models_py_styleprofile",
+      "label": "StyleProfile",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\engine\\voice_lab\\models.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_2026_07_27_voice_lab_refactor_plan_final_md_voice_lab_refactor",
+      "label": "Voice Lab Refactor Plan",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-27-voice-lab-refactor-plan-final.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "examples_moment_1_moment_blog_mode",
+      "label": "Moment Blog Mode Example 1",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\moment_1.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "examples_moment_blog_input_template_moment_blog_mode",
+      "label": "Moment Blog Input Template",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\moment_blog_input_template.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "examples_page_2026_07_06_07_57_58_trai_nghiem_cam_xuc",
+      "label": "Trải Nghiệm Cảm Xúc",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\page-2026-07-06-07-57-58.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Coach Minh Nguyễn",
+      "contributor": null
+    },
+    {
+      "id": "examples_page_2026_07_06_07_58_32_surrender_the_flow",
+      "label": "Surrender The Flow - Không Kế Hoạch",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\page-2026-07-06-07-58-32.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Coach Minh Nguyễn",
+      "contributor": null
+    },
+    {
+      "id": "examples_page_2026_07_06_07_58_53_lai_xe_va_tinh_thuc",
+      "label": "Lái Xe và Tỉnh Thức",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\page-2026-07-06-07-58-53.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Coach Minh Nguyễn",
+      "contributor": null
+    },
+    {
+      "id": "examples_page_2026_07_06_08_00_37_tim_thay_binh_an",
+      "label": "Tìm Thấy Bình An",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\page-2026-07-06-08-00-37.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Coach Minh Nguyễn",
+      "contributor": null
+    },
+    {
+      "id": "examples_page_2026_07_06_08_02_47_surrender_tha_long",
+      "label": "Surrender - Thả Lỏng",
+      "file_type": "document",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\page-2026-07-06-08-02-47.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Coach Minh Nguyễn",
+      "contributor": null
+    },
+    {
+      "id": "flow_write_blog_mindful_blog_workflow",
+      "label": "Mindful Blog Workflow",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\flow\\write_blog.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_write_moment_blog_mindful_moment_blog_workflow",
+      "label": "Mindful Moment Blog Workflow",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\flow\\write_moment_blog.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mindful_writing_os_mindful_writing_os",
+      "label": "Mindful Writing OS",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\mindful_writing_os.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "prompts_run_blog_workflow_run_blog_workflow",
+      "label": "Run Blog Workflow Prompt",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\prompts\\run_blog_workflow.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_style_brief_provocative_style",
+      "label": "Provocative Style",
+      "file_type": "rationale",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_coach_agent_coach_agent",
+      "label": "Coach Agent (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\coach_agent.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_editor_agent_editor_agent",
+      "label": "Editor Agent (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\editor_agent.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_future_self_future_self",
+      "label": "Future Self (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\future_self.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_reader_experience_reader_experience",
+      "label": "Reader Experience (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\reader_experience.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_reflection_engine_reflection_engine",
+      "label": "Reflection Engine (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\reflection_engine.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_story_architect_story_architect",
+      "label": "Story Architect (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\story_architect.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_style_meta_provocative_deep",
+      "label": "Provocative Style Meta",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\style_meta.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_provocative_writing_agent_writing_agent",
+      "label": "Writing Agent (Provocative)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\writing_agent.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_reflective_coach_agent_coach_agent",
+      "label": "Coach Agent (Reflective)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\coach_agent.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_reflective_editor_agent_editor_agent",
+      "label": "Editor Agent (Reflective)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\editor_agent.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_reflective_future_self_future_self",
+      "label": "Future Self (Reflective)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\future_self.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_reflective_reader_experience_reader_experience",
+      "label": "Reader Experience (Reflective)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\reader_experience.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_reflective_reflection_engine_reflection_engine",
+      "label": "Reflection Engine (Reflective)",
+      "file_type": "code",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\reflection_engine.yaml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_deep_reflective_story_architect_story_architect",
+      "label": "story_architect",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\story_architect.yaml"
+    },
+    {
+      "id": "skills_deep_reflective_style_meta_reflective",
+      "label": "Reflective (Deep)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\style_meta.yaml"
+    },
+    {
+      "id": "skills_deep_reflective_writing_agent_writing_agent",
+      "label": "writing_agent",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\writing_agent.yaml"
+    },
+    {
+      "id": "skills_editorial_learning_editorial_learning",
+      "label": "editorial_learning",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\editorial_learning.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_breath_editor_breath_editor",
+      "label": "breath_editor (Minh hóm hỉnh)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\breath_editor.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_cosmic_signal_reader_cosmic_signal_reader",
+      "label": "cosmic_signal_reader (Minh hóm hỉnh)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\cosmic_signal_reader.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_gentle_witness_gentle_witness",
+      "label": "gentle_witness (Minh hóm hỉnh)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\gentle_witness.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_inner_weather_inner_weather",
+      "label": "inner_weather (Minh hóm hỉnh)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\inner_weather.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_moment_writer_moment_writer",
+      "label": "moment_writer (Minh hóm hỉnh)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\moment_writer.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_sensory_capture_sensory_capture",
+      "label": "sensory_capture (Minh hóm hỉnh)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\sensory_capture.yaml"
+    },
+    {
+      "id": "skills_moment_minh_hom_hinh_style_meta_minh_hom_hinh",
+      "label": "Minh hóm hỉnh",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\style_meta.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_breath_editor_breath_editor",
+      "label": "breath_editor (Reflective)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\breath_editor.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_cosmic_signal_reader_cosmic_signal_reader",
+      "label": "cosmic_signal_reader (Reflective)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\cosmic_signal_reader.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_gentle_witness_gentle_witness",
+      "label": "gentle_witness (Reflective)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\gentle_witness.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_inner_weather_inner_weather",
+      "label": "inner_weather (Reflective)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\inner_weather.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_moment_writer_moment_writer",
+      "label": "moment_writer (Reflective)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\moment_writer.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_sensory_capture_sensory_capture",
+      "label": "sensory_capture (Reflective)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\sensory_capture.yaml"
+    },
+    {
+      "id": "skills_moment_reflective_style_meta_reflective",
+      "label": "Reflective (Moment)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\style_meta.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_breath_editor_breath_editor",
+      "label": "breath_editor (VA Natural)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\breath_editor.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_cosmic_signal_reader_cosmic_signal_reader",
+      "label": "cosmic_signal_reader (VA Natural)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\cosmic_signal_reader.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_gentle_witness_gentle_witness",
+      "label": "gentle_witness (VA Natural)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\gentle_witness.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_inner_weather_inner_weather",
+      "label": "inner_weather (VA Natural)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\inner_weather.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_moment_writer_moment_writer",
+      "label": "moment_writer (VA Natural)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\moment_writer.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_sensory_capture_sensory_capture",
+      "label": "sensory_capture (VA Natural)",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\sensory_capture.yaml"
+    },
+    {
+      "id": "skills_moment_va_natural_style_meta_va_natural",
+      "label": "Van Anh Natural",
+      "file_type": "concept",
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\style_meta.yaml"
+    }
+  ],
+  "edges": [
+    {
+      "source": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_deep_blog_mode",
+      "target": "d_nghi_n_c_u_ai_write_blog_readme_deep_blog_mode",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_moment_blog_mode",
+      "target": "d_nghi_n_c_u_ai_write_blog_readme_moment_blog_mode",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_current_architecture_md_guided_style_voice_lab",
+      "target": "docs_2026_07_27_voice_lab_refactor_plan_final_md_voice_lab_refactor",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\current_architecture.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_current_architecture_md_publish_safety_pipeline",
+      "target": "docs_current_architecture_md_guided_style_voice_lab",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\current_architecture.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "engine_voice_lab_models_py_styleprofile",
+      "target": "engine_voice_lab_models_py_dimensionprofile",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\engine\\voice_lab\\models.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "engine_voice_lab_models_py_styleprofile",
+      "target": "engine_voice_lab_models_py_evidenceclaim",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\engine\\voice_lab\\models.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "prompts_run_blog_workflow_run_blog_workflow",
+      "target": "flow_write_blog_mindful_blog_workflow",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\prompts\\run_blog_workflow.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mindful_writing_os_mindful_writing_os",
+      "target": "flow_write_blog_mindful_blog_workflow",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\mindful_writing_os.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mindful_writing_os_mindful_writing_os",
+      "target": "prompts_run_blog_workflow_run_blog_workflow",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\mindful_writing_os.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_story_architect_story_architect",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_reflection_engine_reflection_engine",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_writing_agent_writing_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_reader_experience_reader_experience",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_editor_agent_editor_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_coach_agent_coach_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_style_brief_provocative_style",
+      "target": "skills_deep_provocative_future_self_future_self",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_coach_agent_coach_agent",
+      "target": "skills_deep_reflective_coach_agent_coach_agent",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\coach_agent.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_editor_agent_editor_agent",
+      "target": "skills_deep_reflective_editor_agent_editor_agent",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\editor_agent.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_future_self_future_self",
+      "target": "skills_deep_reflective_future_self_future_self",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\future_self.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_reader_experience_reader_experience",
+      "target": "skills_deep_reflective_reader_experience_reader_experience",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\reader_experience.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_deep_provocative_reflection_engine_reflection_engine",
+      "target": "skills_deep_reflective_reflection_engine_reflection_engine",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\reflection_engine.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "examples_page_2026_07_06_07_58_32_surrender_the_flow",
+      "target": "examples_page_2026_07_06_08_02_47_surrender_tha_long",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\page-2026-07-06-07-58-32.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "examples_moment_1_moment_blog_mode",
+      "target": "examples_moment_blog_input_template_moment_blog_mode",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\examples\\moment_1.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skills_moment_va_natural_style_meta_va_natural",
+      "target": "skills_moment_reflective_style_meta_reflective",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\style_meta.yaml"
+    },
+    {
+      "source": "skills_deep_reflective_writing_agent_writing_agent",
+      "target": "skills_deep_reflective_story_architect_story_architect",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\writing_agent.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_breath_editor_breath_editor",
+      "target": "skills_moment_reflective_breath_editor_breath_editor",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\breath_editor.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_breath_editor_breath_editor",
+      "target": "skills_moment_va_natural_breath_editor_breath_editor",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\breath_editor.yaml"
+    },
+    {
+      "source": "skills_moment_reflective_breath_editor_breath_editor",
+      "target": "skills_moment_va_natural_breath_editor_breath_editor",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\breath_editor.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_cosmic_signal_reader_cosmic_signal_reader",
+      "target": "skills_moment_reflective_cosmic_signal_reader_cosmic_signal_reader",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\cosmic_signal_reader.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_cosmic_signal_reader_cosmic_signal_reader",
+      "target": "skills_moment_va_natural_cosmic_signal_reader_cosmic_signal_reader",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\cosmic_signal_reader.yaml"
+    },
+    {
+      "source": "skills_moment_reflective_cosmic_signal_reader_cosmic_signal_reader",
+      "target": "skills_moment_va_natural_cosmic_signal_reader_cosmic_signal_reader",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\cosmic_signal_reader.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_gentle_witness_gentle_witness",
+      "target": "skills_moment_reflective_gentle_witness_gentle_witness",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\gentle_witness.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_gentle_witness_gentle_witness",
+      "target": "skills_moment_va_natural_gentle_witness_gentle_witness",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\gentle_witness.yaml"
+    },
+    {
+      "source": "skills_moment_reflective_gentle_witness_gentle_witness",
+      "target": "skills_moment_va_natural_gentle_witness_gentle_witness",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\gentle_witness.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_inner_weather_inner_weather",
+      "target": "skills_moment_reflective_inner_weather_inner_weather",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\inner_weather.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_inner_weather_inner_weather",
+      "target": "skills_moment_va_natural_inner_weather_inner_weather",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\inner_weather.yaml"
+    },
+    {
+      "source": "skills_moment_reflective_inner_weather_inner_weather",
+      "target": "skills_moment_va_natural_inner_weather_inner_weather",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\inner_weather.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_moment_writer_moment_writer",
+      "target": "skills_moment_reflective_moment_writer_moment_writer",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\moment_writer.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_moment_writer_moment_writer",
+      "target": "skills_moment_va_natural_moment_writer_moment_writer",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\moment_writer.yaml"
+    },
+    {
+      "source": "skills_moment_reflective_moment_writer_moment_writer",
+      "target": "skills_moment_va_natural_moment_writer_moment_writer",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\moment_writer.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_sensory_capture_sensory_capture",
+      "target": "skills_moment_reflective_sensory_capture_sensory_capture",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\sensory_capture.yaml"
+    },
+    {
+      "source": "skills_moment_minh_hom_hinh_sensory_capture_sensory_capture",
+      "target": "skills_moment_va_natural_sensory_capture_sensory_capture",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\sensory_capture.yaml"
+    },
+    {
+      "source": "skills_moment_reflective_sensory_capture_sensory_capture",
+      "target": "skills_moment_va_natural_sensory_capture_sensory_capture",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\sensory_capture.yaml"
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "writing_modes",
+      "label": "Writing Modes",
+      "nodes": [
+        "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_deep_blog_mode",
+        "d_nghi_n_c_u_ai_write_blog_docs_2026_07_22_mindful_writing_os_two_writing_modes_plan_moment_blog_mode"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\docs\\2026-07-22-mindful_writing_os-two-writing-modes-plan.md"
+    },
+    {
+      "id": "provocative_deep_agents",
+      "label": "Provocative Deep Agents Workflow",
+      "nodes": [
+        "skills_deep_provocative_story_architect_story_architect",
+        "skills_deep_provocative_reflection_engine_reflection_engine",
+        "skills_deep_provocative_writing_agent_writing_agent",
+        "skills_deep_provocative_reader_experience_reader_experience",
+        "skills_deep_provocative_editor_agent_editor_agent",
+        "skills_deep_provocative_coach_agent_coach_agent",
+        "skills_deep_provocative_future_self_future_self"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\provocative\\STYLE_BRIEF.md"
+    },
+    {
+      "id": "reflective_deep_agents",
+      "label": "Reflective Deep Agents Workflow",
+      "nodes": [
+        "skills_deep_reflective_coach_agent_coach_agent",
+        "skills_deep_reflective_editor_agent_editor_agent",
+        "skills_deep_reflective_future_self_future_self",
+        "skills_deep_reflective_reader_experience_reader_experience",
+        "skills_deep_reflective_reflection_engine_reflection_engine"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\deep\\reflective\\coach_agent.yaml"
+    },
+    {
+      "id": "minh_hom_hinh_workflow",
+      "label": "Minh hóm hỉnh Moment Workflow",
+      "nodes": [
+        "skills_moment_minh_hom_hinh_breath_editor_breath_editor",
+        "skills_moment_minh_hom_hinh_cosmic_signal_reader_cosmic_signal_reader",
+        "skills_moment_minh_hom_hinh_gentle_witness_gentle_witness",
+        "skills_moment_minh_hom_hinh_inner_weather_inner_weather",
+        "skills_moment_minh_hom_hinh_moment_writer_moment_writer",
+        "skills_moment_minh_hom_hinh_sensory_capture_sensory_capture",
+        "skills_moment_minh_hom_hinh_style_meta_minh_hom_hinh"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\minh-hom-hinh\\style_meta.yaml"
+    },
+    {
+      "id": "reflective_moment_workflow",
+      "label": "Reflective Moment Workflow",
+      "nodes": [
+        "skills_moment_reflective_breath_editor_breath_editor",
+        "skills_moment_reflective_cosmic_signal_reader_cosmic_signal_reader",
+        "skills_moment_reflective_gentle_witness_gentle_witness",
+        "skills_moment_reflective_inner_weather_inner_weather",
+        "skills_moment_reflective_moment_writer_moment_writer",
+        "skills_moment_reflective_sensory_capture_sensory_capture",
+        "skills_moment_reflective_style_meta_reflective"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\reflective\\style_meta.yaml"
+    },
+    {
+      "id": "va_natural_moment_workflow",
+      "label": "VA Natural Moment Workflow",
+      "nodes": [
+        "skills_moment_va_natural_breath_editor_breath_editor",
+        "skills_moment_va_natural_cosmic_signal_reader_cosmic_signal_reader",
+        "skills_moment_va_natural_gentle_witness_gentle_witness",
+        "skills_moment_va_natural_inner_weather_inner_weather",
+        "skills_moment_va_natural_moment_writer_moment_writer",
+        "skills_moment_va_natural_sensory_capture_sensory_capture",
+        "skills_moment_va_natural_style_meta_va_natural"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Nghiên cứu AI\\write_blog\\skills\\moment\\va-natural\\style_meta.yaml"
+    }
+  ],
+  "input_tokens": 72000,
+  "output_tokens": 3300
+}
