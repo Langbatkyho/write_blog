@@ -41,13 +41,13 @@ def _load_keys() -> list[str]:
     # Collect all keys from env
     for key_name in sorted(os.environ.keys()):
         if key_name.startswith("GEMINI_API_KEY"):
-            val = os.environ[key_name].strip()
+            val = os.environ[key_name].strip().strip('\'"')
             if val and val != "YOUR_KEY_HERE":
                 _keys.append(val)
 
     # Fallback: single key
     if not _keys:
-        single = os.environ.get("GEMINI_API_KEY", "").strip()
+        single = os.environ.get("GEMINI_API_KEY", "").strip().strip('\'"')
         if single and single != "YOUR_KEY_HERE":
             _keys.append(single)
 
