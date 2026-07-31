@@ -146,58 +146,73 @@ def apply_style_upgrade(mode: str, slug: str, suggestions: str, config: dict) ->
     style_dir = Path(detail["directory"])
     files = detail["files"]
     
-    yaml_contents = []
-    for f in files:
-        content = read_text(style_dir / f)
-        yaml_contents.append(f"--- FILE: {f} ---\n{content}\n")
-    
-    combined_yaml = "\n".join(yaml_contents)
-    
-    prompt = f"""
-Bạn là một AI cấu hình hệ thống.
-Dưới đây là các file YAML hiện tại của style '{slug}':
-{combined_yaml}
+    # Bước 1: Hỏi LLM xem file nào cần sửa (output nhỏ, không bị truncate)
+    file_list_str = "\n".join(f"- {f}" for f in files)
+    filter_prompt = f"""Dưới đây là danh sách các file YAML của style '{slug}':
+{file_list_str}
 
 Và đây là các đề xuất tinh chỉnh:
 {suggestions}
 
-Nhiệm vụ của bạn là áp dụng CHÍNH XÁC các đề xuất trên vào các file YAML tương ứng.
-Bạn CHỈ thay đổi nội dung các file cần sửa.
-Trả về định dạng JSON duy nhất như sau:
-{{
-  "updated_files": [
-    {{ "filename": "tên_file.yaml", "content": "Nội dung YAML đầy đủ sau khi sửa" }}
-  ]
-}}
-Tuyệt đối không trả về text ngoài JSON. Đảm bảo cấu trúc YAML hoàn chỉnh và đúng format hợp đồng (có name, output, v.v).
-"""
-    response = call_gemini(prompt, config)
+Hãy liệt kê CHÍNH XÁC tên các file cần sửa (chỉ file thực sự bị ảnh hưởng bởi đề xuất).
+Trả về JSON duy nhất: {{"files_to_update": ["file1.yaml", "file2.yaml"]}}
+Không trả về text ngoài JSON."""
     
-    if response.startswith("```json"):
-        response = response[7:]
-    if response.startswith("```"):
-        response = response[3:]
-    if response.endswith("```"):
-        response = response[:-3]
+    filter_resp = call_gemini(filter_prompt, config, max_output_tokens=1024)
+    # Clean markdown fences
+    for prefix in ("```json", "```"):
+        if filter_resp.startswith(prefix):
+            filter_resp = filter_resp[len(prefix):]
+    if filter_resp.endswith("```"):
+        filter_resp = filter_resp[:-3]
     
     try:
-        data = json.loads(response.strip())
-    except Exception as e:
-        raise ValueError(f"LLM trả về JSON không hợp lệ: {e}\n{response}")
+        filter_data = json.loads(filter_resp.strip())
+        files_to_update = [f for f in filter_data.get("files_to_update", []) if f in files]
+    except Exception:
+        # Fallback: cập nhật tất cả file
+        files_to_update = list(files)
     
-    updated_files = data.get("updated_files", [])
-    if not updated_files:
+    if not files_to_update:
         return []
     
+    # Bước 2: Gọi LLM riêng cho từng file cần sửa
     saved_files = []
-    for item in updated_files:
-        filename = item["filename"]
-        content = item["content"]
-        if filename not in files:
-            continue
-        success, err, _ = save_style_file(mode, slug, filename, content)
-        if not success:
-            raise ValueError(f"Lỗi khi lưu {filename}: {err}")
-        saved_files.append(filename)
+    for filename in files_to_update:
+        original_content = read_text(style_dir / filename)
+        
+        per_file_prompt = f"""Bạn là một AI cấu hình hệ thống.
+Dưới đây là nội dung YAML hiện tại của file '{filename}' thuộc style '{slug}':
+
+{original_content}
+
+Và đây là các đề xuất tinh chỉnh:
+{suggestions}
+
+Nhiệm vụ: Áp dụng CHÍNH XÁC các đề xuất liên quan vào file này.
+Giữ nguyên cấu trúc YAML hợp đồng (name, output, v.v).
+Trả về TOÀN BỘ nội dung YAML đã sửa (không phải JSON, không có markdown fences).
+Nếu file không cần sửa, trả về nguyên nội dung gốc."""
+
+        updated_content = call_gemini(
+            per_file_prompt, config, max_output_tokens=8192
+        )
+        
+        # Bỏ markdown fences nếu LLM tự thêm
+        updated_content = updated_content.strip()
+        for prefix in ("```yaml", "```yml", "```"):
+            if updated_content.startswith(prefix):
+                updated_content = updated_content[len(prefix):]
+                break
+        if updated_content.endswith("```"):
+            updated_content = updated_content[:-3]
+        updated_content = updated_content.strip()
+        
+        # Chỉ lưu nếu nội dung thực sự thay đổi
+        if updated_content and updated_content != original_content.strip():
+            success, err, _ = save_style_file(mode, slug, filename, updated_content)
+            if not success:
+                raise ValueError(f"Lỗi khi lưu {filename}: {err}")
+            saved_files.append(filename)
     
     return saved_files
