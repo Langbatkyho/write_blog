@@ -186,3 +186,10 @@
 - **Context Policy**: Chuyển mọi quyết định truyền Context vào file `write_blog.yaml`, thay vì code logic trong Python.
 - **Cơ chế Fallback**: Đề phòng trường hợp AI sinh thiếu cấu trúc Handoff, hệ thống sẽ fallback an toàn thay vì crash.
 - Tự động sinh `handoff_log.md` và theo dõi metrics qua `step_outputs.json` và `metadata.json`.
+
+
+## [2026-07-31 16:05] Triển khai Streamlit UI và Deploy lên Render.com
+- **Giao diện người dùng (UI):** Tích hợp luồng Viết Blog thành giao diện Web App với Streamlit, chia 4 bước: Nhập bài -> Kết quả -> Sửa bài -> Học hỏi. Phân chia Layout 2 cột rõ ràng.
+- **Tích hợp Gemini API:** Chuyển đổi mặc định toàn bộ luồng Write Blog và Voice Lab sang sử dụng gemini-3.5-flash và sửa lỗi nạp API key từ biến môi trường.
+- **Deploy:** Cấu hình thành công Web Service trên Render.com, bổ sung tính năng Auto Git Sync để giữ lại log file và cấu hình thay đổi.
+- **Rebranding:** Sửa lại các thuật ngữ "Agents" thành "Trợ lý AI", đổi tên app thành "Nhà xuất bản happiLab" tạo trải nghiệm thuần Việt và thân thiện hơn.

@@ -190,3 +190,9 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 - **P1 — Contract hardening:** UI acceptance, parser strict, Gemini stage model telemetry, style transaction, alias namespace và migration v1/v2 fail-closed.
 - **P2 — Audit hardening:** bỏ compiler legacy fallback, token guardrail Unicode, calibration provenance và lỗi rollback thứ cấp có cấu trúc.
 - Sau mỗi gate, workflow vẫn sử dụng được; regression cuối đạt **124/124 test + 4 parser subtest**, không gọi API thật và không thay đổi `runs/`.
+
+
+### 3. UI Layer (Streamlit)
+- ui/app.py: Điều hướng chính, chọn chế độ (Blog vs Voice Lab).
+- ui/views/blog_workflow.py: Giao diện 4 bước (Nhập -> Kết quả -> Sửa -> Học hỏi) dùng st.session_state.
+- ui/controllers/workflow_controller.py: Kết nối giao diện với core Engine, đảm bảo cách ly State.

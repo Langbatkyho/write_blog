@@ -176,3 +176,10 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
 9. **RULES và SKILL khác vai trò:** RULES bảo vệ dữ liệu/vận hành; SKILL hướng dẫn quyết định kiến trúc. Không trộn hai nguồn thành prompt tùy chọn.
 10. **Gate nhỏ bảo vệ khả năng sử dụng:** Chỉ chuyển P0 → P1 → P2 khi phase trước xanh; hết quota tại checkpoint không làm workflow rơi vào trạng thái sửa dở.
 11. **Không áp dụng audit máy móc:** Đề xuất phải đối chiếu plan, consumer và test. Ví dụ rollback “restore trước cleanup” bị bác bỏ; thay vào đó xử lý lỗi rollback thứ cấp.
+
+
+## [2026-07-31 16:05] Triển khai Streamlit & Deploy
+- **Planning & Execution:** Tái thiết kế UI của ứng dụng, triển khai Layout hai màn hình (Viết blog & Voice Lab). Gỡ bỏ hoàn toàn YAML Code Editor.
+- **Refactoring:** Áp dụng 4 vectors từ bản Code Review (bỏ code/import thừa, thay assert bằng raise).
+- **Debugging:** Trực tiếp fix lỗi API key bị dính dấu ngoặc kép trên Render.com. Kiểm tra tính hợp lệ của key khai báo.
+- **Documentation:** Viết hướng dẫn deploy Render với auto git sync, cập nhật luồng log UI/UX.

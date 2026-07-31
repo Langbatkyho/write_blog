@@ -96,3 +96,11 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 80. *Phê duyệt triển khai P1.*
 81. *Đọc audit Claude Opus 4.6, phản biện cô đọng theo ba mục và triển khai ngay các điểm đã thống nhất.*
 82. *Cập nhật toàn bộ kế hoạch refactor và RULES/SKILL vào sáu tài liệu theo dõi dự án.*
+
+
+## [2026-07-31 16:05] Streamlit UI & Deployment
+- "Bạn hãy điều chỉnh theo đề xuất của Claude Opus 4.6 và báo cáo lại."
+- "Tôi muốn sửa giao diện như sau: Ở menu bên trái: Sửa text Chế độ viết thành Chọn loại blog..."
+- "Bạn hãy hướng dẫn tôi triển khai lên Render.com"
+- "Bạn hãy kiểm tra và tiếp tục công việc đang dang dở (Lỗi API Key không hợp lệ)"
+- "Tôi muốn đổi cách viết Agents trong các thông báo của hệ thống này thành từ 'Trợ lý AI'" 

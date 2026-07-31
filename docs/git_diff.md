@@ -385,3 +385,10 @@
 - **Thư mục `skills/`**:
   - Tạo `skills/reflective/` chứa 7 file YAML gốc.
   - Tạo `skills/provocative/` chứa 7 file YAML đã tinh chỉnh kèm `STYLE_BRIEF.md`.
+
+
+## [2026-07-31 16:05] Streamlit UI & Render Deployment
+- Khởi tạo thư mục ui/, cập nhật pp.py, log_workflow.py.
+- Tách rời State quản lý UI và logic Workflow qua Controller (workflow_controller.py).
+- Cấu hình config.example.yaml thêm block gemini:.
+- Sửa file gemini_client.py: fix strip quotes cho API key, bổ sung logging quá trình nạp key.

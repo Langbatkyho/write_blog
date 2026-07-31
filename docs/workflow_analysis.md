@@ -177,3 +177,17 @@ description: >
 - `references/architecture-invariants.md`: contract, module boundary, provider, I/O và compatibility.
 - `references/workflow-design-patterns.md`: Artifact/Handoff, context policy và orchestration.
 - `references/refactor-checklist.md`: discovery, change design, verification và cleanup.
+
+
+## [2026-07-31 16:05] Phân tích quy trình triển khai Web App & Deploy
+
+**1. Bài học về Quản lý State trong Streamlit:**
+- Khi ghép 2 luồng chức năng (Voice Lab và Blog Workflow) vào chung 1 web app, biến st.session_state dễ bị rò rỉ và ô nhiễm chéo. Giải pháp là định nghĩa rõ các khóa khởi tạo ban đầu (init states) và xây dựng hàm clear cache (
+eset_blog_workflow_state).
+
+**2. Bài học về cấu hình biến môi trường trên Cloud:**
+- Khi user copy/paste API key lên các nền tảng như Render, rất dễ dính dấu ngoặc kép (", ') hoặc các biến null/rỗng. Luồng nạp biến môi trường bắt buộc phải có cơ chế strip() loại bỏ dấu ngoặc kép thay vì chỉ bỏ khoảng trắng, nếu không API provider (Gemini/OpenAI) sẽ từ chối.
+- Logging của hệ thống khi chạy trên cloud cần in ra 1 phần mã hash của key (4 ký tự đầu/cuối) để dễ dàng debug xem server có thực sự nhận đúng key hay không.
+
+**3. Bài học về Handoff giữa các Models:**
+- Khi làm việc với nhiều Agentic LLMs (Opus -> Gemini), các Agent có khả năng tự review code và đề xuất Refactoring rất tốt. Tuy nhiên cần có một Agent quản lý tổng thể (như phiên Antigravity hiện tại) đứng ra xác nhận và thực thi đồng bộ, tránh đụng độ version.
