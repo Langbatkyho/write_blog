@@ -19,6 +19,13 @@ from typing import Any
 _keys: list[str] = []
 _key_index: int = 0
 
+def _mask_key(k: str) -> str:
+    """Return first 4 + last 4 chars for safe logging."""
+    if len(k) <= 10:
+        return k[:2] + "***"
+    return k[:4] + "..." + k[-4:]
+
+
 def _load_keys() -> list[str]:
     """Load all GEMINI_API_KEY_* from environment or .env file."""
     global _keys
@@ -27,29 +34,44 @@ def _load_keys() -> list[str]:
 
     # Try loading from .env file first
     env_path = Path(__file__).resolve().parents[1] / ".env"
+    env_loaded = False
     if env_path.exists():
+        env_loaded = True
         for line in env_path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if line.startswith("#") or "=" not in line:
                 continue
             name, _, value = line.partition("=")
             name = name.strip()
-            value = value.strip()
+            value = value.strip().strip('\'"')
             if name.startswith("GEMINI_API_KEY") and value and value != "YOUR_KEY_HERE":
                 os.environ.setdefault(name, value)
 
+    # Log diagnostic info
+    is_render = bool(os.environ.get("RENDER"))
+    print(f"[GEMINI KEY] Platform: {'Render' if is_render else 'Local'}, .env file: {'found' if env_loaded else 'not found'}")
+
     # Collect all keys from env
+    matched_vars = []
     for key_name in sorted(os.environ.keys()):
         if key_name.startswith("GEMINI_API_KEY"):
             val = os.environ[key_name].strip().strip('\'"')
+            matched_vars.append((key_name, val))
             if val and val != "YOUR_KEY_HERE":
                 _keys.append(val)
+
+    print(f"[GEMINI KEY] Matched env vars: {[(name, _mask_key(val)) for name, val in matched_vars]}")
 
     # Fallback: single key
     if not _keys:
         single = os.environ.get("GEMINI_API_KEY", "").strip().strip('\'"')
         if single and single != "YOUR_KEY_HERE":
             _keys.append(single)
+            print(f"[GEMINI KEY] Fallback single key: {_mask_key(single)}")
+
+    print(f"[GEMINI KEY] Total keys loaded: {len(_keys)}")
+    if not _keys:
+        print("[GEMINI KEY] WARNING: No keys found! Check env var names start with GEMINI_API_KEY")
 
     return _keys
 
