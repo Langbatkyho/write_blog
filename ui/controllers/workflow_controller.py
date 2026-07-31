@@ -13,9 +13,8 @@ from engine.workflow import (
 from engine.workflow_contracts import WorkflowRunResult
 from engine.gemini_client import call_gemini
 from engine.style_manager import get_style_detail, save_style_file
-from engine.utils import read_text, load_yaml
+from engine.utils import read_text, load_yaml, auto_git_sync
 from engine.workflow_persistence import atomic_write_text
-import json
 
 
 def preview_workbench(
@@ -136,6 +135,13 @@ def run_real_learning(
     )
     if not isinstance(learning_dir, Path):
         raise RuntimeError(f"run_learning_loop trả về {type(learning_dir)}, không phải Path. Kiểm tra lại cờ persist.")
+    
+    # Sync production_blog.md + learning results về GitHub
+    auto_git_sync(
+        [str(r_dir), str(learning_dir)],
+        f"feat(learning): Sync production_blog + learning results {r_dir.name}",
+    )
+    
     sug_path = learning_dir / "workflow_tuning_suggestions.md"
     if sug_path.exists():
         return read_text(sug_path)
