@@ -2,7 +2,7 @@ gemini:
   # Model mặc định cho Gemini API
   model: gemini-3.5-flash
   
-  stages:
+  stages: {}
     # Bạn có thể override model cho từng stage cụ thể ở đây
     # Ví dụ:
     # story_architect:
