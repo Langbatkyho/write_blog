@@ -110,7 +110,8 @@ def run_real_workflow(
         run_log = read_text(log_path)
         
     # Bỏ phần Edit Log theo yêu cầu người dùng
-    parts = re.split(r"(?i)\n#+\s+Edit\s*Log", edited_content)
+    # Match: "## Edit Log", "edit_log.md", "### edit_log.md", v.v.
+    parts = re.split(r"(?im)^#{0,6}\s*edit[_\s]*log(?:\.md)?\s*$", edited_content)
     edited_content_stripped = parts[0].strip()
         
     return edited_content_stripped, run_log, str(run_dir)

@@ -21,19 +21,32 @@ def clone_to_staging(source: Path, parent: Path, label: str) -> Path:
     return staging
 
 
+def _safe_replace(src: Path, dst: Path) -> None:
+    """os.replace with cross-device fallback."""
+    try:
+        os.replace(src, dst)
+    except OSError as e:
+        if e.errno == 18:  # EXDEV: Invalid cross-device link
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.move(str(src), str(dst))
+        else:
+            raise
+
+
 def commit_staged_directory(staging: Path, target: Path) -> None:
     tombstone = target.parent / f".{target.name}.old-{uuid.uuid4().hex}"
     moved = False
     try:
         if target.exists():
-            os.replace(target, tombstone)
+            _safe_replace(target, tombstone)
             moved = True
-        os.replace(staging, target)
+        _safe_replace(staging, target)
     except Exception:
         if target.exists() and moved:
             shutil.rmtree(target, ignore_errors=True)
         if moved and tombstone.exists():
-            os.replace(tombstone, target)
+            _safe_replace(tombstone, target)
         if staging.exists():
             shutil.rmtree(staging, ignore_errors=True)
         raise
@@ -47,14 +60,14 @@ def commit_staged_rename(
     tombstone = source.parent / f".{source.name}.old-{uuid.uuid4().hex}"
     source_moved = False
     try:
-        os.replace(source, tombstone)
+        _safe_replace(source, tombstone)
         source_moved = True
-        os.replace(staging, target)
+        _safe_replace(staging, target)
     except Exception:
         if target.exists():
             shutil.rmtree(target, ignore_errors=True)
         if source_moved and tombstone.exists():
-            os.replace(tombstone, source)
+            _safe_replace(tombstone, source)
         if staging.exists():
             shutil.rmtree(staging, ignore_errors=True)
         raise
@@ -65,5 +78,5 @@ def move_to_trash(source: Path, trash_root: Path) -> Path:
     trash_root.mkdir(parents=True, exist_ok=True)
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     target = trash_root / f"{source.name}_{timestamp}_{uuid.uuid4().hex[:8]}"
-    os.replace(source, target)
+    _safe_replace(source, target)
     return target
