@@ -159,7 +159,7 @@ def _render_step_3(mode: str) -> None:
 
 
 def _render_step_4(mode: str) -> None:
-    st.success("💡 Phân tích hoàn tất! Dưới đây là các đề xuất nâng cấp Style của bạn.")
+    st.success("💡 Phân tích hoàn tất! Dưới đây là các đề xuất nâng cấp Phong cách viết của bạn.")
     suggestions = st.text_area(
         "Đề xuất tinh chỉnh (Tuning Suggestions):",
         value=st.session_state.bw_tuning_suggestions,
@@ -167,11 +167,11 @@ def _render_step_4(mode: str) -> None:
     )
     
     st.warning(
-        "Khi bạn ấn Nâng cấp, hệ thống sẽ gọi AI để tự động sửa các file YAML của Style hiện hành "
+        "Khi bạn ấn Nâng cấp, hệ thống sẽ gọi AI để tự động sửa Phong cách viết hiện hành "
         "dựa trên các đề xuất ở trên."
     )
     
-    if st.button("✨ Nâng cấp Style", type="primary"):
+    if st.button("✨ Nâng cấp Phong cách viết", type="primary"):
         with st.spinner("Đang hòa trộn YAML và đồng bộ..."):
             try:
                 config_path = resolve_path("engine/config.example.yaml")
@@ -187,4 +187,4 @@ def _render_step_4(mode: str) -> None:
                 else:
                     st.info("Không có file YAML nào cần cập nhật.")
             except Exception as e:
-                st.error(f"Lỗi khi nâng cấp Style: {e}")
+                st.error(f"Lỗi khi nâng cấp Phong cách viết: {e}")

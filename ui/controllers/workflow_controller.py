@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from pathlib import Path
 
 from engine.workflow import (
@@ -107,7 +109,11 @@ def run_real_workflow(
     if log_path.exists():
         run_log = read_text(log_path)
         
-    return edited_content, run_log, str(run_dir)
+    # Bỏ phần Edit Log theo yêu cầu người dùng
+    parts = re.split(r"(?i)\n#+\s+Edit\s*Log", edited_content)
+    edited_content_stripped = parts[0].strip()
+        
+    return edited_content_stripped, run_log, str(run_dir)
 
 
 def run_real_learning(
