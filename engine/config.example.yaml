@@ -1,3 +1,13 @@
+gemini:
+  # Model mặc định cho Gemini API
+  model: gemini-2.0-flash
+  
+  stages:
+    # Bạn có thể override model cho từng stage cụ thể ở đây
+    # Ví dụ:
+    # story_architect:
+    #   model: gemini-2.0-pro-exp
+    
 openai:
   # Keep the real key outside the repo. Set this environment variable before running.
   api_key_env: OPENAI_API_KEY
