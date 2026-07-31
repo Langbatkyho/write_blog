@@ -1,6 +1,6 @@
 gemini:
   # Model mặc định cho Gemini API
-  model: gemini-2.0-flash
+  model: gemini-3.5-flash
   
   stages:
     # Bạn có thể override model cho từng stage cụ thể ở đây
