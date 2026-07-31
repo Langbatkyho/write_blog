@@ -40,9 +40,9 @@ with st.sidebar:
         "Writing Mode",
         options=["deep", "moment"],
         format_func=lambda value: (
-            "🌊 Deep Blog Mode (7 Agents)"
+            "🌊 Deep Blog Mode (7 Trợ lý AI)"
             if value == "deep"
-            else "⚡ Moment Blog Mode (6 Agents)"
+            else "⚡ Moment Blog Mode (6 Trợ lý AI)"
         ),
         index=0 if st.session_state.mode == "deep" else 1,
         key="mode_radio",

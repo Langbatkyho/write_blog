@@ -98,7 +98,7 @@ def _render_step_1(styles: list[dict], mode: str) -> None:
     
     if st.button("🚀 Chạy Workflow", type="primary"):
         st.session_state.bw_input_text = input_text
-        with st.spinner("Hệ thống đang gọi Agents để viết bài... Vui lòng đợi trong vài phút."):
+        with st.spinner("Hệ thống đang gọi Trợ lý AI để viết bài... Vui lòng đợi trong vài phút."):
             try:
                 config_path = resolve_path("engine/config.example.yaml")
                 edited, log, rdir = run_real_workflow(
@@ -118,7 +118,7 @@ def _render_step_1(styles: list[dict], mode: str) -> None:
 
 
 def _render_step_2() -> None:
-    st.success("🎉 Agents đã hoàn thành bài viết!")
+    st.success("🎉 Trợ lý AI đã hoàn thành bài viết!")
     
     tab1, tab2 = st.tabs(["📄 Bài viết (AI Draft)", "🔍 Log Quá trình (Run Log)"])
     with tab1:
