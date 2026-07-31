@@ -81,9 +81,7 @@ def render_gallery(styles: list[dict], mode: str) -> None:
                 """,
                 unsafe_allow_html=True,
             )
-            edit, rename, remove = st.columns([1.2, 1.2, 1])
-            if edit.button("✏️ Sửa Editor", key=f"edit_{style['slug']}"):
-                st.session_state.selected_style_slug = style["slug"]
+            rename, remove = st.columns([1, 1])
             if rename.button("🏷️ Đổi tên", key=f"rename_{style['slug']}"):
                 show_rename_dialog(
                     mode,

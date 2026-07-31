@@ -20,6 +20,14 @@ SESSION_DEFAULTS: dict[str, Any] = {
     "vl_compiled_ir": {},
     "vl_style_name": "",
     "vl_style_slug": "",
+    "bw_step": 1,
+    "bw_input_text": "",
+    "bw_article_length": 600,
+    "bw_ai_result": "",
+    "bw_run_log": "",
+    "bw_human_edited": "",
+    "bw_tuning_suggestions": "",
+    "bw_run_dir": "",
 }
 
 VOICE_LAB_TRANSIENT_KEYS = (
@@ -35,6 +43,17 @@ VOICE_LAB_TRANSIENT_KEYS = (
     "vl_compiled_ir",
 )
 
+BLOG_WORKFLOW_TRANSIENT_KEYS = (
+    "bw_step",
+    "bw_input_text",
+    "bw_article_length",
+    "bw_ai_result",
+    "bw_run_log",
+    "bw_human_edited",
+    "bw_tuning_suggestions",
+    "bw_run_dir",
+)
+
 
 def initialize_session_state(state: MutableMapping[str, Any]) -> None:
     for key, value in SESSION_DEFAULTS.items():
@@ -48,6 +67,12 @@ def reset_voice_lab_state(state: MutableMapping[str, Any]) -> None:
         state[key] = value.copy() if isinstance(value, (dict, list)) else value
 
 
+def reset_blog_workflow_state(state: MutableMapping[str, Any]) -> None:
+    for key in BLOG_WORKFLOW_TRANSIENT_KEYS:
+        value = SESSION_DEFAULTS[key]
+        state[key] = value.copy() if isinstance(value, (dict, list)) else value
+
+
 def switch_mode(state: MutableMapping[str, Any], mode: str) -> bool:
     if mode not in {"deep", "moment"}:
         raise ValueError(f"Mode không hợp lệ: {mode}")
@@ -56,4 +81,5 @@ def switch_mode(state: MutableMapping[str, Any], mode: str) -> bool:
     state["mode"] = mode
     state["selected_style_slug"] = "reflective"
     reset_voice_lab_state(state)
+    reset_blog_workflow_state(state)
     return True

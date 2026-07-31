@@ -20,6 +20,26 @@ def extract_markdown_section(markdown: str, heading: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def extract_markdown_section_before(
+    markdown: str, heading: str, stop_headings: list[str]
+) -> str | None:
+    start_pattern = rf"(?im)^##+\s*{re.escape(heading)}\s*$"
+    start_match = re.search(start_pattern, markdown)
+    if not start_match:
+        return None
+    stop_alternatives = "|".join(
+        re.escape(stop_heading) for stop_heading in stop_headings
+    )
+    stop_pattern = rf"(?im)^##+\s*(?:{stop_alternatives})\s*$"
+    stop_match = re.search(stop_pattern, markdown[start_match.end() :])
+    section_end = (
+        start_match.end() + stop_match.start()
+        if stop_match
+        else len(markdown)
+    )
+    return markdown[start_match.end() : section_end].strip()
+
+
 def derive_artifact_file_contents(
     skill: dict[str, Any], artifact: str
 ) -> dict[str, str]:
@@ -38,9 +58,15 @@ def derive_artifact_file_contents(
     contents = {primary_name: artifact}
     if secondary_name:
         edited_blog = (
-            extract_markdown_section(artifact, "Edited Blog")
-            or extract_markdown_section(artifact, "edited_blog")
-            or extract_markdown_section(artifact, "Edited Draft")
+            extract_markdown_section_before(
+                artifact, "Edited Blog", ["Edit Log", "edit_log"]
+            )
+            or extract_markdown_section_before(
+                artifact, "edited_blog", ["Edit Log", "edit_log"]
+            )
+            or extract_markdown_section_before(
+                artifact, "Edited Draft", ["Edit Log", "edit_log"]
+            )
             or artifact
         )
         edit_log = (

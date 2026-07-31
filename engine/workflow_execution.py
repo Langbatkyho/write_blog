@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -9,7 +10,7 @@ from typing import Any, Callable
 from engine.openai_client import call_openai, get_openai_options
 from engine.parser import build_context_package, estimate_tokens, parse_stage_response
 from engine.style_manager import validate_style_contract
-from engine.utils import load_yaml, read_text, resolve_path
+from engine.utils import load_yaml, read_text, resolve_path, auto_git_sync
 from engine.workflow_artifacts import append_run_log, derive_artifact_file_contents
 from engine.workflow_context import build_dry_run_response, build_step_prompt
 from engine.workflow_contracts import (
@@ -138,11 +139,12 @@ def run_workflow(
     run_dir: Path | None = None
     log_file: Path | None = None
     if should_persist:
-        log_root = (
-            output_root.resolve()
-            if output_root is not None
-            else resolve_path(config.get("workflow", {}).get("log_dir", "runs"))
-        )
+        if output_root is not None:
+            log_root = output_root.resolve()
+        elif os.environ.get("RENDER"):
+            log_root = resolve_path("web_runs")
+        else:
+            log_root = resolve_path(config.get("workflow", {}).get("log_dir", "runs"))
         repository = RunRepository(log_root)
         run_dir = repository.create(author_input, style, mode)
         log_file = run_dir / "run_log.md"
@@ -388,6 +390,8 @@ def run_workflow(
     )
     if repository and run_dir:
         repository.write_metadata(run_dir, metadata)
+        if final_status == "completed" and should_persist:
+            auto_git_sync(str(run_dir), f"feat(run): Tự động lưu blog workflow {run_dir.name}")
     if terminal_error:
         raise terminal_error
     result = WorkflowRunResult(

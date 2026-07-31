@@ -8,26 +8,7 @@ Bạn có thể điền mẫu này rồi đưa cho AI cùng với yêu cầu:
 title: Kết nối
 
 raw_notes:
-14 năm mới lại được đắm mình trong hoàng hôn. 2h đêm thao thức. 4h30 sáng trở dây để chỉ thấy trời đầy sao. 6h sáng rét căm căm trên đỉnh đồi Tà Xùa Lu Trế (tầm 2.000m) chờ đón giây phút huy hoàng của đất trời.🤩
-
-
-Lần này khác đi, đặt chế độ Time lapse với tripod bằng cơm 😃. Tự nhủ mình về Tỉnh thức để sống trọn vẹn từng khoảnh khắc, để tận hưởng màn trình diễn ánh sáng diễm lệ. 
-
-
-Trước kia đi phượt ham chụp ảnh, tí toáy căn chỉnh bố cục, khẩu độ, tốc độ cửa chập, độ phơi sáng mà quên đi mất vẻ đẹp chỉ tồn tại trong khoảnh khắc hiện tại, trong đôi mắt kẻ si tình mà thôi. 😇
-
-
-Không gì diễn tả được bằng lời. Chỉ thấy niềm vui ấm áp trào dâng lên lồng ngực, lan ra đôi tay tê cóng. Cảm nhận từng dải sắc màu nhảy múa, ánh thái dương loé lên sáng dần rồi vầng mặt trời đỏ ối rẽ bức tường mây chì cuối chân trời thăng hoa. 🌷
-
-
-Lúc ý, mình được trọn vẹn là phiên bản Tự do. 🥳 Lòng dào dạt an lạc và ngân nga câu hát:
-
-
-"Here comes the sun, here comes the sun
-and I say, it's alright!" 🍀🍀🍀
-
-target_reader:
-- Những người yêu thiên nhiên, thích du lịch, quan tâm đến đời sống tinh thần
+Từ nhỏ tới giờ mình luôn có sự kết nối đặc biệt và trọn vẹn với thiên nhiên, như thể đó là thế giới thực sự mình thuộc về. Mỗi lá cây, cánh hoa, sợi nắng, vạt mây, làn gió… đều luôn như đang trò chuyện đón nhận mình, cho mình niềm vui sướng, nhẹ nhõm, sức sống. Mình tìm thấy mình là phiên bản tốt đẹp nhất và kết nối với chính mình trọn vẹn khi sống trong những khoảnh khắc đó. Những lúc khác, sợi dây kết nối bản thân không trọn vẹn, thường đứt quãng, nó là sự soi chiếu quan sát và phán xét, vật lộn với bản thân nhiều hơn. Vì lẽ đó mà sự kết nối với mọi người rất yếu. Lòng trắc ẩn tự nhiên mai một dần. Mình rất sợ hãi khi nhìn ra điều đó. Và mình biết phải làm gì: mình đang học cách chấp nhận thất bại, không hoàn hảo, yêu thương bản thân ở mọi phiên bản, thu hẹp và cố gắng nuôi dưỡng vòng tròn nhỏ quan hệ tích cực với những người mình yêu thương. Làm được vậy là mình thấy mình tiến bộ lắm. Mình đang trên hành trình đó, giống như leo lên đỉnh đồi và đường đi liên tục trơn trượt ngã trôi về vạch xuất phát. Nhưng mình đã và sẽ không bỏ cuộc - nhất là khi được chia sẻ và ghi nhận với những người thấu hiểu như là happiLab .
 
 desired_length:
 dưới 600 từ

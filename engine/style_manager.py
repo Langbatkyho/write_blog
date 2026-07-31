@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Tuple, List, Dict, Optional
 import yaml
 
-from engine.utils import resolve_path, write_text, load_yaml, read_text
+from engine.utils import resolve_path, write_text, load_yaml, read_text, auto_git_sync
 from engine.workflow_contracts import (
     WorkflowDefinition,
     validate_step_skill_contract,
@@ -332,6 +332,7 @@ def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[
             )
         validate_style_directory(mode, slug, staging_dir)
         commit_staged_directory(staging_dir, style_dir)
+        auto_git_sync(str(style_dir), f"feat(style): Cập nhật file {filename} của style {slug}")
         return True, "", warn
     except Exception as e:
         if staging_dir and staging_dir.exists():
@@ -382,6 +383,7 @@ def create_style(
         )
         validate_style_directory(mode, slug, staging_dir)
         commit_staged_directory(staging_dir, target_dir)
+        auto_git_sync(str(target_dir), f"feat(style): Tạo mới style {slug}")
         return True, ""
     except Exception as e:
         if staging_dir and staging_dir.exists():
@@ -449,8 +451,10 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
         )
         if old_slug == new_slug:
             commit_staged_directory(staging_dir, style_dir)
+            auto_git_sync(str(style_dir), f"feat(style): Cập nhật tên của style {new_slug}")
         else:
             commit_staged_rename(staging_dir, style_dir, target_dir)
+            auto_git_sync(str(style_dir.parent), f"feat(style): Đổi tên style {old_slug} thành {new_slug}")
         return True, ""
     except Exception as e:
         if staging_dir and staging_dir.exists():
@@ -483,6 +487,10 @@ def delete_style(mode: str, slug: str) -> Tuple[bool, str]:
     try:
         trash_root = resolve_path(f"profile_history/style_trash/{mode}")
         trash_path = move_to_trash(style_dir, trash_root)
+        auto_git_sync(
+            [str(style_dir.parent), str(trash_path)], 
+            f"feat(style): Xoá style {slug} và chuyển vào thùng rác"
+        )
         return True, f"Style đã chuyển vào thùng rác: {trash_path}"
     except Exception as e:
         return False, f"Lỗi khi xóa folder style: {str(e)}"

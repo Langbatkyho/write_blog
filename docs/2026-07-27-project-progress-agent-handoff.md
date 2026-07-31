@@ -630,3 +630,163 @@ Worktree còn thay đổi nội dung/style của người dùng, không được
 Voice Lab Gemini-only.
 Không còn task P1; task tiếp theo cần phạm vi mới được người dùng phê duyệt.
 ```
+
+---
+
+## 15. Báo cáo Audit Cross-Review (Claude Opus 4.6)
+
+> **Reviewer:** Claude Opus 4.6 (Thinking) | **Ngày:** 2026-07-28  
+> **Plan:** [2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghiên cứu AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)  
+> **Handoff:** [2026-07-27-project-progress-agent-handoff.md](file:///D:/Nghiên cứu AI/write_blog/docs/2026-07-27-project-progress-agent-handoff.md)  
+> **Phạm vi:** Voice Lab refactor (P0) + P1 consolidation | **Test:** 111 passed, 0 failed  
+> **Phương pháp:** 4 audit subagent song song + manual cross-verification trên source code
+
+### 15.1. 🔍 ĐỐI CHIẾU SỰ TUÂN THỦ (PLAN VS IMPLEMENTATION)
+
+| Mã Task | Tên Task (Trong PLAN) | Trạng thái | Ghi chú kỹ thuật nhanh |
+| :--- | :--- | :--- | :--- |
+| §3.2 | `DimensionProfile` nested model 8 trường | ✅ Đạt | [models.py:35-43](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/models.py#L35-L43) — đúng 8 trường, `StrictModel(extra="forbid")` |
+| §3.3 | `EvidenceClaim` v2 (`exact_quote`, `stance`, `rejection_reason`) | ✅ Đạt | [models.py:68-84](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/models.py#L68-L84) — có compat alias `quote` → `exact_quote` |
+| §3.4 | `StyleProfile` bổ sung (`analysis_status`, history, `base_style_slug`) | ✅ Đạt | [models.py:129-157](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/models.py#L129-L157) — `enforce_publish_state` validator đúng |
+| §3.5 | `AnalysisResult` / `AnalysisError` 4 mã lỗi | ✅ Đạt | [models.py:173-204](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/models.py#L173-L204) — đủ 4 error code |
+| §3.1 | `schema_version=2`, `revision`, reader v1→v2 | ✅ Đạt | L10 `SCHEMA_VERSION=2`, L130 `Literal[2]`, `migrate_profile_data` idempotent |
+| §2.2 | Tách `prompts.py`, `parser.py`, `publisher.py` | ✅ Đạt | 3 file mới tồn tại + thêm 3 sub-module facade: `interview_routing.py`, `profile_patch.py`, `calibration.py` |
+| §4.1 | Tách analyzer thành orchestrator thuần | ✅ Đạt | [analyzer.py](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/analyzer.py) — gọi `prompts` + `parser`, không parse trực tiếp |
+| §4.2 | Adaptive routing theo token budget | ✅ Đạt | L29 `DEFAULT_CONTEXT_TOKENS=200_000`, L40-46 env-var override, L220-223 so sánh `total_tokens <= input_budget` |
+| §4.3 | Confidence tính bằng code, đúng công thức + trần | ✅ Đạt | [parser.py:86-104](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/parser.py#L86-L104) — `0.45*cov + 0.35*cons + 0.20*qv`, cap 0.55/0.75/0.90 |
+| §4.4 | An toàn prompt injection: JSON serialize, không `sanitize_sample` | ✅ Đạt | [prompts.py:78](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/prompts.py#L78) `json.dumps(samples)`, AN TOÀN block; `sanitize_sample()` xóa sạch (grep=0) |
+| §5.1 | Prompt 6 khối + `temperature=0.1` + structured output | ✅ Đạt | Prompt đủ VAI TRÒ/AN TOÀN/NHIỆM VỤ/OUTPUT; `_call_structured` L58 `temperature=0.1` + `response_mime_type` + `response_schema` |
+| §5.2 | Tổng hợp multi-pass: chỉ evidence verified | ✅ Đạt | [prompts.py:109-134](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/prompts.py#L109-L134) — không gửi lại raw samples |
+| §5.3 | Interview patch qua Gemini + review trước khi áp dụng | ✅ Đạt | `propose_interview_patch` → `apply_interview_patch(confirmed=True)` — raises ValueError if `confirmed=False` |
+| §5.4 | A/B: `variant_amplified`/`restrained`, `temperature=0.6`, no bias | ✅ Đạt | [calibration.py:63](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/calibration.py#L63) `temperature=0.6`, [calibration.py:106-111](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/calibration.py#L106-L111) random shuffle |
+| §6.1 | Chọn dimension yếu, max 3/vòng | ✅ Đạt | [interview_routing.py:46,68](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/interview_routing.py#L46) — `min(max_questions, 3)` |
+| §6.2 | `CalibrationSession` lưu `shuffle_mapping` | ✅ Đạt | [models.py:113-121](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/models.py#L113-L121) — đầy đủ 7 trường + `__iter__` compat |
+| §6.2 | `apply_calibration_selection` cập nhật strength/examples/history | ⚠️ Sai lệch nhẹ | [calibration.py:121-162](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/calibration.py#L121-L162) — cập nhật profile đúng nhưng **không tự gọi `compile_style`**. Plan yêu cầu "rồi compile lại đúng các agent bị ảnh hưởng". Thực tế caller (UI) phải tự compile — chấp nhận được kiến trúc nhưng lệch literal plan |
+| §7.1 | Bỏ `_load_base_skill` duyệt `iterdir()` | ✅ Đạt | [compiler.py:110-121](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/compiler.py#L110-L121) — đường dẫn xác định `skills/{mode}/{base_style_slug}/{filename}` |
+| §7.2 | Canonical IR full-template overlay, deep-copy, giữ invariant | ✅ Đạt | [compiler.py:246](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/compiler.py#L246) `copy.deepcopy(base)`, invariant check L261-263; `prompt`/`style_rules` đã xóa; `extra="forbid"` qua `StrictModel` |
+| §7.3 | Phát hiện xung đột `do`∩`avoid`, overlay sửa invariant | ✅ Đạt | [compiler.py:155-162](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/compiler.py#L155-L162), L261-263 |
+| §7.4 | Overrides: bỏ `resolve_conflict_with_llm`, `MergeResult` explicit | ✅ Đạt | [overrides.py](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/overrides.py) — `IR_LEVEL_INVARIANTS`, three-way merge, `MergeConflict` |
+| §8.1 | Migration: `dna=None`, `analysis_status="incomplete_legacy_data"` | ✅ Đạt | [migration.py:53-54](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/migration.py#L53-L54), L118-120, L173 — không còn `VoiceDNA()` rỗng |
+| §8.2 | Archive: `schema_version=2`, v1 migration, reject future, checksum | ✅ Đạt | [archive.py:50](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/archive.py#L50), L83-87, L92-98, path traversal L17-19 |
+| §8.3 | Publish Safety Pipeline: staging→validate→backup→atomic→rollback | ✅ Đạt | [publisher.py:162-231](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/publisher.py#L162-L231) — tombstone pattern, rollback on exception |
+| §8.3 | Profile chưa `confirmed`/`complete` bị chặn | ✅ Đạt | [publisher.py:43-46](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/publisher.py#L43-L46) |
+| §8.3 | Protected style không bị ghi đè | ✅ Đạt | [publisher.py:183-188](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/publisher.py#L183-L188) |
+| §2.3 | `gemini_client.py`: `response_mime_type`/`response_schema` SDK+REST | ✅ Đạt | [gemini_client.py:149-221](file:///D:/Nghiên cứu AI/write_blog/engine/gemini_client.py#L149-L221) — cả SDK lẫn REST path |
+| §2.3 | Không retry chồng tại analyzer | ✅ Đạt | `_call_structured` gọi 1 lần; test xác nhận `calls["count"]==1` |
+| §12 | Không có OpenAI/Antigravity import trong voice_lab | ✅ Đạt | grep xác nhận 0 match cả hai pattern |
+| §10 | Test bao phủ đầy đủ 11 category | ✅ Đạt | [test_voice_lab.py](file:///D:/Nghiên cứu AI/write_blog/tests/test_voice_lab.py) — 44 test functions, 0 API thật, 0 ghi `runs/` |
+| §10.5 | Regression: deep + moment mode compile/publish | ✅ Đạt | `test_moment_mode_compiles_and_publishes_all_required_agents` |
+| §9 GĐ6 | Cập nhật `current_architecture.md` | ⚠️ Thiếu sót | File đã cập nhật `prompts.py`, `parser.py`, `publisher.py` nhưng **thiếu 3 sub-module** (`interview_routing.py`, `profile_patch.py`, `calibration.py`) + **thiếu 7 workflow module** (`workflow_contracts.py`, `workflow_execution.py`, `workflow_persistence.py`, `workflow_context.py`, `workflow_resolution.py`, `workflow_artifacts.py`, `workflow_learning.py`) + **thiếu `style_contracts.py`, `style_repository.py`** |
+
+**Tổng kết:** 30/32 task **Đạt**, 1 **Sai lệch nhẹ** (chấp nhận được), 1 **Thiếu sót** (docs chưa phản ánh kiến trúc mới đầy đủ).
+
+### 15.2. ⚡ TỐI ƯU HÓA WORKFLOW & KIẾN TRÚC
+
+- **Lỗi crash / bảo mật nghiêm trọng:** Không phát hiện.
+  - Gemini lỗi → `AnalysisError` có `retryable` flag.
+  - Path traversal → chặn bằng `_safe_member()` (archive) + `validate_slug()` (publisher).
+  - Prompt injection → JSON serialize + security block trong prompt.
+  - API key không leak qua log hoặc error message.
+  - Quota guardrail: reject `input_too_large` trước khi gọi API ([analyzer.py:61-72](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/analyzer.py#L61-L72)).
+
+- **Lệch pha Data Contract:**
+  - `CanonicalIR.output_contract`, `handoff_contract`, `context_policy` dùng `Optional[Dict[str, Any]]` — **đã sửa** từ `Any` theo audit trước. Legacy scalar được normalize qua `_contract_object()` ([compiler.py:197-203](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/compiler.py#L197-L203)). Chấp nhận được.
+  - `prompt` và `style_rules` dư thừa trong `CanonicalIR` — **đã xóa**. `effective_skill` là nguồn duy nhất. ✅
+  - Tất cả strict model dùng `extra="forbid"` qua `StrictModel` base class. ✅
+
+- **Trùng lặp / Thừa thãi:**
+  - ~~`_profile_confidence()` trùng giữa `analyzer.py` và `interview.py`~~ → **ĐÃ SỬA**: gom vào `compute_profile_confidence()` tại [models.py:160-170](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/models.py#L160-L170), dùng chung bởi `analyzer.py`, `calibration.py`, `profile_patch.py`. ✅
+  - ~~`sanitize_sample()` dead code~~ → **ĐÃ XÓA**: grep = 0 match. ✅
+  - ~~`INVARIANT_FIELDS` khai báo 2 lần tên giống~~ → **ĐÃ SỬA**: đổi thành `SKILL_LEVEL_INVARIANTS` ([compiler.py:86](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/compiler.py#L86)) và `IR_LEVEL_INVARIANTS` ([overrides.py:8](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/overrides.py#L8)). ✅
+  - ~~Unreachable `else` clause trong migration.py~~ → **ĐÃ SỬA**: audit xác nhận tất cả branch đều reachable. ✅
+  - **Còn lại:** `current_architecture.md` chưa liệt kê đủ module mới (xem task §9 GĐ6 ở trên).
+
+### 15.3. 🛠️ VECTOR TINH CHỈNH CODEBASE (REFACTOR VECTORS)
+
+---
+
+**Vị trí:** [current_architecture.md](file:///D:/Nghiên cứu AI/write_blog/docs/current_architecture.md) — directory tree L33-44  
+**Vấn đề:** Thiếu 12 module mới: `interview_routing.py`, `profile_patch.py`, `calibration.py` (voice_lab) + `workflow_contracts.py`, `workflow_execution.py`, `workflow_persistence.py`, `workflow_context.py`, `workflow_resolution.py`, `workflow_artifacts.py`, `workflow_learning.py`, `style_contracts.py`, `style_repository.py` (engine). Tài liệu không phản ánh kiến trúc thực tế → agent kế tiếp sẽ làm việc dựa trên bản đồ sai.  
+**Giải pháp Refactor gọn:**
+```diff
+ │       ├── interview.py      # Interview patch + Blind A/B có shuffle mapping
++│       ├── interview_routing.py  # Chọn dimension yếu, sinh câu hỏi (max 3/vòng)
++│       ├── profile_patch.py      # Propose & apply interview patch có xác nhận
++│       ├── calibration.py        # Blind A/B session + apply selection
+ │       ├── compiler.py       # Full-template overlay qua Adjacency Matrix
+```
+
+---
+
+**Vị trí:** [compiler.py:110-115](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/compiler.py#L110-L115) — `_load_base_skill` legacy fallback  
+**Vấn đề:** Khi `mode == "deep"`, nếu `skills/{mode}/{slug}/{file}` không tồn tại thì fallback sang `skills/{slug}/{file}` (đường dẫn cũ). Plan §7.1 nói "fail-fast" khi thiếu base. Fallback này âm thầm load file từ thư mục không chuẩn, có thể gây nhầm lẫn khi migrate skill layout.  
+**Giải pháp Refactor gọn:**
+```python
+# Thêm warning log khi dùng legacy path:
+import logging
+_log = logging.getLogger(__name__)
+if not candidate.exists() and mode == "deep":
+    legacy = resolve_path(f"skills/{base_style_slug}/{filename}")
+    if legacy.exists():
+        _log.warning("Legacy skill path %s; nên migrate sang skills/%s/%s/", legacy, mode, base_style_slug)
+        candidate = legacy
+```
+
+---
+
+**Vị trí:** [calibration.py:141](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/calibration.py#L141) — `apply_calibration_selection`  
+**Vấn đề:** Sau khi user chọn A/B, `dimension.confidence` bị set cứng `max(current, 0.95)` bất kể evidence gốc có bao nhiêu. Plan §4.3 nói calibration "có thể nâng tối đa 0.95, nhưng phải lưu provenance". Hàm luôn nâng lên 0.95 thay vì nâng từ giá trị hiện tại một khoảng hợp lý. Nếu evidence gốc chỉ có confidence 0.3, một lần chọn A/B không nên nhảy thẳng lên 0.95.  
+**Giải pháp Refactor gọn:**
+```python
+# Nâng confidence tối đa 0.2 mỗi lần, ceil 0.95:
+calibration_boost = 0.20
+dimension.confidence = min(0.95, dimension.confidence + calibration_boost)
+```
+
+---
+
+**Vị trí:** [analyzer.py:35-37](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/analyzer.py#L35-L37) — `estimate_tokens`  
+**Vấn đề:** Token estimator dùng `len(text) // 4` — heuristic phù hợp cho Latin text nhưng **quá thấp** cho tiếng Việt (UTF-8 multi-byte, mỗi từ ~2-4 token BPE, mỗi ký tự UTF-8 ~2-3 bytes). Ước lượng thấp → routing sai (chọn single-pass khi thực tế vượt budget).  
+**Giải pháp Refactor gọn:**
+```python
+def estimate_tokens(text: str) -> int:
+    """Conservative estimate cho Vietnamese text (UTF-8 heavy)."""
+    byte_len = len(text.encode("utf-8"))
+    return max(1, (byte_len + 2) // 3)  # ~3 bytes/token thay vì 4 chars
+```
+
+---
+
+**Vị trí:** [publisher.py:213-220](file:///D:/Nghiên cứu AI/write_blog/engine/voice_lab/publisher.py#L213-L220) — rollback exception handler  
+**Vấn đề:** Nếu `os.replace(staging_dir, runtime_dir)` raise OSError nhưng `runtime_dir` đã bị xóa (tombstone đã swap), handler cố `shutil.rmtree(runtime_dir)` trước khi restore tombstone. Nếu `runtime_dir` không tồn tại ở thời điểm đó, `shutil.rmtree` dùng `ignore_errors=True` nên không crash, nhưng logic ưu tiên sai: nên restore tombstone **trước** rồi mới cleanup.  
+**Giải pháp Refactor gọn:**
+```python
+except Exception:
+    # Restore trước, cleanup sau:
+    if runtime_moved and tombstone.exists():
+        if runtime_dir.exists():
+            shutil.rmtree(runtime_dir, ignore_errors=True)
+        os.replace(tombstone, runtime_dir)
+    if staging_dir.exists():
+        shutil.rmtree(staging_dir, ignore_errors=True)
+    raise
+```
+
+---
+
+> [!IMPORTANT]
+> **Ưu tiên sửa:** (1) `current_architecture.md` — ảnh hưởng mọi agent kế tiếp, (2) `estimate_tokens` — ảnh hưởng routing cho Vietnamese text, (3) `calibration confidence jump` — ảnh hưởng chất lượng profile. Các vector còn lại là cải thiện phòng vệ (defense-in-depth), không chặn workflow hiện tại.
+
+---
+
+## 16. Kết quả triển khai phản biện GPT-5.6 Sol
+
+**Ngày:** 2026-07-28  
+**Trạng thái:** Hoàn tất
+
+- Đồng bộ `current_architecture.md` với toàn bộ module engine, Voice Lab và UI đã tách.
+- Xóa legacy compiler fallback; base skill chỉ được đọc từ `skills/<mode>/<style>/`.
+- Thay token heuristic bằng estimator Unicode bảo thủ; chunk tuân thủ estimated budget.
+- Giữ confidence `0.95` cho xác nhận A/B trực tiếp theo plan, đồng thời lưu before/after và provenance.
+- Giữ rollback chính hiện hành; nếu restore thứ cấp thất bại, bảo toàn tombstone và trả `PublishRollbackError`.
+- Kiểm chứng: **124/124 test pass**, 4 parser subtest pass; không API thật; `runs/` bất biến.

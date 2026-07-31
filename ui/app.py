@@ -11,20 +11,17 @@ if str(ROOT) not in sys.path:
 from engine.style_manager import list_styles
 from engine.utils import read_text
 from ui.state import initialize_session_state, switch_mode
-from ui.views.editor import render_editor
 from ui.views.gallery import render_gallery
 from ui.views.voice_lab import render_voice_lab
 from ui.views.workbench import render_workbench
+from ui.views.blog_workflow import render_blog_workflow
 
 
-try:
-    from code_editor import code_editor
-except ImportError:
-    code_editor = None
+
 
 
 st.set_page_config(
-    page_title="Antigravity Mindful Writing OS",
+    page_title="Nhà xuất bản happiLab",
     page_icon="✍️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -38,7 +35,7 @@ if css_path.exists():
 initialize_session_state(st.session_state)
 
 with st.sidebar:
-    st.markdown("### 🧭 Chế độ viết")
+    st.markdown("### 🧭 Chọn loại blog")
     selected_mode = st.radio(
         "Writing Mode",
         options=["deep", "moment"],
@@ -52,26 +49,34 @@ with st.sidebar:
     )
     if switch_mode(st.session_state, selected_mode):
         st.rerun()
-    st.caption("Voice Lab dùng Gemini API; Workbench preview không gọi API.")
+        
+    st.divider()
+    st.markdown("### 🗂️ Menu chính")
+    main_menu = st.radio(
+        "Menu chức năng",
+        options=["Viết bài blog", "Quản lý phong cách viết"],
+        key="main_menu_radio",
+        label_visibility="collapsed",
+    )
 
 mode = st.session_state.mode
 styles = list_styles(mode)
-st.title("✍️ Antigravity Mindful Writing OS")
+st.title("✍️ Nhà xuất bản happiLab")
 st.markdown(f"Chế độ hiện tại: `{mode.upper()}`")
 
-gallery, studio, editor, workbench = st.tabs(
-    [
-        "📚 Style Gallery",
-        "🎨 Style Studio",
-        "💻 YAML Code Editor",
-        "🧪 Live Workbench",
-    ]
-)
-with gallery:
-    render_gallery(styles, mode)
-with studio:
-    render_voice_lab(mode)
-with editor:
-    render_editor(styles, mode, code_editor=code_editor)
-with workbench:
-    render_workbench(styles, mode)
+if main_menu == "Viết bài blog":
+    render_blog_workflow(styles, mode)
+else:
+    quang_tri, tao_moi, thu_nghiem = st.tabs(
+        [
+            "📚 Quản trị phong cách viết",
+            "🎨 Tạo mới phong cách viết",
+            "🧪 Thử nghiệm phong cách viết",
+        ]
+    )
+    with quang_tri:
+        render_gallery(styles, mode)
+    with tao_moi:
+        render_voice_lab(mode)
+    with thu_nghiem:
+        render_workbench(styles, mode)

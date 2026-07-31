@@ -1,6 +1,6 @@
 # Chỉ Dẫn Chạy Moment Blog Bằng Local Model Quota Trên ChatGPT Work
 
-Ngày cập nhật: 2026-07-26
+Ngày cập nhật: 2026-07-28
 
 ## Mục tiêu
 
@@ -63,11 +63,29 @@ gentle_witness.yaml
 
 ## Cách chạy
 
-Workflow Antigravity là file bridge. Khi chạy, engine sẽ tạo prompt ở:
+Workflow Antigravity là file bridge. Khi chạy, engine tạo một run folder mới ngay khi bắt đầu, rồi tạo prompt ở:
 
 ```text
 runs/temp_llm/
 ```
+
+Điều này có nghĩa là:
+
+- mỗi lần khởi động lệnh workflow sẽ tạo một run folder mới trong `runs/`;
+- nhiều lần khởi động cùng input/title có thể tạo nhiều folder cùng slug, ví dụ cùng chứa `_moment_va-natural_...`;
+- chỉ coi run là kết quả cuối khi `metadata.json` có `"status": "completed"`;
+- run có `"status": "failed"` là lần đã lỗi hoặc timeout;
+- run còn `"status": "running"` nhưng không còn process/prompt đang chờ thường là lần khởi động dở hoặc stale, không phải output cuối.
+
+Trước khi chạy lại, nên kiểm tra nhanh có prompt Antigravity nào đang chờ không:
+
+```powershell
+Get-ChildItem runs/temp_llm -Filter 'prompt_*.txt' |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 10 Name,LastWriteTime
+```
+
+Nếu có prompt cũ, phải xác định nó thuộc lần chạy nào trước khi ghi response. Không ghi response cho prompt cũ nếu bạn đang muốn bắt đầu một workflow mới.
 
 Mỗi stage tạo một file:
 
@@ -253,13 +271,49 @@ Tránh để ký tự BOM hoặc dòng trống lạ đứng trước `## Artifac
 
 ## Kiểm tra sau khi chạy
 
-Tìm run mới nhất:
+Tìm các run mới nhất:
 
 ```powershell
 Get-ChildItem runs -Directory |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 5 Name,LastWriteTime
 ```
+
+Không chọn run chỉ dựa vào tên slug. Hãy kiểm tra trạng thái:
+
+```powershell
+Select-String -Path 'runs/<run_folder>/metadata.json' `
+  -Pattern '"status"|"completed_at"|"api_called"|"provider"|"model"|"mode"|"style"'
+```
+
+Kỳ vọng với run hoàn tất:
+
+```text
+status      -> completed
+provider    -> antigravity
+api_called  -> false
+mode        -> moment
+style       -> va-natural
+```
+
+Nếu có nhiều folder cùng slug, phân loại như sau:
+
+```powershell
+$runs = Get-ChildItem runs -Directory | Where-Object { $_.Name -like '*_moment_va-natural_*' }
+foreach ($run in $runs) {
+  "--- $($run.Name)"
+  Select-String -Path (Join-Path $run.FullName 'metadata.json') `
+    -Pattern '"status"|"created_at"|"completed_at"|"api_called"' |
+    ForEach-Object { $_.Line.Trim() }
+}
+```
+
+Quy ước đọc kết quả:
+
+- `completed`: run thành công, dùng folder này để lấy `final_blog.md`;
+- `failed`: run lỗi hoặc timeout, chỉ dùng để audit;
+- `running`: chỉ tin là đang chạy nếu còn process workflow hoặc prompt mới đang chờ response;
+- `running` nhưng không có prompt/process liên quan: coi là stale/abandoned, không dùng làm output cuối.
 
 Run thành công cần có:
 
@@ -287,7 +341,8 @@ Select-String -Path 'runs/<run_folder>/run_log.md' -Pattern 'ERROR|Timeout|Trace
 Kiểm tra metadata:
 
 ```powershell
-Select-String -Path 'runs/<run_folder>/metadata.json' -Pattern '"workflow_file"|"input_file"|"style"|"mode"'
+Select-String -Path 'runs/<run_folder>/metadata.json' `
+  -Pattern '"workflow_file"|"input_file"|"style"|"mode"|"dry_run"|"status"|"api_called"'
 ```
 
 Kỳ vọng:
@@ -298,6 +353,8 @@ input_file    -> examples/moment_1.md
 style         -> va-natural
 mode          -> moment
 dry_run       -> false
+status        -> completed
+api_called    -> false
 ```
 
 Đếm từ bài cuối:
@@ -330,6 +387,28 @@ Kết quả:
 - số từ bài cuối: 237;
 - không còn prompt đang chờ trong `runs/temp_llm/`;
 - không còn Python workflow process treo sau khi hoàn tất.
+
+## Khi có nhiều run cùng slug
+
+Nếu thấy nhiều folder cùng chứa một phần tên như `_moment_va-natural_người-vô-sự`, đó không nhất thiết là lỗi ghi đè. Engine chủ động tạo run ID collision-safe bằng timestamp + UUID, nên mỗi lần khởi động lệnh là một folder sibling mới.
+
+Nguyên nhân thường gặp:
+
+- lệnh workflow được chạy nhiều lần;
+- lần trước timeout khi chờ Antigravity response;
+- process bị dừng giữa chừng sau khi đã tạo run folder;
+- người vận hành tạo response cho prompt cũ, rồi chạy lại workflow mới.
+
+Không tự xóa các run này. Theo quy tắc dữ liệu của repo, run cũ là dữ liệu nghiệp vụ. Nếu cần dọn, trước hết phải lập danh sách đường dẫn tuyệt đối, phân loại trạng thái bằng `metadata.json`, rồi xin phê duyệt phạm vi xóa cụ thể.
+
+Khi báo cáo kết quả, luôn ghi rõ:
+
+```text
+Run thành công: runs/<completed_run_folder>
+Status: completed
+Output chính: runs/<completed_run_folder>/final_blog.md
+Các run cùng slug khác: failed/running/stale, chỉ dùng để audit
+```
 
 ## Prompt điều phối nhanh cho ChatGPT Work
 
@@ -378,9 +457,11 @@ Stage order:
 Yêu cầu riêng:
 
 - dùng đúng style `va-natural`;
+- không khởi động lại workflow nếu đã có prompt mới đang chờ response cho chính lần chạy hiện tại;
+- nếu có nhiều folder cùng slug, chỉ lấy kết quả từ run có `metadata.json` ghi `"status": "completed"`;
 - với `moment_writer` và `breath_editor`, giữ bài dưới 300 từ;
 - artifact của `breath_editor` chỉ nên chứa bài cuối, không kèm edit log;
 - sau khi hoàn tất, tạo hoặc xác nhận `final_blog.md`;
 - đếm từ `final_blog.md`;
-- báo lại run folder, output chính, số từ, mode/style, và lỗi nếu có.
+- báo lại run folder completed, output chính, số từ, mode/style, api_called, và các run cùng slug đang failed/running/stale nếu có.
 ````

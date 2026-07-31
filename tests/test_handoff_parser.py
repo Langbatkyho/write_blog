@@ -144,6 +144,37 @@ Edited article body.
         self.assertEqual(contents["edited_blog.md"], "Edited article body.")
         self.assertEqual(contents["edit_log.md"], "- Merged two paragraphs.")
 
+    def test_secondary_artifact_keeps_internal_blog_headings(self) -> None:
+        skill = {
+            "output": {
+                "name": "edited_blog.md",
+                "secondary_name": "edit_log.md",
+            }
+        }
+        artifact = """## Edited Blog
+
+# Kết nối
+
+## Nơi mình thuộc về
+
+Edited article section.
+
+## Vẫn đi tiếp
+
+Another edited article section.
+
+## Edit Log
+
+- Merged two paragraphs.
+"""
+
+        contents = derive_artifact_file_contents(skill, artifact)
+
+        self.assertIn("## Nơi mình thuộc về", contents["edited_blog.md"])
+        self.assertIn("## Vẫn đi tiếp", contents["edited_blog.md"])
+        self.assertNotIn("## Edit Log", contents["edited_blog.md"])
+        self.assertEqual(contents["edit_log.md"], "- Merged two paragraphs.")
+
     def test_secondary_fallback_when_heading_missing(self) -> None:
         import warnings
         skill = {
