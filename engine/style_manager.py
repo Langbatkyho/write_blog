@@ -341,11 +341,15 @@ def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[
         commit_staged_directory(staging_dir, style_dir)
         
         # Sync file đã sửa lên Supabase
-        upsert_style_file(mode, slug, filename, content)
-        if meta_path.exists():
-            upsert_style_file(mode, slug, "style_meta.yaml", read_text(meta_path))
+        if not upsert_style_file(mode, slug, filename, content):
+            warn += " ⚠️ Lưu local OK nhưng sync Supabase thất bại."
             
-        return True, "", warn
+        committed_meta = style_dir / "style_meta.yaml"
+        if committed_meta.exists():
+            if not upsert_style_file(mode, slug, "style_meta.yaml", read_text(committed_meta)):
+                warn += " ⚠️ Sync style_meta.yaml lên Supabase thất bại."
+            
+        return True, "", warn.strip()
     except Exception as e:
         if staging_dir and staging_dir.exists():
             shutil.rmtree(staging_dir, ignore_errors=True)
