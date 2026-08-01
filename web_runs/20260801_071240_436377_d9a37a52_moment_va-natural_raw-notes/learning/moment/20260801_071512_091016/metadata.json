@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-08-01T07:15:12.090971+00:00",
+  "config_file": "/opt/render/project/src/engine/config.example.yaml",
+  "workflow_file": "/opt/render/project/src/flow/write_moment_blog.yaml",
+  "source_run_dir": "/opt/render/project/src/web_runs/20260801_071240_436377_d9a37a52_moment_va-natural_raw-notes",
+  "production_file": "/opt/render/project/src/web_runs/20260801_071240_436377_d9a37a52_moment_va-natural_raw-notes/production_blog.md",
+  "dry_run": false,
+  "offline": false,
+  "run_source": "ui",
+  "persisted": true,
+  "api_attempted": true,
+  "api_called": true,
+  "status": "completed",
+  "provider": "gemini",
+  "client_map": null,
+  "style": "va-natural",
+  "mode": "moment"
+}
