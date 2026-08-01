@@ -1,0 +1,134 @@
+{
+  "sensory_capture": {
+    "status": "completed",
+    "artifact": "```markdown\n# sensory_notes.md\n\n### central_moment\nKhoảnh khắc ngửa cổ lên trời ngắm nhìn vòm lá xanh, sạc lại năng lượng tinh thần giữa những bộn bề thường nhật, mặc kệ lời trêu đùa về sự \"vô dụng\".\n\n### visible_scene\n- Bầu trời phía trên cao khi ngửa cổ nhìn lên.\n- Những khoảng xanh của lá cây, \"vitamin xanh\" đan xen giữa khoảng không.\n- Ánh sáng tự nhiên rọi qua các kẽ lá.\n\n### sensory_details\n- Màu xanh mát mắt của lá cây (vitamin xanh).\n- Cảm giác làn gió mát nhẹ hoặc không khí thoáng đãng khi đứng dưới vòm trời.\n- Sự tĩnh lặng tương đối khi tách biệt khỏi những âm thanh ồn ào xung quanh để tập trung nhìn lên.\n\n### bodily_sensations\n- Cổ hơi ngửa về phía sau, kéo căng nhẹ vùng cơ cổ.\n- Đôi chân đứng trên mặt đất (dù tâm trí như đang \"không chạm đất\").\n- Lồng ngực mở rộng, nhịp thở chậm lại, cảm giác lồng ngực nhẹ nhõm khi hít thở sâu.\n- Một luồng điện nhẹ hoặc cảm giác ấm áp lan tỏa khi \"sạc pin\" tinh thần.\n\n### author_presence\nTác giả xuất hiện trong tư thế ngửa cổ ngắm trời, tự nhận mình là một kẻ \"nghiện vitamin xanh\", đang đứng yên để đón nhận năng lượng từ thiên nhiên, mỉm cười trước lời mắng yêu ngày trước.\n\n### voice_markers\n- Giọng điệu tự trào, vui vẻ, có chút tinh nghịch (\"nghe vô dụng nhỉ 😅\", \"hoàn toàn vô hại 😁\").\n- Cách dùng từ gần gũi, hiện đại: \"nghiện vitamin xanh\", \"sạc pin trí óc\", \"thanh lọc tâm thân\".\n\n### verbatim_fragments\n- “suốt ngày ngửa cổ lên trời chân không chạm đất thế có lấy trời xuống mà ăn được không?”\n- “nghe vô dụng nhỉ 😅”\n- “kẻ nghiện vitamin xanh 🌱”\n- “sạc pin trí óc, thanh lọc tâm thân 😇 và hoàn toàn vô hại 😁”\n\n### uncertain_details\n- Không rõ loại cây cụ thể đang được nhìn ngắm (chỉ biết là \"vitamin xanh\").\n- Không rõ thời gian cụ thể trong ngày hay địa điểm chính xác (ban công, dưới gốc cây trong công viên, hay khoảng sân nhỏ).\n```",
+    "handoff": "Bản ghi sensory_capture đã ghi lại khoảnh khắc tác giả ngửa cổ lên trời để ngắm nhìn vòm lá xanh (\"vitamin xanh\"). Trọng tâm vật lý là tư thế ngửa cổ kéo căng nhẹ, đôi chân đứng trên mặt đất, cùng cảm giác lồng ngực mở rộng khi hít thở sâu để \"sạc pin\" tinh thần. Cảnh tượng trực quan là vòm xanh của lá cây nổi bật trên nền trời. Giọng điệu của tác giả giữ nguyên sự vui vẻ, tự trào qua các cụm từ nguyên bản như \"suốt ngày ngửa cổ lên trời...\", \"nghe vô dụng nhỉ 😅\", và \"kẻ nghiện vitamin xanh 🌱\". Sự quan sát giác quan này được tách biệt rõ ràng khỏi các suy diễn sâu xa, chuẩn bị cho bước phác thảo tự nhiên tiếp theo.",
+    "artifact_file": "sensory_notes.md",
+    "handoff_file": "sensory_handoff.md",
+    "secondary_artifact_file": null,
+    "warnings": [],
+    "metrics": {
+      "artifact_estimated_tokens": 453,
+      "handoff_estimated_tokens": 178,
+      "handoff_savings_estimated_tokens": 275,
+      "selected_input_handoff_estimated_tokens": 0,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "error": null,
+    "provider": "gemini",
+    "model": null,
+    "api_attempted": true,
+    "api_called": true,
+    "duration_ms": 10924
+  },
+  "inner_weather": {
+    "status": "completed",
+    "artifact": "```markdown\n# Thời Tiết Bên Trong (Inner Weather)\n\n### Cảm giác chủ đạo (Dominant Feeling)\nMột sự nhẹ nhõm, bay bổng xuất hiện ngay sau một thoáng phân vân, tự trào. Có một cảm giác \"ngược dòng\" nhẹ nhàng — giống như việc tự cho phép mình tách khỏi những phán xét thực dụng thường ngày (\"có lấy trời xuống mà ăn được không?\") để chọn lấy một khoảng không vô hại cho riêng mình.\n\n### Cảm giác thứ cấp (Secondary Feeling)\nSự kết nối thầm lặng. Cảm giác ấm áp khi nhận ra mình không cô đơn, rằng ngoài kia có những \"đồng minh\" - những kẻ cũng đang âm thầm ngửa cổ ngắm vòm lá để sạc lại năng lượng giống như mình.\n\n### Chuyển động cảm xúc (Emotional Motion)\nCảm xúc dịch chuyển từ sự co rụt nhẹ trước câu mắng cũ (một chút ái ngại, cảm giác \"vô dụng\") sang một trạng thái giãn nở, tự do và vững chãi hơn khi hướng mắt lên cao. Đó là sự chuyển hướng chủ động: từ việc lắng nghe những tiếng ồn ào phán xét sang việc lắng nghe nhịp thở của chính mình dưới vòm lá.\n\n### Biểu hiện qua cơ thể (Bodily Evidence)\n- Vùng cổ và vai gáy được kéo căng nhẹ khi ngửa lên, giải tỏa sự tù túng của tư thế cúi đầu làm việc thông thường.\n- Lồng ngực mở rộng hơn, hơi thở đi vào sâu và chậm hơn khi đón lấy bầu không khí dưới bóng cây.\n- Đôi bàn chân có cảm giác bám nhẹ, vững vàng trên mặt đất, tạo nên một trục đứng thẳng thắn và thư thái từ gót chân lên đến đỉnh đầu.\n\n### Ghi chú về sự mơ hồ (Uncertainty Notes)\nVẫn còn đó một chút ngập ngừng nhỏ, một sự phân vân liệu việc \"trốn\" vào vòm xanh này có thực sự đủ để giải quyết những áp lực thực tế ngoài kia hay không. Nhưng ngay lúc này, cơ thể lựa chọn tạm dừng việc tìm câu trả lời để hoàn toàn tận hưởng sự sạc pin tự nhiên này.\n```",
+    "handoff": "Bản ghi `inner_weather` đã xác định thời tiết bên trong tác giả là sự chuyển dịch từ chút ngập ngừng, tự trào sang trạng thái nhẹ nhõm, bay bổng và kết nối thầm lặng. Biểu hiện cơ thể rõ nét qua tư thế ngửa cổ kéo giãn nhẹ, lồng ngực mở rộng đón hơi thở sâu, và đôi chân bám đất vững chãi. Trạng thái này cân bằng giữa sự tự do trên cao và sự vững vàng bên dưới, chuẩn bị chất liệu cảm xúc chân thực cho bước phác thảo tự nhiên tiếp theo.",
+    "artifact_file": "inner_weather.md",
+    "handoff_file": "inner_weather_handoff.md",
+    "secondary_artifact_file": null,
+    "warnings": [],
+    "metrics": {
+      "artifact_estimated_tokens": 468,
+      "handoff_estimated_tokens": 129,
+      "handoff_savings_estimated_tokens": 339,
+      "selected_input_handoff_estimated_tokens": 178,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "error": null,
+    "provider": "gemini",
+    "model": null,
+    "api_attempted": true,
+    "api_called": true,
+    "duration_ms": 4768
+  },
+  "cosmic_signal_reader": {
+    "status": "completed",
+    "artifact": "```markdown\n# Tín hiệu Trực giác (Signal Note)\n\n### 1. Tín hiệu nhỏ (The Signal)\nCó lẽ khoảnh khắc ngửa cổ nhìn lên vòm lá xanh này đang thì thầm một lời nhắc nhẹ nhàng: việc dừng lại để tìm kiếm một điểm tựa tinh thần, một khoảnh khắc \"vô dụng\" trong mắt người khác, thực chất lại là cách chúng ta nuôi dưỡng sự sống bên trong mình. Nó giống như một cái ôm xoa dịu, công nhận rằng chúng ta hoàn toàn có quyền được nghỉ ngơi, được thuộc về thế giới tự nhiên này mà không cần phải luôn tỏ ra hữu dụng hay bận rộn.\n\n### 2. Minh chứng cho tín hiệu (Evidence for Signal)\n*   **Tư thế vật lý:** Sự kết hợp giữa đôi chân bám trên mặt đất vững chãi và cổ ngửa nhẹ lên cao, tạo ra một khoảng không cho lồng ngực mở rộng và đón nhận hơi thở sâu.\n*   **Lời tự trào nguyên bản:** Câu mắng cũ \"suốt ngày ngửa cổ lên trời... có lấy trời xuống mà ăn được không?\" mang theo một chút cảm giác tội lỗi nhẹ nhàng về sự \"vô dụng\", nhưng ngay lập tức được hóa giải bởi niềm vui khi tự nhận mình là \"kẻ nghiện vitamin xanh\".\n*   **Sự chuyển dịch cảm xúc:** Từ sự e dè ban đầu trước định kiến \"vô dụng\", người viết tìm thấy sự đồng điệu thầm lặng với những tâm hồn có cùng cách \"sạc pin\" tinh thần.\n\n### 3. Điều làm cho tín hiệu này vang vọng (What makes it feel resonant)\nTín hiệu này chạm đến nhu cầu rất sâu thẳm và tự nhiên của con người: nhu cầu được yêu thương, được công nhận sự tồn tại của mình ngay cả khi không làm gì \"có ích\" cho guồng quay bận rộn bên ngoài. Cảm giác ngửa cổ ngắm lá xanh không phải là sự trốn chạy cực đoan, mà là một thực hành mềm mại để thấy mình đủ đầy, được thiên nhiên ôm ấp và được kết nối với những người \"giống mình\".\n\n### 4. Những điều không được khẳng định (What is not being claimed)\n*   Không khẳng định rằng việc ngắm trời mây có thể thay thế cho các hoạt động thực tế hay giải quyết được các vấn đề tài chính (\"ăn được không\").\n*   Không đưa ra lời khuyên rằng mọi người nên từ bỏ công việc để chỉ đi ngắm cây.\n*   Không biến trạng thái \"tự đủ\" thành một áp lực mới hay phủ nhận nhu cầu được xã hội ghi nhận và kết nối với cộng đồng.\n```",
+    "handoff": "### signal_handoff\n\nBản ghi `signal_note` đã nắm bắt một tín hiệu trực giác nhỏ và khiêm tốn: khoảnh khắc ngửa cổ ngắm \"vitamin xanh\" là lời nhắc nhở dịu dàng về quyền được dừng lại, được \"vô dụng\" để sạc lại năng lượng. Tín hiệu này tôn trọng nhu cầu tự nhiên của con người là được yêu thương, thuộc về và được công nhận, đồng thời tránh việc thần thánh hóa trực giác hay đưa ra lời khuyên cực đoan. Trạng thái tự đủ được đóng khung như một thực hành mềm mại, chuẩn bị chất liệu cảm xúc cân bằng cho bước phác thảo tự nhiên tiếp theo.",
+    "artifact_file": "signal_note.md",
+    "handoff_file": "signal_handoff.md",
+    "secondary_artifact_file": null,
+    "warnings": [],
+    "metrics": {
+      "artifact_estimated_tokens": 581,
+      "handoff_estimated_tokens": 147,
+      "handoff_savings_estimated_tokens": 434,
+      "selected_input_handoff_estimated_tokens": 307,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "error": null,
+    "provider": "gemini",
+    "model": null,
+    "api_attempted": true,
+    "api_called": true,
+    "duration_ms": 10335
+  },
+  "moment_writer": {
+    "status": "completed",
+    "artifact": "```markdown\n# moment_draft.md\n\n\"Suốt ngày ngửa cổ lên trời chân không chạm đất thế có lấy trời xuống mà ăn được không?\"\n\nNghe vô dụng thật nhỉ 😅. Giữa nhịp sống hối hả, khi những lo toan cơm áo gạo tiền cứ ghì sát mắt chúng ta xuống màn hình điện thoại hay những tập hồ sơ, thì việc ngửa cổ ngắm trời xanh đôi khi bị coi là mơ mộng hão huyền.\n\nNhưng ngay lúc này, mình chọn dừng lại một nhịp. Đứng dưới vòm cây, đôi chân bám thật vững trên mặt đất, mình ngửa nhẹ cổ lên. Một cảm giác kéo giãn dễ chịu lan tỏa. Trước mắt mình là vòm lá xanh mướt mát nổi bật trên nền trời trong vắt. Từng kẽ lá lấp lánh nắng, đung đưa khe khẽ theo gió.\n\nHít một hơi thật sâu, lồng ngực mở rộng. Mọi áp lực tích tụ trên đôi vai mỏi mệt bỗng chốc dịu lại. Hóa ra, những kẻ \"nghiện\" vitamin xanh 🌱 chúng mình đều chung một cách sạc pin trí óc và thanh lọc tâm thân thật lành mạnh, hoàn toàn vô hại như thế. \n\nĐược \"vô dụng\" vài phút để kết nối với thiên nhiên không phải là trốn tránh thực tại. Đó là quyền được dừng lại, được yêu thương và tái tạo năng lượng cho chính mình. Để rồi khi hạ tầm mắt xuống, đôi chân ta lại thêm vững chãi để bước tiếp.\n\nHôm nay của bạn thế nào? Bạn đã kịp nạp chút \"vitamin xanh\" nào để vỗ về khu vườn bên trong mình chưa? 🌱\n```",
+    "handoff": "Bản nháp `moment_draft.md` đã được hoàn thành với dung lượng khoảng 250 từ, đáp ứng đúng mong muốn \"dưới 300 từ\" của tác giả mà vẫn đảm bảo cấu trúc đầy đủ của một khoảnh khắc sống động. Mạch bài viết đi từ áp lực đời thường (lời mắng vui vẻ \"suốt ngày ngửa cổ...\") đến trải nghiệm giác quan thực tế (vòm lá xanh, tư thế ngửa cổ kéo giãn nhẹ, hơi thở sâu) và kết thúc bằng một suy ngẫm xã hội nhẹ nhàng về quyền được dừng lại để tái tạo năng lượng. \n\nGiọng điệu tự nhiên, ấm áp và tự trào của tác giả được bảo tồn nguyên vẹn thông qua các từ khóa \"vitamin xanh 🌱\", \"nghe vô dụng nhỉ 😅\". Bài viết không sa đà vào giải thích hay giáo điều, khép lại bằng một câu hỏi mở dịu dàng hướng về người đọc. Bản nháp này đã sẵn sàng để chuyển sang bước biên tập hơi thở tiếp theo (`breath_editor`) nhằm tinh chỉnh nhịp điệu và độ mượt mà của câu chữ.",
+    "artifact_file": "moment_draft.md",
+    "handoff_file": "moment_writer_handoff.md",
+    "secondary_artifact_file": null,
+    "warnings": [],
+    "metrics": {
+      "artifact_estimated_tokens": 357,
+      "handoff_estimated_tokens": 240,
+      "handoff_savings_estimated_tokens": 117,
+      "selected_input_handoff_estimated_tokens": 454,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "error": null,
+    "provider": "gemini",
+    "model": null,
+    "api_attempted": true,
+    "api_called": true,
+    "duration_ms": 16105
+  },
+  "breath_editor": {
+    "status": "completed",
+    "artifact": "### moment_edited.md\n\n\"Suốt ngày ngửa cổ lên trời chân không chạm đất thế có lấy trời xuống mà ăn được không?\"\n\nNghe vô dụng thật nhỉ 😅. Giữa những bận rộn cuốn đi mỗi ngày, việc ngửa cổ ngắm trời xanh đôi khi dễ bị coi là mơ mộng hão huyền.\n\nNhưng ngay lúc này, mình chọn dừng lại một nhịp. Đứng dưới vòm cây, đôi chân bám thật vững trên mặt đất, mình ngửa nhẹ cổ lên. Một cảm giác kéo giãn dễ chịu lan tỏa. Trước mắt mình là vòm lá xanh mướt mát nổi bật trên nền trời trong vắt. Từng kẽ lá lấp lánh nắng, đung đưa khe khẽ theo gió.\n\nHít một hơi thật sâu, lồng ngực mở rộng. Mọi áp lực trên vai bỗng dịu lại. Hóa ra, những kẻ \"nghiện\" vitamin xanh 🌱 chúng mình đều chung một cách sạc pin trí óc và thanh lọc tâm thân lành mạnh, hoàn toàn vô hại như thế.\n\nĐược \"vô dụng\" vài phút không phải là trốn tránh. Đó chỉ là cách chúng ta dừng lại để vỗ về chính mình, để khi hạ tầm mắt xuống, đôi chân lại thêm vững chãi bước tiếp.\n\nHôm nay của bạn thế nào? Bạn đã kịp nạp chút \"vitamin xanh\" nào chưa? 🌱\n\n---\n\n### edit_log.md\n\n- **Lược bỏ giải thích thừa**: Cắt bớt các cụm từ mang tính triết lý hóa hoặc giải thích quá dài dòng ở đoạn 2 và đoạn 5 (như \"lo toan cơm áo gạo tiền\", \"màn hình điện thoại\", \"quyền được yêu thương và tái tạo\").\n- **Giữ lại chi tiết đắt giá**: Bảo tồn nguyên vẹn câu mắng tự trào ở đầu bài, các chi tiết định vị cơ thể (ngửa cổ, chân bám đất) và cảm giác thiên nhiên (vòm lá xanh, nắng lấp lánh).\n- **Tối ưu hóa nhịp thở**: Làm mượt các khoảng ngắt nghỉ bằng cách rút ngắn câu, giúp bài viết nhẹ nhàng, thanh thoát và đúng tinh thần một \"khoảnh khắc tỉnh thức\" dưới 250 từ.",
+    "handoff": "Bản chỉnh sửa `moment_edited.md` đã hoàn thành việc tinh lọc bản thảo thô bằng cách tối ưu hóa nhịp thở và lược bỏ các yếu tố giải thích dư thừa, đưa dung lượng bài viết về mức tối ưu (khoảng 220 từ) theo đúng yêu cầu dưới 300 từ của tác giả.\n\nCác điều chỉnh chính bao gồm:\n1. **Tinh giản câu chữ**: Lược bỏ những cụm từ mô tả áp lực cuộc sống mang tính khuôn mẫu (\"lo toan cơm áo gạo tiền\", \"hồ sơ giấy tờ\") để giữ cho mạch văn nhẹ nhàng, tập trung thẳng vào trải nghiệm hiện tại.\n2. **Giữ vững giọng điệu đặc trưng**: Bảo tồn nguyên vẹn câu thoại tự trào mở đầu, các biểu tượng cảm xúc (emoji) gần gũi, cùng các ẩn dụ cá nhân như \"vitamin xanh\" 🌱 và trạng thái được \"vô dụng\" lành mạnh.\n3. **Làm nổi bật trục trải nghiệm**: Giữ lại trọn vẹn sự tương phản vật lý định hình khoảnh khắc (chân bám đất vững chãi - cổ ngửa lên cao đón nắng gió) để bài viết không bị rơi vào trạng thái mơ mộng sáo rỗng.\n\nTác phẩm đã sẵn sàng cho bước kiểm định cuối cùng bởi Calm Witness để đảm bảo tính chân thực, cân bằng và không có lỗi diễn đạt trước khi xuất bản.",
+    "artifact_file": "moment_edited.md",
+    "handoff_file": "breath_editor_handoff.md",
+    "secondary_artifact_file": "edit_log.md",
+    "warnings": [],
+    "metrics": {
+      "artifact_estimated_tokens": 452,
+      "handoff_estimated_tokens": 301,
+      "handoff_savings_estimated_tokens": 151,
+      "selected_input_handoff_estimated_tokens": 454,
+      "selected_input_artifact_estimated_tokens": 357
+    },
+    "error": null,
+    "provider": "gemini",
+    "model": null,
+    "api_attempted": true,
+    "api_called": true,
+    "duration_ms": 14139
+  },
+  "gentle_witness": {
+    "status": "completed",
+    "artifact": "```markdown\n# Witness Report: \"Vitamin Xanh\"\n\n### 1. What Still Feels Alive (Cái gì vẫn tràn đầy sự sống)\nKhoảnh khắc thực tế được giữ lại trọn vẹn thông qua các chi tiết định vị vật lý: cảm giác ngửa cổ kéo giãn dễ chịu, đôi chân bám vững trên mặt đất, và hình ảnh vòm lá lấp lánh nắng trên nền trời trong vắt. Sự tương phản giữa việc \"chân chạm đất\" và \"ngửa cổ lên trời\" tạo nên một trục thăng bằng rất thực, giúp bài viết không bị rơi vào trạng thái mơ mộng sáo rỗng. Giọng điệu tự trào nhẹ nhàng ở đầu và câu hỏi mở thân mật ở cuối vẫn giữ được sự ấm áp, nhân hậu.\n\n### 2. What Felt Forced (Cái gì có cảm giác gượng ép)\nKhông có chi tiết nào mang lại cảm giác gượng ép hay giáo điều. Bài viết đã tránh được bẫy \"lên lớp\" hay đưa ra lời khuyên sáo rỗng về lối sống. Việc giải nghĩa cụm từ \"vô dụng\" được chuyển hóa thành một lời tự sự nhẹ nhàng thay vì một lời tuyên ngôn.\n\n### 3. What May Be Too Clean (Cái gì có thể đã bị gọt giũa quá mức)\nBản chỉnh sửa của `breath_editor` khá sạch sẽ và mượt mà. Tuy nhiên, nhịp điệu chuyển từ đoạn tả cảnh (\"đung đưa khe khẽ theo gió\") sang đoạn thở (\"Hít một hơi thật sâu\") có một chút nhanh. Dù vậy, sự tinh giản này vẫn giữ được hơi thở tự nhiên của tác giả và không làm mất đi tính chân thực của khoảnh khắc.\n\n### 4. What Should Remain Untouched (Cái gì cần được giữ nguyên)\n*   **Câu mắng mở đầu**: \"Suốt ngày ngửa cổ lên trời...\" – Đây là mỏ neo cảm xúc xuất sắc, tạo tính kết nối và cá tính riêng của tác giả.\n*   **Các emoji tự nhiên**: `😅`, `🌱` được đặt đúng chỗ, giữ được tinh thần vui vẻ, tự trào lành mạnh.\n*   **Trải nghiệm vật lý**: Cảm giác kéo giãn cơ cổ và đôi chân bám đất – đây là phần cốt lõi giữ cho khoảnh khắc luôn sống động.\n```",
+    "handoff": "Bản thảo `moment_edited.md` đã được kiểm định và xác nhận giữ trọn vẹn hơi thở của một khoảnh khắc sống. Bài viết hoàn toàn tự nhiên, không mang tính giáo điều hay lên lớp, bảo tồn xuất sắc giọng điệu tự trào ấm áp cùng trải nghiệm cảm giác thực tế của tác giả. Tác phẩm đã đạt trạng thái cân bằng, sẵn sàng để chia sẻ.",
+    "artifact_file": "witness_report.md",
+    "handoff_file": "witness_handoff.md",
+    "secondary_artifact_file": null,
+    "warnings": [],
+    "metrics": {
+      "artifact_estimated_tokens": 476,
+      "handoff_estimated_tokens": 91,
+      "handoff_savings_estimated_tokens": 385,
+      "selected_input_handoff_estimated_tokens": 448,
+      "selected_input_artifact_estimated_tokens": 452
+    },
+    "error": null,
+    "provider": "gemini",
+    "model": null,
+    "api_attempted": true,
+    "api_called": true,
+    "duration_ms": 12938
+  }
+}

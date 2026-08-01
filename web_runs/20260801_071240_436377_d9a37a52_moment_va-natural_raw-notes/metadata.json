@@ -1,0 +1,119 @@
+{
+  "created_at": "2026-08-01T07:12:40.436936+00:00",
+  "config_file": "/opt/render/project/src/engine/config.example.yaml",
+  "workflow_file": "/opt/render/project/src/flow/write_moment_blog.yaml",
+  "input_file": null,
+  "dry_run": false,
+  "run_source": "ui",
+  "persisted": true,
+  "api_attempted": true,
+  "api_called": true,
+  "status": "completed",
+  "client_map": null,
+  "style": "va-natural",
+  "mode": "moment",
+  "stage_telemetry": {
+    "sensory_capture": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 10924,
+      "error": null
+    },
+    "inner_weather": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 4768,
+      "error": null
+    },
+    "cosmic_signal_reader": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 10335,
+      "error": null
+    },
+    "moment_writer": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 16105,
+      "error": null
+    },
+    "breath_editor": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 14139,
+      "error": null
+    },
+    "gentle_witness": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 12938,
+      "error": null
+    }
+  },
+  "completed_at": "2026-08-01T07:13:49.694844+00:00",
+  "context_strategy": "artifact_plus_handoff",
+  "step_context_metrics": {
+    "sensory_capture": {
+      "artifact_estimated_tokens": 453,
+      "handoff_estimated_tokens": 178,
+      "handoff_savings_estimated_tokens": 275,
+      "selected_input_handoff_estimated_tokens": 0,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "inner_weather": {
+      "artifact_estimated_tokens": 468,
+      "handoff_estimated_tokens": 129,
+      "handoff_savings_estimated_tokens": 339,
+      "selected_input_handoff_estimated_tokens": 178,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "cosmic_signal_reader": {
+      "artifact_estimated_tokens": 581,
+      "handoff_estimated_tokens": 147,
+      "handoff_savings_estimated_tokens": 434,
+      "selected_input_handoff_estimated_tokens": 307,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "moment_writer": {
+      "artifact_estimated_tokens": 357,
+      "handoff_estimated_tokens": 240,
+      "handoff_savings_estimated_tokens": 117,
+      "selected_input_handoff_estimated_tokens": 454,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "breath_editor": {
+      "artifact_estimated_tokens": 452,
+      "handoff_estimated_tokens": 301,
+      "handoff_savings_estimated_tokens": 151,
+      "selected_input_handoff_estimated_tokens": 454,
+      "selected_input_artifact_estimated_tokens": 357
+    },
+    "gentle_witness": {
+      "artifact_estimated_tokens": 476,
+      "handoff_estimated_tokens": 91,
+      "handoff_savings_estimated_tokens": 385,
+      "selected_input_handoff_estimated_tokens": 448,
+      "selected_input_artifact_estimated_tokens": 452
+    }
+  },
+  "total_artifact_estimated_tokens": 2787,
+  "total_handoff_estimated_tokens": 1086
+}

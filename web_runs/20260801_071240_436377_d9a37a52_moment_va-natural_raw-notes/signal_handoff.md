@@ -1,0 +1,3 @@
+### signal_handoff
+
+Bản ghi `signal_note` đã nắm bắt một tín hiệu trực giác nhỏ và khiêm tốn: khoảnh khắc ngửa cổ ngắm "vitamin xanh" là lời nhắc nhở dịu dàng về quyền được dừng lại, được "vô dụng" để sạc lại năng lượng. Tín hiệu này tôn trọng nhu cầu tự nhiên của con người là được yêu thương, thuộc về và được công nhận, đồng thời tránh việc thần thánh hóa trực giác hay đưa ra lời khuyên cực đoan. Trạng thái tự đủ được đóng khung như một thực hành mềm mại, chuẩn bị chất liệu cảm xúc cân bằng cho bước phác thảo tự nhiên tiếp theo.
