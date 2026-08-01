@@ -183,3 +183,9 @@ Trong đợt nâng cấp **Guided Style Voice Lab V1 (2026-07-26)**, 4 Subagent 
 - **Refactoring:** Áp dụng 4 vectors từ bản Code Review (bỏ code/import thừa, thay assert bằng raise).
 - **Debugging:** Trực tiếp fix lỗi API key bị dính dấu ngoặc kép trên Render.com. Kiểm tra tính hợp lệ của key khai báo.
 - **Documentation:** Viết hướng dẫn deploy Render với auto git sync, cập nhật luồng log UI/UX.
+## Session: Supabase Migration [2026-08-01]
+- Lên kế hoạch cấu trúc bảng Supabase `style_files`.
+- Implement `engine/supabase_client.py` với `urllib.request` để giảm phụ thuộc dependency.
+- Thực hiện refactor toàn bộ `style_manager.py`, thay `auto_git_sync` thành `upsert_style_file` và `delete_style_files`.
+- Chèn logic `restore_all_styles()` vào đầu chu trình của `ui/app.py`.
+- Kiểm tra và dọn dẹp các import thừa và dead code.

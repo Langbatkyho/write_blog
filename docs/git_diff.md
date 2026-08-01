@@ -1,394 +1,512 @@
-# Tổng hợp Git Diff và Thay đổi Code
-
-## 14. RULES, SKILL và P0 Refactor
-
-- **Governance**
-  - `AGENTS.md` → trỏ bắt buộc tới `.agents/AGENTS.md`.
-  - `.agents/AGENTS.md` → contract vận hành cho `runs/`, test, API, cleanup, UI verification và multi-agent.
-  - `.agents/agentic-workflow-architect/` → skill contract-first cùng ba reference chuyên biệt.
-- **UI**
-  - `ui/app.py` → composition root.
-  - Thêm `ui/state.py`, `ui/controllers/*`, `ui/views/*`.
-- **Workflow**
-  - `engine/workflow.py` → facade.
-  - Thêm `workflow_contracts.py`, `workflow_execution.py`, `workflow_persistence.py`, `workflow_context.py`, `workflow_resolution.py`, `workflow_artifacts.py`, `workflow_learning.py`.
-- **Style/Voice Lab**
-  - Thêm `style_contracts.py`, `style_repository.py`.
-  - Tách `interview_routing.py`, `profile_patch.py`, `calibration.py`; `interview.py` giữ compatibility facade.
-- **Verification**
-  - Thêm contract/runtime/UI tests; mọi test ghi file dùng vùng tạm và fake provider.
-
-## 13. P2 Audit Hardening (2026-07-28)
-
-- `compiler.py`: xóa legacy path fallback, khóa layout `skills/<mode>/<style>/`.
-- `analyzer.py`: estimator phân biệt ASCII/Unicode; chunk không vượt estimated budget.
-- `models.py`/`calibration.py`: lưu provenance và confidence trước/sau xác nhận A/B.
-- `publisher.py`: thêm `PublishRollbackError`, giữ tombstone khi restore thất bại.
-- `current_architecture.md`: bổ sung module engine/Voice Lab và cấu trúc controller/view UI.
-- Test tăng từ 120 lên **124**, toàn bộ pass; không gọi API thật.
-
-## 12. P1 Architecture Hardening (2026-07-28)
-
-- `ea7d08d`: UI acceptance; widget editor/workbench được namespace theo mode.
-- `9a003ee`: strict `Artifact/Handoff`; Gemini model resolver dùng chung cho telemetry và request.
-- `bebd980`: validate toàn style staging và alias namespace trước transaction commit.
-- `7d2576d`: Voice Lab strict models; migration v1 tách khỏi runtime contract.
-- Test tăng từ 111 lên **120**, toàn bộ pass; không gọi API thật; `runs/` bất biến.
-
-## 11. Gemini 3.5 Flash High Thinking Mode & Profile DNA Extraction (2026-07-27)
-
-### 1. Trích xuất & Cố định Dữ liệu Trung gian Voice Lab (`profile_dna.json`)
-- **`ui/app.py`**:
-  ```diff
-  + # Save intermediate analysis & Voice DNA log
-  + profile_log = {
-  +     "name": st.session_state.vl_style_name,
-  +     "slug": slug,
-  +     "mode": mode,
-  +     "updated_at": meta["updated_at"],
-  +     "dna": st.session_state.vl_dna.model_dump() if st.session_state.vl_dna else {},
-  +     "evidence": [c.model_dump() for c in st.session_state.vl_claims] if st.session_state.vl_claims else [],
-  +     "interview_answers": st.session_state.vl_answers,
-  +     "calibration_selected": st.session_state.vl_calibration.get("selected"),
-  + }
-  + write_text(staging_dir / "profile_dna.json", json.dumps(profile_log, ensure_ascii=False, indent=2))
-  ```
-- **`skills/moment/va-natural/profile_dna.json`** (File mới):
-  Lưu vĩnh viễn cấu trúc Voice DNA (12 chiều), Evidence Claims (quotes, confidence), và danh sách quy tắc biên dịch 6 agents của phong cách Vân Anh Natural (Moment mode).
-
-### 2. Kích hoạt Chế độ tư duy High cho Gemini 3.5 Flash (`thinking_budget=1024`)
-- **`engine/gemini_client.py`**:
-  ```diff
-  + try:
-  +     from google import genai
-  +     from google.genai import types
-  +     _HAS_GENAI_SDK = True
-  + except ImportError:
-  +     _HAS_GENAI_SDK = False
-
-  - def call_gemini(..., max_retries: int = 3) -> str:
-  + def call_gemini(..., thinking_budget: int = 1024, max_retries: int = 3) -> str:
-  +     # Strategy 1: google.genai SDK
-  +     gen_config = types.GenerateContentConfig(temperature=temperature, max_output_tokens=max_output_tokens)
-  +     if thinking_budget and thinking_budget > 0:
-  +         gen_config.thinking_config = types.ThinkingConfig(thinking_budget=thinking_budget)
-  +     # Strategy 2: REST API fallback
-  +     if thinking_budget and thinking_budget > 0:
-  +         generation_config["thinkingConfig"] = {"thinkingBudget": thinking_budget}
-  -     print(f"[GEMINI] ✅ Response received ({len(result)} chars)")
-  +     print(f"[GEMINI] [OK] Response received ({len(result)} chars)")  # Sửa UnicodeEncodeError
-  ```
-
-## 10. Voice Lab Schema v2 & Fail-Closed Refactor (2026-07-27)
-
-> **Tham chiếu:** [docs/2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)
-
-### Schema và compatibility
-
-- **`engine/voice_lab/models.py`**:
-  ```diff
-  - VoiceDNA: 12 trường str phẳng
-  + VoiceDNA: 12 trường DimensionProfile
-  + schema_version = 2
-  + revision, analysis_status, warnings, interview_history, calibration_history
-  + AnalysisResult / AnalysisError / CompileResult / MergeResult / PublishResult
-  + compute_profile_confidence(profile)
-  ```
-- `EvidenceClaim.quote` được migrate sang `exact_quote`; active evidence bắt buộc truy được về `sample_id`.
-- Canonical IR chỉ giữ invariant snapshot, overlays và `effective_skill`; xóa `prompt`/`style_rules` phẳng, cấm field ngoài contract.
-- `migration.py` đọc v1 idempotent; legacy thiếu evidence trả `dna=None`, `incomplete_legacy_data`, draft.
-
-### Gemini analysis và prompt
-
-- **Thêm mới**:
-  - `engine/voice_lab/prompts.py`: prompt builder và JSON response schemas.
-  - `engine/voice_lab/parser.py`: strict parse, exact-quote validation và confidence deterministic.
-- **`engine/voice_lab/analyzer.py`**:
-  ```diff
-  - nối sample trực tiếp + parse JSON thủ công + fallback DNA giả
-  + JSON-serialize untrusted samples
-  + structured Gemini output
-  + adaptive single-pass / multi-pass theo token
-  + fail-closed AnalysisError
-  + confidence = 0.45*coverage + 0.35*consistency + 0.20*quote_validity
-  ```
-- **`engine/gemini_client.py`** chuyển `response_mime_type` và JSON schema cho cả SDK/REST, vẫn dùng retry/backoff/key rotation tập trung tại client.
-
-### Interview, A/B và compile
-
-- Interview chỉ chọn tối đa 3 dimension yếu; patch cần người dùng xác nhận trước khi sửa profile.
-- A/B lưu hidden `shuffle_mapping`; lựa chọn cập nhật strength/examples/history. Prompt nhắm `100–150` từ, validator cho dung sai `90–165`.
-- Compiler bỏ base discovery bằng `iterdir()`, dùng `base_style_slug` xác định và full-template overlay.
-- Contract scalar legacy được chuẩn hóa thành `{"reference": ...}`; invariant skill/IR được đặt tên và kiểm tra riêng.
-- Overrides trả conflict explicit; không còn comment giả “LLM resolved”.
-
-### Archive, publish và UI
-
-- **Thêm `engine/voice_lab/publisher.py`**:
-  ```text
-  unique staging -> YAML/workflow/invariant validation -> immutable backup
-  -> tombstone atomic replace -> rollback/cleanup
-  ```
-- Chặn profile chưa complete/confirmed và chặn ghi đè protected system style.
-- Archive manifest v2 kiểm checksum/path traversal, migrate v1 trong bộ nhớ và reject future schema.
-- `ui/app.py` dùng service mới; interview/A-B cập nhật profile thật; đổi mode sẽ reset Voice Lab session để tránh compile chéo Deep/Moment.
-
-### Kiểm thử
-
-- `tests/test_voice_lab.py`: 37 test cho schema, migration, injection, malformed output, Gemini JSON schema, quote, confidence, adaptive routing, interview, A/B, compiler, override, archive, Deep/Moment publish và rollback.
-- Kết quả toàn dự án: **81/81 test pass**; Streamlit AppTest **0 exception**; `compileall` và `git diff --check` đạt.
-
-## 9. Guided Style Voice Lab V1 & Multi-Style Production Engine (2026-07-26)
-> **Tham chiếu kế hoạch phê duyệt:**  
-> - [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)  
-> - [docs/2026-07-25-multi-editable-style-upgrade-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-25-multi-editable-style-upgrade-plan-final.md)
-
-- **`engine/voice_lab/` (Package mới 8 modules)**:
-  ```python
-  # models.py: StyleProfile, VoiceDNA, EvidenceClaim, CanonicalIR, sanitize_sample
-  # analyzer.py: analyze_samples(samples) -> VoiceDNA, EvidenceClaims (100% tiếng Việt)
-  # interview.py: generate_interview(profile), calibrate_ab(dimension, profile), DIMENSION_VI (100% tiếng Việt)
-  # compiler.py: compile_style(profile, mode), DIMENSION_AGENTS, AGENT_FILENAME_MAP
-  # overrides.py: merge_overrides(base_ir, overrides_ir)
-  # migration.py: import_existing_style(mode, slug)
-  # archive.py: export_voice_style_archive, import_voice_style_archive (.voice-style.zip SHA-256)
-  ```
-- **`engine/voice_lab/compiler.py`**:
-  ```diff
-  + AGENT_FILENAME_MAP = {
-  +     "story_architect": "story_architect.yaml",
-  +     "reflection_engine": "reflection_engine.yaml",
-  +     "writing_agent": "writing_agent.yaml",
-  +     "reader_experience": "reader_experience.yaml",
-  +     "editor_agent": "editor_agent.yaml",
-  +     "coach_agent": "coach_agent.yaml",
-  +     "future_self": "future_self.yaml",
-  +     "sensory_capture": "sensory_capture.yaml",
-  +     "inner_weather": "inner_weather.yaml",
-  +     "cosmic_signal_reader": "cosmic_signal_reader.yaml",
-  +     "moment_writer": "moment_writer.yaml",
-  +     "breath_editor": "breath_editor.yaml",
-  +     "gentle_witness": "gentle_witness.yaml",
-  + }
-  ```
-- **`ui/app.py`**:
-  ```diff
-  + from engine.voice_lab.interview import DIMENSION_VI, generate_interview, calibrate_ab
-  + from engine.voice_lab.compiler import compile_style
-  + # Tích hợp 5-Step Guided Voice Lab Wizard & Publish Safety Pipeline (Staging -> Validate -> Backup -> Atomic Replace / Rollback)
-  ```
-- **`engine/gemini_client.py` (Mới thêm)**:
-  ```python
-  # Giao tiếp Gemini API trực tiếp bằng GEMINI_API_KEY với model default gemini-3.5-flash
-  ```
-- **`engine/client_router.py`**:
-  ```diff
-  + register_client("gemini", call_gemini)
-  ```
-- **`tests/test_voice_lab.py` (Mới thêm)**:
-  ```python
-  # Contract Test: test_adjacency_matrix_coverage (100% coverage)
-  # Zero-cost Smoke Test: test_zero_cost_smoke_test (keyword search & invariant diffs)
-  ```
-- **`skills/moment/va-natural/*.yaml` (Style tùy biến mới)**:
-  ```yaml
-  # Cấu hình 6 agent YAML cho phong cách Vân Anh Natural (Moment Mode)
-  ```
-
-## 8. Hệ Hai Writing Modes (Dual Writing Modes System) (2026-07-22)
-> **Tham chiếu kế hoạch phê duyệt:** [docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md)
-
-- **`flow/write_moment_blog.yaml`** (Mới thêm):
-  ```yaml
-  name: mindful_moment_blog_workflow
-  mode: moment
-  # Khai báo quy trình 6 bước: sensory_capture -> inner_weather -> cosmic_signal_reader -> moment_writer -> breath_editor -> gentle_witness
-  ```
-- **`flow/write_blog.yaml`**:
-  ```diff
-    name: mindful_blog_workflow
-  + mode: deep
-    description: >
-  ```
-- **`skills/moment/reflective/*.yaml`** (Mới thêm 6 file skills chuẩn hóa):
-  ```yaml
-  # sensory_capture.yaml, inner_weather.yaml, cosmic_signal_reader.yaml, moment_writer.yaml, breath_editor.yaml, gentle_witness.yaml
-  name: <skill_name>
-  mode: moment_blog_mode
-  purpose: ...
-  output:
-    artifact: <file.md>
-    handoff: ...
-  ```
-- **`engine/run_workflow.py`**:
-  ```diff
-  + parser.add_argument("--mode", choices=["deep", "moment"], default="deep")
-  + if mode == "moment" and style == "provocative":
-  +     print("[WARNING] Moment mode does not support provocative style. Falling back to 'reflective'.", file=sys.stderr)
-  +     style = "reflective"
-  + explicit_mode = args.mode if any(a.startswith("--mode") for a in sys.argv) else None
-  ```
-- **`engine/workflow.py`**:
-  ```diff
-  + def resolve_workflow_file(config: dict[str, Any], mode: str) -> Path:
-  +     if mode == "moment": return resolve_path("flow/write_moment_blog.yaml")
-  +     return resolve_path("flow/write_blog.yaml")
-  +
-  + def resolve_step_skill_path(step: dict[str, Any], style: str, mode: str) -> Path:
-  +     if mode == "moment": return resolve_path(f"skills/moment/{style}/{original_path.name}")
-  ```
-- **`engine/learning.py`**:
-  ```diff
-  + report_name = f"{mode}_blog_patterns.md"
-  + learning_dir = run_dir / "learning" / mode / timestamp
-  ```
-- **`engine/config.example.yaml`**:
-  ```diff
-  +   # Moment mode stages
-  +   sensory_capture: { model: gpt-4.1-mini, temperature: 0.3, max_output_tokens: 1500 }
-  +   ...
-  ```
-- **`tests/test_moment_blog_mode.py`** (Mới thêm):
-  ```python
-  # 8 test cases kiểm thử hợp đồng flow, mode routing, dry-run, offline learning, và cùng 1 input chạy cả 2 mode.
-  ```
-
-*Lưu ý: Kho lưu trữ Git mới được khởi tạo ở thời điểm hiện tại. Do đó, toàn bộ lịch sử và "diff" trong quá khứ đã được gom gọn vào Initial Commit. Dưới đây là tóm tắt các thay đổi về mã nguồn (Code Diff Summary) được tái tạo từ các Log trước.*
-
-## 1. Modularization (Tách Monolith)
-- **Xóa file cũ**: `run_workflow.py` (phiên bản monolith 892 dòng).
-- **Thêm file mới**:
-  - `engine/utils.py`: Thêm `read_text`, `write_text`, `load_yaml`, `resolve_path`.
-  - `engine/parser.py`: Thêm `parse_stage_response`, `build_context_package`.
-  - `engine/openai_client.py`: Thêm `call_openai` với cơ chế Exponential Backoff Retry.
-  - `engine/learning.py`: Thêm các hàm `build_learning_prompt`, `build_offline_learning_report`.
-  - `engine/workflow.py`: Chứa lõi `run_workflow` và `run_learning_loop`.
-
-## 2. Thêm Handoff Layer
-- **`engine/parser.py`**:
-  ```diff
-  + def parse_stage_response(response_text: str) -> tuple[str, str, bool]:
-  +     # Regex phân tách ## Artifact và ## Handoff
-  ```
-- **`engine/workflow.py`**:
-  ```diff
-  + handoff_file = run_dir / str(step.get("handoff_output", f"{step_id}_handoff.md"))
-  + write_text(handoff_file, handoff)
-  ```
-
-## 3. Tái thiết kế Editorial Workflow
-- **`flow/write_blog.yaml`**:
-  ```diff
-  - - id: coach_agent
-  + - id: editor_agent
-  +   skill: skills/editor_agent.yaml
-  + - id: coach_agent
-  ```
-
-## 4. Tích hợp Antigravity Bridge & Dependency Injection
-- **`engine/workflow.py`**:
-  ```diff
-  + LlmClient = Callable[[str, dict[str, Any], str | None], str]
-  
-  - def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False) -> Path:
-  + def run_workflow(config_path: Path, input_path: Path, dry_run: bool = False, llm_client: "LlmClient | None" = None) -> Path:
-  +     if llm_client is None:
-  +         llm_client = call_openai
-  ```
-- **`engine/run_workflow.py`**:
-  ```diff
-  + parser.add_argument("--client", choices=["openai", "antigravity"], default="openai")
-  + llm_client = call_antigravity if args.client == "antigravity" else None
-  ```
-- **`engine/antigravity_bridge.py`** (Mới thêm):
-  ```diff
-  + def call_antigravity(prompt: str, config: dict[str, Any], stage_id: str | None = None) -> str:
-  +     temp_dir = Path(__file__).resolve().parents[1] / "runs" / "temp_llm"
-  +     # Vòng lặp chờ file với Timeout 300s
-  ```
-
-## 5. Hỗ trợ Client Routing theo Stage
-- **`engine/client_router.py`** (Mới thêm):
-  ```diff
-  + def create_routing_client(client_map: dict[str, str], fallback: str = "openai") -> LlmClient:
-  +     # Lõi định tuyến dispatch request đến các client dựa trên stage_id
-  ```
-- **`engine/run_workflow.py`**:
-  ```diff
-  + parser.add_argument("--client-map", help="Per-stage LLM client mapping. Format: 'stage1=client,stage2=client'")
-  + client_map = build_client_map(args.client_map, fallback_client_name)
-  + llm_client = create_routing_client(client_map, fallback_client_name)
-  ```
-- **`engine/workflow.py`**:
-  ```diff
-  + "client_routing": getattr(llm_client, "__name__", "") == "routing_client",
-  ```
-- **`tests/test_client_router.py`** (Mới thêm):
-  ```diff
-  + # Unit tests kiểm thử build_client_map và resolve_client
-  ```
-
-## 6. Prompt Caching & Token Optimization
-- **`flow/write_blog.yaml`**: Loại bỏ input gốc khỏi reader mù.
-  ```diff
-    - id: reader_experience
-      skill: skills/reader_experience.yaml
-      purpose: Record a blind first-time reader diary without editing or diagnosing.
-      output: reader_report.md
-      handoff_output: reader_handoff.md
-  +   needs_author_input: false
-      context_policy:
-  ```
-- **`engine/workflow.py`**: Đẩy toàn bộ cấu trúc tĩnh (author_input, config) lên cực trên tạo thành Static Prefix, tách biệt Dynamic Context để tối đa hóa Prefix Hashing trên API.
-  ```diff
-  - return textwrap.dedent(
-  -     f"""
-  -     You are running one step of an automated reflective blog workflow.
-  -     ...
-  -     """
-  - ).strip()
-  + prompt_parts = []
-  + prompt_parts.append("You are running one step of an automated reflective blog workflow.")
-  + prompt_parts.append(f"Workflow name: {workflow.get('name')}")
-  + prompt_parts.append(f"Workflow description: {workflow.get('description')}")
-  + 
-  + if step.get("needs_author_input", True):
-  +     prompt_parts.append(f"Author input:\\n```markdown\\n{author_input}\\n```")
-  + ...
-  + return "\\n\\n".join(prompt_parts)
-  ```
-
-## 7. Đa Phong Cách Multi-Style Architecture (2026-07-20)
-- **`engine/run_workflow.py`**:
-  ```diff
-  + parser.add_argument("--style", default=None, help="The writing style to use (e.g., reflective).")
-  + if args.style is not None:
-  +     style_dir = resolve_path(f"skills/{args.style}")
-  +     if not style_dir.is_dir():
-  +         raise ValueError(...)
-  ```
-- **`engine/workflow.py`**:
-  ```diff
-  - skill_path = resolve_path(step["skill"])
-  + original_path = Path(step["skill"])
-  + styled_path = original_path.parent / style / original_path.name
-  + skill_path = resolve_path(str(styled_path))
-  
-  + "style": style,  # Ghi thông tin phong cách vào metadata.json
-  ```
-- **`tests/test_workflow_contract.py`**:
-  ```diff
-  - reader_skill = load_yaml("skills/reflective/reader_experience.yaml")
-  + for style in ["reflective", "provocative"]:
-  +     reader_skill = load_yaml(f"skills/{style}/reader_experience.yaml")
-  ```
-- **Thư mục `skills/`**:
-  - Tạo `skills/reflective/` chứa 7 file YAML gốc.
-  - Tạo `skills/provocative/` chứa 7 file YAML đã tinh chỉnh kèm `STYLE_BRIEF.md`.
-
-
-## [2026-07-31 16:05] Streamlit UI & Render Deployment
-- Khởi tạo thư mục ui/, cập nhật pp.py, log_workflow.py.
-- Tách rời State quản lý UI và logic Workflow qua Controller (workflow_controller.py).
-- Cấu hình config.example.yaml thêm block gemini:.
-- Sửa file gemini_client.py: fix strip quotes cho API key, bổ sung logging quá trình nạp key.
+﻿diff --git a/docs/supabase_setup.sql b/docs/supabase_setup.sql
+new file mode 100644
+index 0000000..6e03c62
+--- /dev/null
++++ b/docs/supabase_setup.sql
+@@ -0,0 +1,36 @@
++-- Supabase Setup Script cho Write Blog
++-- Copy v├á d├ín to├án bß╗Ö ─æoß║ín m├ú n├áy v├áo mß╗Ñc "SQL Editor" tr├¬n Supabase Dashboard v├á bß║Ñm "Run"
++
++-- 1. Tß║ío bß║úng l╞░u trß╗» style files
++CREATE TABLE IF NOT EXISTS style_files (
++  id BIGSERIAL PRIMARY KEY,
++  mode TEXT NOT NULL,          -- 'deep' hoß║╖c 'moment'
++  slug TEXT NOT NULL,          -- 'reflective', 'va-natural', v.v.
++  filename TEXT NOT NULL,      -- 'sensory_capture.yaml', 'style_meta.yaml', v.v.
++  content TEXT NOT NULL,       -- Nß╗Öi dung YAML
++  updated_at TIMESTAMPTZ DEFAULT NOW(),
++  UNIQUE(mode, slug, filename)
++);
++
++-- 2. Cho ph├⌐p truy cß║¡p ß║⌐n danh (hoß║╖c d├╣ng service_key th├¼ kh├┤ng bß║»t buß╗Öc, nh╞░ng n├¬n bß║¡t RLS nß║┐u public)
++-- Mß║╖c ─æß╗ïnh kh├┤ng c├│ Row Level Security (RLS) ─æß╗â ─æ╞ín giß║ún cho ß╗⌐ng dß╗Ñng nß╗Öi bß╗Ö.
++-- Nß║┐u bß║ín muß╗æn bß║úo mß║¡t h╞ín, c├│ thß╗â bß║¡t RLS v├á cß║Ñu h├¼nh Policy.
++-- ALTER TABLE style_files ENABLE ROW LEVEL SECURITY;
++
++-- 3. Tß║ío function cß║¡p nhß║¡t updated_at tß╗▒ ─æß╗Öng khi sß╗¡a
++CREATE OR REPLACE FUNCTION set_updated_at()
++RETURNS TRIGGER AS $$
++BEGIN
++  NEW.updated_at = NOW();
++  RETURN NEW;
++END;
++$$ LANGUAGE plpgsql;
++
++-- 4. Gß║»n trigger v├áo bß║úng
++DROP TRIGGER IF EXISTS trigger_style_files_updated_at ON style_files;
++CREATE TRIGGER trigger_style_files_updated_at
++BEFORE UPDATE ON style_files
++FOR EACH ROW
++EXECUTE FUNCTION set_updated_at();
++
++-- Ho├án tß║Ñt!
+diff --git a/engine/style_manager.py b/engine/style_manager.py
+index 04c59db..6adab74 100644
+--- a/engine/style_manager.py
++++ b/engine/style_manager.py
+@@ -4,7 +4,8 @@ from pathlib import Path
+ from typing import Any, Tuple, List, Dict, Optional
+ import yaml
+ 
+-from engine.utils import resolve_path, write_text, load_yaml, read_text, auto_git_sync
++from engine.utils import resolve_path, write_text, load_yaml, read_text
++from engine.supabase_client import upsert_style_file, delete_style_files
+ from engine.workflow_contracts import (
+     WorkflowDefinition,
+     validate_step_skill_contract,
+@@ -18,6 +19,12 @@ from engine.style_repository import (
+ )
+ from engine.style_contracts import is_valid_style_slug, validate_style_metadata
+ 
++def _sync_style_to_supabase(mode: str, slug: str, style_dir: Path) -> None:
++    """Helper to sync all yaml files in a style directory to Supabase."""
++    for f in style_dir.glob("*.yaml"):
++        content = read_text(f)
++        upsert_style_file(mode, slug, f.name, content)
++
+ DEEP_GROUP_A_FILES = {
+     "story_architect.yaml",
+     "reflection_engine.yaml",
+@@ -332,8 +339,17 @@ def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[
+             )
+         validate_style_directory(mode, slug, staging_dir)
+         commit_staged_directory(staging_dir, style_dir)
+-        auto_git_sync(str(style_dir), f"feat(style): Cß║¡p nhß║¡t file {filename} cß╗ºa style {slug}")
+-        return True, "", warn
++        
++        # Sync file ─æ├ú sß╗¡a l├¬n Supabase
++        if not upsert_style_file(mode, slug, filename, content):
++            warn += " ΓÜá∩╕Å L╞░u local OK nh╞░ng sync Supabase thß║Ñt bß║íi."
++            
++        committed_meta = style_dir / "style_meta.yaml"
++        if committed_meta.exists():
++            if not upsert_style_file(mode, slug, "style_meta.yaml", read_text(committed_meta)):
++                warn += " ΓÜá∩╕Å Sync style_meta.yaml l├¬n Supabase thß║Ñt bß║íi."
++            
++        return True, "", warn.strip()
+     except Exception as e:
+         if staging_dir and staging_dir.exists():
+             shutil.rmtree(staging_dir, ignore_errors=True)
+@@ -383,7 +399,7 @@ def create_style(
+         )
+         validate_style_directory(mode, slug, staging_dir)
+         commit_staged_directory(staging_dir, target_dir)
+-        auto_git_sync(str(target_dir), f"feat(style): Tß║ío mß╗¢i style {slug}")
++        _sync_style_to_supabase(mode, slug, target_dir)
+         return True, ""
+     except Exception as e:
+         if staging_dir and staging_dir.exists():
+@@ -451,10 +467,12 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
+         )
+         if old_slug == new_slug:
+             commit_staged_directory(staging_dir, style_dir)
+-            auto_git_sync(str(style_dir), f"feat(style): Cß║¡p nhß║¡t t├¬n cß╗ºa style {new_slug}")
++            _sync_style_to_supabase(mode, new_slug, style_dir)
+         else:
+             commit_staged_rename(staging_dir, style_dir, target_dir)
+-            auto_git_sync(str(style_dir.parent), f"feat(style): ─Éß╗òi t├¬n style {old_slug} th├ánh {new_slug}")
++            # Sync style mß╗¢i v├á x├│a style c┼⌐
++            _sync_style_to_supabase(mode, new_slug, target_dir)
++            delete_style_files(mode, old_slug)
+         return True, ""
+     except Exception as e:
+         if staging_dir and staging_dir.exists():
+@@ -487,10 +505,7 @@ def delete_style(mode: str, slug: str) -> Tuple[bool, str]:
+     try:
+         trash_root = resolve_path(f"profile_history/style_trash/{mode}")
+         trash_path = move_to_trash(style_dir, trash_root)
+-        auto_git_sync(
+-            [str(style_dir.parent), str(trash_path)], 
+-            f"feat(style): Xo├í style {slug} v├á chuyß╗ân v├áo th├╣ng r├íc"
+-        )
++        delete_style_files(mode, slug)
+         return True, f"Style ─æ├ú chuyß╗ân v├áo th├╣ng r├íc: {trash_path}"
+     except Exception as e:
+         return False, f"Lß╗ùi khi x├│a folder style: {str(e)}"
+diff --git a/engine/supabase_client.py b/engine/supabase_client.py
+new file mode 100644
+index 0000000..ee2ceeb
+--- /dev/null
++++ b/engine/supabase_client.py
+@@ -0,0 +1,145 @@
++import json
++import os
++import urllib.request
++import urllib.error
++from pathlib import Path
++from typing import Any
++
++from engine.app_logger import log as app_log
++from engine.utils import ROOT
++
++# ----------------- Supabase REST Client -----------------
++# We use urllib to avoid heavy dependencies (like httpx/pydantic) on Render.
++
++def _get_supabase_config() -> tuple[str, str] | None:
++    """Return (URL, KEY) if configured, else None."""
++    url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
++    key = os.environ.get("SUPABASE_KEY", "").strip()
++    if not url or not key:
++        return None
++    return url, key
++
++def check_supabase_status() -> dict[str, Any]:
++    """Kiß╗âm tra cß║Ñu h├¼nh Supabase (D├╣ng cho UI debug)."""
++    is_render = bool(os.environ.get("RENDER"))
++    config = _get_supabase_config()
++    
++    status = {
++        "platform": "Render" if is_render else "Local",
++        "supabase_url": "Γ£à ─É├ú cß║Ñu h├¼nh" if config else "Γ¥î Ch╞░a cß║Ñu h├¼nh",
++        "supabase_key": "Γ£à ─É├ú cß║Ñu h├¼nh" if config else "Γ¥î Ch╞░a cß║Ñu h├¼nh",
++        "ready": bool(config),
++    }
++    return status
++
++def upsert_style_file(mode: str, slug: str, filename: str, content: str) -> bool:
++    """L╞░u 1 file YAML cß╗ºa style l├¬n Supabase."""
++    config = _get_supabase_config()
++    if not config:
++        return False
++    
++    url, key = config
++    endpoint = f"{url}/rest/v1/style_files"
++    
++    headers = {
++        "apikey": key,
++        "Authorization": f"Bearer {key}",
++        "Content-Type": "application/json",
++        "Prefer": "resolution=merge-duplicates"
++    }
++    
++    data = {
++        "mode": mode,
++        "slug": slug,
++        "filename": filename,
++        "content": content
++    }
++    
++    try:
++        req = urllib.request.Request(endpoint, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
++        with urllib.request.urlopen(req, timeout=10) as response:
++            if response.status in (200, 201):
++                app_log("SUPABASE", f"Γ£à Upsert OK: {mode}/{slug}/{filename}")
++                return True
++            else:
++                app_log("SUPABASE", f"Γ¥î Upsert fail {response.status}", level="ERROR")
++                return False
++    except Exception as e:
++        app_log("SUPABASE", f"Lß╗ùi mß║íng: {e}", level="ERROR")
++        return False
++
++def delete_style_files(mode: str, slug: str) -> bool:
++    """X├│a tß║Ñt cß║ú files cß╗ºa mß╗Öt style."""
++    config = _get_supabase_config()
++    if not config:
++        return False
++    
++    url, key = config
++    endpoint = f"{url}/rest/v1/style_files?mode=eq.{mode}&slug=eq.{slug}"
++    
++    headers = {
++        "apikey": key,
++        "Authorization": f"Bearer {key}",
++    }
++    
++    try:
++        req = urllib.request.Request(endpoint, headers=headers, method="DELETE")
++        with urllib.request.urlopen(req, timeout=10) as response:
++            if response.status in (200, 204):
++                app_log("SUPABASE", f"Γ£à Delete OK: {mode}/{slug}")
++                return True
++            else:
++                app_log("SUPABASE", f"Γ¥î Delete fail {response.status}", level="ERROR")
++                return False
++    except Exception as e:
++        app_log("SUPABASE", f"Lß╗ùi mß║íng: {e}", level="ERROR")
++        return False
++
++def restore_all_styles() -> bool:
++    """K├⌐o tß║Ñt cß║ú style tß╗½ Supabase v├á ghi ─æ├¿ xuß╗æng filesystem. D├╣ng khi app mß╗¢i khß╗ƒi ─æß╗Öng."""
++    config = _get_supabase_config()
++    if not config:
++        app_log("SUPABASE", "Ch╞░a cß║Ñu h├¼nh SUPABASE, bß╗Å qua restore.")
++        return False
++        
++    url, key = config
++    endpoint = f"{url}/rest/v1/style_files?select=mode,slug,filename,content"
++    
++    headers = {
++        "apikey": key,
++        "Authorization": f"Bearer {key}",
++    }
++    
++    try:
++        req = urllib.request.Request(endpoint, headers=headers, method="GET")
++        with urllib.request.urlopen(req, timeout=15) as response:
++            if response.status == 200:
++                data = json.loads(response.read().decode("utf-8"))
++                if not data:
++                    app_log("SUPABASE", "Database trß╗æng, kh├┤ng c├│ style n├áo ─æß╗â restore.")
++                    return True
++                
++                count = 0
++                for row in data:
++                    mode = row.get("mode")
++                    slug = row.get("slug")
++                    filename = row.get("filename")
++                    content = row.get("content")
++                    if not all([mode, slug, filename, content]):
++                        continue
++                        
++                    target_dir = ROOT / "skills" / mode / slug
++                    target_dir.mkdir(parents=True, exist_ok=True)
++                    target_file = target_dir / filename
++                    
++                    target_file.write_text(content, encoding="utf-8")
++                    count += 1
++                    
++                app_log("SUPABASE", f"Γ£à Restore {count} files xuß╗æng filesystem th├ánh c├┤ng.")
++                return True
++            else:
++                app_log("SUPABASE", f"Γ¥î Restore fail {response.status}", level="ERROR")
++                return False
++    except Exception as e:
++        app_log("SUPABASE", f"Lß╗ùi mß║íng: {e}", level="ERROR")
++        return False
+diff --git a/engine/utils.py b/engine/utils.py
+index b6a9933..a2d6dee 100644
+--- a/engine/utils.py
++++ b/engine/utils.py
+@@ -1,5 +1,4 @@
+ import os
+-import subprocess
+ import sys
+ from pathlib import Path
+ from typing import Any
+@@ -37,129 +36,4 @@ def resolve_path(raw_path: str | Path) -> Path:
+     path = Path(raw_path)
+     return path if path.is_absolute() else ROOT / path
+ 
+-def check_git_sync_status() -> dict[str, Any]:
+-    """Kiß╗âm tra trß║íng th├íi cß║Ñu h├¼nh Git Sync (d├╣ng cho UI debug)."""
+-    is_render = bool(os.environ.get("RENDER"))
+-    has_user = bool(os.environ.get("GITHUB_USERNAME"))
+-    has_token = bool(os.environ.get("GITHUB_TOKEN"))
+-    git_exists = (Path(str(ROOT)) / ".git").exists()
+-    
+-    status = {
+-        "platform": "Render" if is_render else "Local",
+-        "enabled": is_render,
+-        "git_repo": "Γ£à C├│ .git" if git_exists else "ΓÜá∩╕Å Ch╞░a c├│ .git (sß║╜ tß╗▒ tß║ío khi sync)",
+-        "github_username": "Γ£à ─É├ú cß║Ñu h├¼nh" if has_user else "Γ¥î Ch╞░a cß║Ñu h├¼nh",
+-        "github_token": "Γ£à ─É├ú cß║Ñu h├¼nh" if has_token else "Γ¥î Ch╞░a cß║Ñu h├¼nh",
+-        "ready": is_render and has_user and has_token,
+-    }
+-    
+-    if is_render and git_exists:
+-        try:
+-            result = subprocess.run(
+-                ["git", "remote", "get-url", "origin"],
+-                cwd=str(ROOT), capture_output=True, text=True,
+-            )
+-            url = result.stdout.strip()
+-            # Che giß║Ñu token trong URL
+-            if "@github.com" in url:
+-                url = url.split("@")[0][:20] + "***@github.com/..."
+-            status["remote_url"] = url if url else "Ch╞░a c├│ remote"
+-        except Exception:
+-            status["remote_url"] = "Ch╞░a c├│ remote"
+-    
+-    return status
+ 
+-
+-def auto_git_sync(target_path: str | list[str], commit_message: str = "Tß╗▒ ─æß╗Öng l╞░u thay ─æß╗òi") -> bool:
+-    """
+-    Tß╗▒ ─æß╗Öng Git Add, Commit v├á Push dß╗» liß╗çu workflow sang branch 'data'.
+-    KH├öNG push v├áo 'main' ─æß╗â tr├ính trigger Render auto-deploy.
+-    """
+-    if not os.environ.get("RENDER"):
+-        app_log("GIT", "Local mode, bß╗Å qua Auto Git Sync.")
+-        return False
+-        
+-    repo_root = str(ROOT)
+-    DATA_BRANCH = "data"
+-    
+-    try:
+-        env = os.environ.copy()
+-        env["GIT_AUTHOR_NAME"] = "Langbatkyho"
+-        env["GIT_AUTHOR_EMAIL"] = "langbatkyho@gmail.com"
+-        env["GIT_COMMITTER_NAME"] = "Langbatkyho"
+-        env["GIT_COMMITTER_EMAIL"] = "langbatkyho@gmail.com"
+-        
+-        github_user = os.environ.get("GITHUB_USERNAME")
+-        github_token = os.environ.get("GITHUB_TOKEN")
+-        
+-        if not github_user or not github_token:
+-            app_log("GIT", "GITHUB_USERNAME hoß║╖c GITHUB_TOKEN ch╞░a cß║Ñu h├¼nh!", level="ERROR")
+-            return False
+-        
+-        def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+-            result = subprocess.run(
+-                cmd, cwd=repo_root, env=env,
+-                capture_output=True, text=True,
+-            )
+-            if check and result.returncode != 0:
+-                safe_cmd = ' '.join(cmd).replace(github_token, "***") if github_token else ' '.join(cmd)
+-                safe_err = result.stderr.strip().replace(github_token, "***") if github_token else result.stderr.strip()
+-                app_log("GIT", f"CMD FAIL: {safe_cmd}", level="ERROR")
+-                app_log("GIT", f"STDERR: {safe_err}", level="ERROR")
+-                result.check_returncode()
+-            return result
+-        
+-        # ─Éß║úm bß║úo c├│ git repo (Render extract archive, kh├┤ng git clone)
+-        git_dir = Path(repo_root) / ".git"
+-        if not git_dir.exists():
+-            _run(["git", "init"])
+-            _run(["git", "checkout", "-b", DATA_BRANCH])
+-            _run(["git", "add", "."])
+-            _run(["git", "commit", "-m", "Initial commit from Render"])
+-            app_log("GIT", f"─É├ú khß╗ƒi tß║ío git repo tr├¬n branch '{DATA_BRANCH}'.")
+-        else:
+-            # ─Éß║úm bß║úo ─æang ß╗ƒ branch data
+-            current = _run(["git", "branch", "--show-current"], check=False)
+-            if current.stdout.strip() != DATA_BRANCH:
+-                # Tß║ío hoß║╖c chuyß╗ân sang branch data
+-                _run(["git", "checkout", "-B", DATA_BRANCH], check=False)
+-        
+-        # Cß║Ñu h├¼nh remote URL vß╗¢i token
+-        auth_url = f"https://{github_user}:{github_token}@github.com/{github_user}/write_blog.git"
+-        check_remote = _run(["git", "remote", "get-url", "origin"], check=False)
+-        if check_remote.returncode != 0:
+-            _run(["git", "remote", "add", "origin", auth_url])
+-        else:
+-            _run(["git", "remote", "set-url", "origin", auth_url])
+-        app_log("GIT", f"Remote OK cho user: {github_user}")
+-
+-        # Xß╗¡ l├╜ target_path
+-        targets = target_path if isinstance(target_path, list) else [target_path]
+-        
+-        app_log("GIT", f"Branch: {DATA_BRANCH} | Targets: {len(targets)} path(s)")
+-        
+-        _run(["git", "add", "--"] + targets)
+-        
+-        status = _run(["git", "status", "--porcelain"])
+-        if not status.stdout.strip():
+-            app_log("GIT", "Kh├┤ng c├│ thay ─æß╗òi.")
+-            return True
+-
+-        changed = status.stdout.strip().split('\n')
+-        app_log("GIT", f"Staged: {len(changed)} file(s)")
+-        for c in changed[:5]:
+-            app_log("GIT", f"  {c.strip()}")
+-        
+-        _run(["git", "commit", "-m", commit_message])
+-        # Push sang branch 'data' (KH├öNG phß║úi main) vß╗¢i --force
+-        # v├¼ local repo mß╗¢i init kh├┤ng c├│ shared history vß╗¢i remote
+-        _run(["git", "push", "--force", "origin", f"HEAD:{DATA_BRANCH}"])
+-        
+-        app_log("GIT", f"Γ£à Push OK ΓåÆ branch '{DATA_BRANCH}': {commit_message}")
+-        return True
+-    except subprocess.CalledProcessError as e:
+-        app_log("GIT", f"Git thß║Ñt bß║íi: {e}", level="ERROR")
+-        return False
+-    except Exception as e:
+-        app_log("GIT", f"Lß╗ùi hß╗ç thß╗æng: {e}", level="ERROR")
+-        return False
+diff --git a/engine/workflow_execution.py b/engine/workflow_execution.py
+index f6c3d7f..2fb8a9b 100644
+--- a/engine/workflow_execution.py
++++ b/engine/workflow_execution.py
+@@ -10,7 +10,7 @@ from typing import Any, Callable
+ from engine.openai_client import call_openai, get_openai_options
+ from engine.parser import build_context_package, estimate_tokens, parse_stage_response
+ from engine.style_manager import validate_style_contract
+-from engine.utils import load_yaml, read_text, resolve_path, auto_git_sync
++from engine.utils import load_yaml, read_text, resolve_path
+ from engine.workflow_artifacts import append_run_log, derive_artifact_file_contents
+ from engine.workflow_context import build_dry_run_response, build_step_prompt
+ from engine.workflow_contracts import (
+@@ -390,8 +390,6 @@ def run_workflow(
+     )
+     if repository and run_dir:
+         repository.write_metadata(run_dir, metadata)
+-        if final_status == "completed" and should_persist:
+-            auto_git_sync(str(run_dir), f"feat(run): Tß╗▒ ─æß╗Öng l╞░u blog workflow {run_dir.name}")
+     if terminal_error:
+         raise terminal_error
+     result = WorkflowRunResult(
+diff --git a/ui/app.py b/ui/app.py
+index 6c3dcc7..5c09ffe 100644
+--- a/ui/app.py
++++ b/ui/app.py
+@@ -9,8 +9,9 @@ if str(ROOT) not in sys.path:
+     sys.path.insert(0, str(ROOT))
+ 
+ from engine.style_manager import list_styles
+-from engine.utils import read_text, check_git_sync_status
++from engine.utils import read_text
+ from engine.app_logger import get_logs, clear_logs
++from engine.supabase_client import check_supabase_status, restore_all_styles
+ from ui.state import initialize_session_state, switch_mode
+ from ui.views.gallery import render_gallery
+ from ui.views.voice_lab import render_voice_lab
+@@ -27,6 +28,13 @@ st.set_page_config(
+     layout="wide",
+     initial_sidebar_state="expanded",
+ )
++
++# Restore styles from Supabase (only runs once per session/deploy if cached, 
++# but Streamlit runs this every time, so we could optimize, but for now we run it)
++if "supabase_restored" not in st.session_state:
++    restore_all_styles()
++    st.session_state["supabase_restored"] = True
++
+ css_path = ROOT / "ui" / "styles.css"
+ if css_path.exists():
+     st.markdown(
+@@ -77,14 +85,14 @@ with st.sidebar:
+             clear_logs()
+             st.rerun()
+     
+-    with st.expander("≡ƒöº Trß║íng th├íi Git Sync", expanded=False):
+-        sync_status = check_git_sync_status()
++    with st.expander("≡ƒöº Trß║íng th├íi Supabase", expanded=False):
++        sync_status = check_supabase_status()
+         for k, v in sync_status.items():
+             st.markdown(f"**{k}**: {v}")
+         if not sync_status.get("ready"):
+             st.warning(
+-                "Cß║ºn khai b├ío `GITHUB_USERNAME` v├á `GITHUB_TOKEN` "
+-                "tr├¬n Render Dashboard ─æß╗â bß║¡t t├¡nh n─âng l╞░u dß╗» liß╗çu vß╗ü GitHub."
++                "Cß║ºn khai b├ío `SUPABASE_URL` v├á `SUPABASE_KEY` "
++                "tr├¬n Render Dashboard ─æß╗â bß║¡t t├¡nh n─âng l╞░u dß╗» liß╗çu Style."
+             )
+ 
+ mode = st.session_state.mode
+diff --git a/ui/controllers/workflow_controller.py b/ui/controllers/workflow_controller.py
+index 2c5811b..c826d16 100644
+--- a/ui/controllers/workflow_controller.py
++++ b/ui/controllers/workflow_controller.py
+@@ -13,7 +13,7 @@ from engine.workflow import (
+ from engine.workflow_contracts import WorkflowRunResult
+ from engine.gemini_client import call_gemini
+ from engine.style_manager import get_style_detail, save_style_file
+-from engine.utils import read_text, load_yaml, auto_git_sync
++from engine.utils import read_text, load_yaml
+ from engine.workflow_persistence import atomic_write_text
+ 
+ 
+@@ -136,12 +136,6 @@ def run_real_learning(
+     if not isinstance(learning_dir, Path):
+         raise RuntimeError(f"run_learning_loop trß║ú vß╗ü {type(learning_dir)}, kh├┤ng phß║úi Path. Kiß╗âm tra lß║íi cß╗¥ persist.")
+     
+-    # Sync production_blog.md + learning results vß╗ü GitHub
+-    auto_git_sync(
+-        [str(r_dir), str(learning_dir)],
+-        f"feat(learning): Sync production_blog + learning results {r_dir.name}",
+-    )
+-    
+     sug_path = learning_dir / "workflow_tuning_suggestions.md"
+     if sug_path.exists():
+         return read_text(sug_path)

@@ -196,3 +196,7 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 - ui/app.py: Điều hướng chính, chọn chế độ (Blog vs Voice Lab).
 - ui/views/blog_workflow.py: Giao diện 4 bước (Nhập -> Kết quả -> Sửa -> Học hỏi) dùng st.session_state.
 - ui/controllers/workflow_controller.py: Kết nối giao diện với core Engine, đảm bảo cách ly State.
+
+### 2.8. Hệ thống lưu trữ bền vững (Supabase Persistence)
+Do Render.com sử dụng ephemeral filesystem, mọi thay đổi trên đĩa sẽ bị mất khi deploy mới. Giải pháp được chọn là dùng **Supabase PostgreSQL** làm nơi lưu trữ bền vững cho các Style (Phong cách viết).
+Mỗi khi ứng dụng khởi động, hệ thống gọi `restore_all_styles()` (qua REST API bằng urllib) để kéo toàn bộ Style ghi đè vào filesystem. Mọi thay đổi (sửa/xóa) trong runtime sẽ ngay lập tức được upsert/delete trên Supabase (thông qua `engine/supabase_client.py`), đảm bảo tính nhất quán dữ liệu mà không cần phụ thuộc Git Sync.

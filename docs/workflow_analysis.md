@@ -191,3 +191,7 @@ eset_blog_workflow_state).
 
 **3. Bài học về Handoff giữa các Models:**
 - Khi làm việc với nhiều Agentic LLMs (Opus -> Gemini), các Agent có khả năng tự review code và đề xuất Refactoring rất tốt. Tuy nhiên cần có một Agent quản lý tổng thể (như phiên Antigravity hiện tại) đứng ra xác nhận và thực thi đồng bộ, tránh đụng độ version.
+## Bài học 22: Lưu trữ trên Render và Auto-deploy Loop với Git
+Khi đẩy dữ liệu (Git Sync) từ Render runtime ngược lại repo GitHub, nếu branch được đẩy là `main` (hoặc branch đang liên kết deploy), Render sẽ lập tức trigger một quá trình auto-deploy mới. Quá trình này sẽ làm chết ứng dụng đang chạy (kill session của người dùng giữa chừng). Việc trỏ sang nhánh phụ (ví dụ `data`) khắc phục được vòng lặp deploy nhưng lại làm mất khả năng đồng bộ dữ liệu vào codebase chính cho lần khởi động sau.
+
+**Giải pháp tối ưu:** Luôn tách biệt mã nguồn (chỉ định từ GitHub → Render) và dữ liệu (app runtime → Database/Supabase). Sử dụng DB ngoài (Supabase) kết hợp cơ chế restore lúc khởi động giúp luồng triển khai gọn gàng và không bao giờ gặp lỗi mất dữ liệu khi mất ổ cứng tạm trên Render.

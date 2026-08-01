@@ -193,3 +193,8 @@
 - **Tích hợp Gemini API:** Chuyển đổi mặc định toàn bộ luồng Write Blog và Voice Lab sang sử dụng gemini-3.5-flash và sửa lỗi nạp API key từ biến môi trường.
 - **Deploy:** Cấu hình thành công Web Service trên Render.com, bổ sung tính năng Auto Git Sync để giữ lại log file và cấu hình thay đổi.
 - **Rebranding:** Sửa lại các thuật ngữ "Agents" thành "Trợ lý AI", đổi tên app thành "Nhà xuất bản happiLab" tạo trải nghiệm thuần Việt và thân thiện hơn.
+## [2026-08-01] Supabase Persistence Migration
+- Đã thay thế Git Auto Sync bằng Supabase REST API (Python `urllib`) để giải quyết triệt để lỗi auto-deploy loop trên Render.
+- Thêm bảng `style_files` trên Supabase.
+- Thêm logic `restore_all_styles()` khi Streamlit khởi động để tự kéo style về ổ cứng tạm của Render.
+- Xóa bỏ toàn bộ mã liên quan đến `auto_git_sync` trong codebase.

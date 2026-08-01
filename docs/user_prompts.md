@@ -104,3 +104,9 @@ Dưới đây là tổng hợp các yêu cầu cốt lõi (User Prompts) định
 - "Bạn hãy hướng dẫn tôi triển khai lên Render.com"
 - "Bạn hãy kiểm tra và tiếp tục công việc đang dang dở (Lỗi API Key không hợp lệ)"
 - "Tôi muốn đổi cách viết Agents trong các thông báo của hệ thống này thành từ 'Trợ lý AI'" 
+## Session: Supabase Migration [2026-08-01]
+- Người dùng báo lỗi văng workflow giữa chừng, log Render báo auto-deploy do git sync.
+- Chuyển hướng lưu dữ liệu: Người dùng quyết định tích hợp Supabase Free Tier.
+- Phỏng vấn thiết kế (grill-me): Chọn dùng REST API thuần (`urllib`), `style_files` table, và tự restore khi app start.
+- Đánh giá triển khai: Yêu cầu AI kiểm tra chéo (Claude Opus đánh giá Gemini Pro).
+- Hoàn thiện và cập nhật toàn bộ tài liệu kiến trúc.
