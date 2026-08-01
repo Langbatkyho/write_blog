@@ -72,15 +72,15 @@ def check_git_sync_status() -> dict[str, Any]:
 
 def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự động lưu thay đổi") -> bool:
     """
-    Tự động Git Add, Commit và Push cho một thư mục hoặc file cụ thể.
-    Chạy tất cả git command từ thư mục ROOT của repo.
-    Dùng token-embedded URL thay vì .netrc (đáng tin cậy hơn trên Render).
+    Tự động Git Add, Commit và Push dữ liệu workflow sang branch 'data'.
+    KHÔNG push vào 'main' để tránh trigger Render auto-deploy.
     """
     if not os.environ.get("RENDER"):
         app_log("GIT", "Local mode, bỏ qua Auto Git Sync.")
         return False
         
     repo_root = str(ROOT)
+    DATA_BRANCH = "data"
     
     try:
         env = os.environ.copy()
@@ -89,20 +89,6 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
         env["GIT_COMMITTER_NAME"] = "Langbatkyho"
         env["GIT_COMMITTER_EMAIL"] = "langbatkyho@gmail.com"
         
-        def _run(cmd: list[str]) -> subprocess.CompletedProcess:
-            result = subprocess.run(
-                cmd, cwd=repo_root, env=env,
-                capture_output=True, text=True,
-            )
-            if result.returncode != 0:
-                # Che giấu token trong log
-                safe_cmd = ' '.join(cmd).replace(github_token, "***TOKEN***") if github_token else ' '.join(cmd)
-                safe_err = result.stderr.strip().replace(github_token, "***TOKEN***") if github_token else result.stderr.strip()
-                app_log("GIT", f"CMD FAIL: {safe_cmd}", level="ERROR")
-                app_log("GIT", f"STDERR: {safe_err}", level="ERROR")
-                result.check_returncode()
-            return result
-
         github_user = os.environ.get("GITHUB_USERNAME")
         github_token = os.environ.get("GITHUB_TOKEN")
         
@@ -110,43 +96,48 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
             app_log("GIT", "GITHUB_USERNAME hoặc GITHUB_TOKEN chưa cấu hình!", level="ERROR")
             return False
         
+        def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+            result = subprocess.run(
+                cmd, cwd=repo_root, env=env,
+                capture_output=True, text=True,
+            )
+            if check and result.returncode != 0:
+                safe_cmd = ' '.join(cmd).replace(github_token, "***") if github_token else ' '.join(cmd)
+                safe_err = result.stderr.strip().replace(github_token, "***") if github_token else result.stderr.strip()
+                app_log("GIT", f"CMD FAIL: {safe_cmd}", level="ERROR")
+                app_log("GIT", f"STDERR: {safe_err}", level="ERROR")
+                result.check_returncode()
+            return result
+        
         # Đảm bảo có git repo (Render extract archive, không git clone)
         git_dir = Path(repo_root) / ".git"
         if not git_dir.exists():
-            subprocess.run(["git", "init"], cwd=repo_root, env=env, capture_output=True)
-            subprocess.run(["git", "add", "."], cwd=repo_root, env=env, capture_output=True)
-            subprocess.run(
-                ["git", "commit", "-m", "Initial commit from Render"],
-                cwd=repo_root, env=env, capture_output=True,
-            )
-            app_log("GIT", "Đã khởi tạo git repo trên Render.")
+            _run(["git", "init"])
+            _run(["git", "checkout", "-b", DATA_BRANCH])
+            _run(["git", "add", "."])
+            _run(["git", "commit", "-m", "Initial commit from Render"])
+            app_log("GIT", f"Đã khởi tạo git repo trên branch '{DATA_BRANCH}'.")
+        else:
+            # Đảm bảo đang ở branch data
+            current = _run(["git", "branch", "--show-current"], check=False)
+            if current.stdout.strip() != DATA_BRANCH:
+                # Tạo hoặc chuyển sang branch data
+                _run(["git", "checkout", "-B", DATA_BRANCH], check=False)
         
         # Cấu hình remote URL với token
         auth_url = f"https://{github_user}:{github_token}@github.com/{github_user}/write_blog.git"
-        
-        # Kiểm tra remote 'origin' đã tồn tại chưa
-        check_remote = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=repo_root, env=env, capture_output=True, text=True,
-        )
+        check_remote = _run(["git", "remote", "get-url", "origin"], check=False)
         if check_remote.returncode != 0:
-            # Remote chưa tồn tại → thêm mới
             _run(["git", "remote", "add", "origin", auth_url])
-            app_log("GIT", f"Đã thêm remote origin cho user: {github_user}")
         else:
-            # Remote đã tồn tại → cập nhật URL
             _run(["git", "remote", "set-url", "origin", auth_url])
-            app_log("GIT", f"Đã cập nhật remote origin cho user: {github_user}")
+        app_log("GIT", f"Remote OK cho user: {github_user}")
 
-        # Xử lý target_path: hỗ trợ list hoặc string đơn (KHÔNG split)
-        if isinstance(target_path, list):
-            targets = target_path
-        else:
-            targets = [target_path]
+        # Xử lý target_path
+        targets = target_path if isinstance(target_path, list) else [target_path]
         
-        app_log("GIT", f"Repo: {repo_root} | Targets: {len(targets)} path(s)")
+        app_log("GIT", f"Branch: {DATA_BRANCH} | Targets: {len(targets)} path(s)")
         
-        # git add tất cả thay đổi (bao gồm cả thay đổi ngoài target)
         _run(["git", "add", "--"] + targets)
         
         status = _run(["git", "status", "--porcelain"])
@@ -156,13 +147,15 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
 
         changed = status.stdout.strip().split('\n')
         app_log("GIT", f"Staged: {len(changed)} file(s)")
-        for c in changed[:5]:  # Chỉ log 5 file đầu
+        for c in changed[:5]:
             app_log("GIT", f"  {c.strip()}")
         
         _run(["git", "commit", "-m", commit_message])
-        _run(["git", "push", "origin", "HEAD:main"])
+        # Push sang branch 'data' (KHÔNG phải main) với --force
+        # vì local repo mới init không có shared history với remote
+        _run(["git", "push", "--force", "origin", f"HEAD:{DATA_BRANCH}"])
         
-        app_log("GIT", f"✅ Push OK: {commit_message}")
+        app_log("GIT", f"✅ Push OK → branch '{DATA_BRANCH}': {commit_message}")
         return True
     except subprocess.CalledProcessError as e:
         app_log("GIT", f"Git thất bại: {e}", level="ERROR")
@@ -170,6 +163,3 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
     except Exception as e:
         app_log("GIT", f"Lỗi hệ thống: {e}", level="ERROR")
         return False
-
-
-
