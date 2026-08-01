@@ -1,0 +1,135 @@
+{
+  "created_at": "2026-08-01T07:12:12.047419+00:00",
+  "config_file": "/opt/render/project/src/engine/config.example.yaml",
+  "workflow_file": "/opt/render/project/src/flow/write_blog.yaml",
+  "input_file": null,
+  "dry_run": false,
+  "run_source": "ui",
+  "persisted": true,
+  "api_attempted": true,
+  "api_called": true,
+  "status": "completed",
+  "client_map": null,
+  "style": "reflective",
+  "mode": "deep",
+  "stage_telemetry": {
+    "story_architect": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 14828,
+      "error": null
+    },
+    "reflection_engine": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 18865,
+      "error": null
+    },
+    "writing_agent": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 14503,
+      "error": null
+    },
+    "reader_experience": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 12545,
+      "error": null
+    },
+    "editor_agent": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 16230,
+      "error": null
+    },
+    "coach_agent": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 15474,
+      "error": null
+    },
+    "future_self": {
+      "status": "completed",
+      "provider": "gemini",
+      "model": null,
+      "api_attempted": true,
+      "api_called": true,
+      "duration_ms": 18470,
+      "error": null
+    }
+  },
+  "completed_at": "2026-08-01T07:14:03.075001+00:00",
+  "context_strategy": "artifact_plus_handoff",
+  "step_context_metrics": {
+    "story_architect": {
+      "artifact_estimated_tokens": 534,
+      "handoff_estimated_tokens": 340,
+      "handoff_savings_estimated_tokens": 194,
+      "selected_input_handoff_estimated_tokens": 0,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "reflection_engine": {
+      "artifact_estimated_tokens": 923,
+      "handoff_estimated_tokens": 349,
+      "handoff_savings_estimated_tokens": 574,
+      "selected_input_handoff_estimated_tokens": 340,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "writing_agent": {
+      "artifact_estimated_tokens": 456,
+      "handoff_estimated_tokens": 378,
+      "handoff_savings_estimated_tokens": 78,
+      "selected_input_handoff_estimated_tokens": 689,
+      "selected_input_artifact_estimated_tokens": 0
+    },
+    "reader_experience": {
+      "artifact_estimated_tokens": 1117,
+      "handoff_estimated_tokens": 276,
+      "handoff_savings_estimated_tokens": 841,
+      "selected_input_handoff_estimated_tokens": 0,
+      "selected_input_artifact_estimated_tokens": 456
+    },
+    "editor_agent": {
+      "artifact_estimated_tokens": 727,
+      "handoff_estimated_tokens": 256,
+      "handoff_savings_estimated_tokens": 471,
+      "selected_input_handoff_estimated_tokens": 965,
+      "selected_input_artifact_estimated_tokens": 1573
+    },
+    "coach_agent": {
+      "artifact_estimated_tokens": 750,
+      "handoff_estimated_tokens": 307,
+      "handoff_savings_estimated_tokens": 443,
+      "selected_input_handoff_estimated_tokens": 945,
+      "selected_input_artifact_estimated_tokens": 727
+    },
+    "future_self": {
+      "artifact_estimated_tokens": 834,
+      "handoff_estimated_tokens": 328,
+      "handoff_savings_estimated_tokens": 506,
+      "selected_input_handoff_estimated_tokens": 912,
+      "selected_input_artifact_estimated_tokens": 727
+    }
+  },
+  "total_artifact_estimated_tokens": 5341,
+  "total_handoff_estimated_tokens": 2234
+}

@@ -1,0 +1,6 @@
+### Hồ sơ chuyển giao khai vấn (Coaching Handoff)
+
+*   **Câu hỏi chưa được nhìn thấy quan trọng nhất (Most Important Unseen Question):** Tại sao tác giả cần phải tìm kiếm một nhóm đồng điệu ("những kẻ nghiện vitamin xanh") để hợp thức hóa hành động ngửa cổ nhìn trời, và liệu họ có dám đứng một mình đối diện với lời phán xét "vô dụng" mà không cần bất kỳ sự biện hộ nào?
+*   **Mẫu thức tự bảo vệ cần xem xét (Self-protection to Review):** Xu hướng ẩn mình sau tập thể ("chúng mình") và sử dụng giọng điệu nhẹ nhàng, hài hước để giảm nhẹ sức nặng của lời mắng mỏ mang tính định kiến trong quá khứ.
+*   **Câu chuyện sâu sắc hơn (Possible Deeper Story):** Cuộc hòa giải nội tâm giữa đứa trẻ mơ mộng và người lớn thực tế. Không còn xem "đất" (áp lực, cơm áo) và "trời" (tự do, thiên nhiên) là hai thái cực đối lập, mà học cách để mặt đất nâng đỡ cho những cánh chim mơ mộng.
+*   **Điều không nên vội vã (What Should Not Be Rushed):** Không nên vội vã biến trải nghiệm ngắm nhìn thiên nhiên thành một công thức "sạc pin" hay một phương pháp trị liệu có ích. Hãy để sự "vô dụng" được yên vị và tự tỏa sáng theo cách của riêng nó.

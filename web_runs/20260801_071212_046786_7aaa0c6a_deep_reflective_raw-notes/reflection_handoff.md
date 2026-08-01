@@ -1,0 +1,7 @@
+### Hồ sơ phản tư chuyển giao (Reflection Handoff)
+
+*   **Câu hỏi trung tâm (Central Question):** Tại sao chúng ta phải cố gắng chứng minh việc đứng yên ngắm nhìn thiên nhiên là "vô hại" và "có ích", và làm sao để chấp nhận sự "vô dụng" đó như một đặc ân xoa dịu tâm hồn?
+*   **Sức căng cốt lõi (Core Tension):** Sự đối lập giữa áp lực phải luôn sống thực tế, tạo ra giá trị vật chất (nỗi sợ bị coi là "vô dụng", "chân không chạm đất") và nhu cầu sâu thẳm được buông bỏ để sạc năng lượng từ thiên nhiên.
+*   **Thấu cảm mới xuất hiện (Emerging Insight):** Việc ngửa cổ nhìn trời không nhằm mục đích "lấy trời xuống ăn" hay chứng minh điều gì có ích. Nó là sự thừa nhận rằng con người cần những khoảng không "vô dụng" để nuôi dưỡng phần linh hồn vượt thoát khỏi những lo toan cơm áo thông thường.
+*   **Sự chuyển dịch nội tâm mong muốn (Desired Inner Shift):** Chuyển từ trạng thái phòng thủ, biện hộ cho thói quen ngắm cảnh ("hoàn toàn vô hại") sang sự tự tin, an yên đón nhận những khoảnh khắc mơ mộng như một sự tự do tự tại chân chính.
+*   **Những bất định cần giữ lại (Must Preserve Uncertainties):** Giữ nguyên khoảng trống thực tế rằng sau khi nhìn trời, ta vẫn phải quay lại với mặt đất và những áp lực cuộc sống. Không lãng mạn hóa thiên nhiên thành liều thuốc giải quyết mọi vấn đề thực tại.
