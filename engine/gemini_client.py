@@ -14,6 +14,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from engine.app_logger import log as app_log
+
 # ---------- Key Rotation ----------
 
 _keys: list[str] = []
@@ -49,7 +51,7 @@ def _load_keys() -> list[str]:
 
     # Log diagnostic info
     is_render = bool(os.environ.get("RENDER"))
-    print(f"[GEMINI KEY] Platform: {'Render' if is_render else 'Local'}, .env file: {'found' if env_loaded else 'not found'}")
+    app_log("KEY", f"Platform: {'Render' if is_render else 'Local'}, .env: {'found' if env_loaded else 'not found'}")
 
     # Collect all keys from env
     matched_vars = []
@@ -60,18 +62,18 @@ def _load_keys() -> list[str]:
             if val and val != "YOUR_KEY_HERE":
                 _keys.append(val)
 
-    print(f"[GEMINI KEY] Matched env vars: {[(name, _mask_key(val)) for name, val in matched_vars]}")
+    app_log("KEY", f"Matched vars: {[(name, _mask_key(val)) for name, val in matched_vars]}")
 
     # Fallback: single key
     if not _keys:
         single = os.environ.get("GEMINI_API_KEY", "").strip().strip('\'"')
         if single and single != "YOUR_KEY_HERE":
             _keys.append(single)
-            print(f"[GEMINI KEY] Fallback single key: {_mask_key(single)}")
+            app_log("KEY", f"Fallback single key: {_mask_key(single)}")
 
-    print(f"[GEMINI KEY] Total keys loaded: {len(_keys)}")
+    app_log("KEY", f"Total keys loaded: {len(_keys)}")
     if not _keys:
-        print("[GEMINI KEY] WARNING: No keys found! Check env var names start with GEMINI_API_KEY")
+        app_log("KEY", "WARNING: No keys found!", level="ERROR")
 
     return _keys
 
@@ -175,8 +177,8 @@ def call_gemini(
     )
 
     stage_label = stage_id or "unknown"
-    budget_str = f" (Thinking Budget: {thinking_budget} - High Mode)" if thinking_budget > 0 else ""
-    print(f"[GEMINI] Calling {model} for stage '{stage_label}'{budget_str}...")
+    budget_str = f" (Thinking: {thinking_budget})" if thinking_budget > 0 else ""
+    app_log("GEMINI", f"⚡ {model} → '{stage_label}' | Key: {_mask_key(api_key)}{budget_str}")
 
     # Strategy 1: Use official google.genai SDK if available
     if _HAS_GENAI_SDK:

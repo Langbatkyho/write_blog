@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from engine.app_logger import log as app_log
+
 try:
     import yaml
 except ImportError as exc:
@@ -41,7 +43,7 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
     Chạy tất cả git command từ thư mục ROOT của repo.
     """
     if not os.environ.get("RENDER"):
-        print("[Git Sync] Chạy ở Local, bỏ qua Auto Git Sync.")
+        app_log("GIT", "Local mode, bỏ qua Auto Git Sync.")
         return False
         
     repo_root = str(ROOT)
@@ -59,8 +61,8 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
                 capture_output=True, text=True,
             )
             if result.returncode != 0:
-                print(f"[Git Sync] CMD: {' '.join(cmd)}")
-                print(f"[Git Sync] STDERR: {result.stderr.strip()}")
+                app_log("GIT", f"CMD FAIL: {' '.join(cmd)}", level="ERROR")
+                app_log("GIT", f"STDERR: {result.stderr.strip()}", level="ERROR")
                 result.check_returncode()
             return result
 
@@ -68,7 +70,7 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
         github_token = os.environ.get("GITHUB_TOKEN")
         
         if not github_user or not github_token:
-            print("[Git Sync] GITHUB_USERNAME hoặc GITHUB_TOKEN chưa được cấu hình.")
+            app_log("GIT", "GITHUB_USERNAME hoặc GITHUB_TOKEN chưa cấu hình!", level="ERROR")
             return False
         
         # Cấu hình authentication
@@ -84,26 +86,26 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
         else:
             targets = [target_path]
         
-        print(f"[Git Sync] Repo root: {repo_root}")
-        print(f"[Git Sync] Targets: {targets}")
+        app_log("GIT", f"Repo: {repo_root} | Targets: {targets}")
         
         _run(["git", "add", "--"] + targets)
         
         status = _run(["git", "status", "--porcelain"])
         if not status.stdout.strip():
-            print("[Git Sync] Không có file nào thay đổi.")
+            app_log("GIT", "Không có thay đổi.")
             return True
 
-        print(f"[Git Sync] Staged changes:\n{status.stdout.strip()}")
+        changed = status.stdout.strip().split('\n')
+        app_log("GIT", f"Staged: {len(changed)} file(s)")
         _run(["git", "commit", "-m", commit_message])
         _run(["git", "push", "origin", "HEAD:main"])
         
-        print(f"[Git Sync] ✅ Đã push thành công: {commit_message}")
+        app_log("GIT", f"✅ Push OK: {commit_message}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"[Git Sync Lỗi] Quá trình git thất bại: {e}")
+        app_log("GIT", f"Git thất bại: {e}", level="ERROR")
         return False
     except Exception as e:
-        print(f"[Git Sync Lỗi] Lỗi hệ thống: {e}")
+        app_log("GIT", f"Lỗi hệ thống: {e}", level="ERROR")
         return False
 

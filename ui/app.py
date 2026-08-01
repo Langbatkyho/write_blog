@@ -10,6 +10,7 @@ if str(ROOT) not in sys.path:
 
 from engine.style_manager import list_styles
 from engine.utils import read_text
+from engine.app_logger import get_logs, clear_logs
 from ui.state import initialize_session_state, switch_mode
 from ui.views.gallery import render_gallery
 from ui.views.voice_lab import render_voice_lab
@@ -58,6 +59,23 @@ with st.sidebar:
         key="main_menu_radio",
         label_visibility="collapsed",
     )
+    
+    # ── Log Panel ──
+    st.divider()
+    with st.expander("📊 Nhật ký hệ thống", expanded=False):
+        logs = get_logs(30)
+        if logs:
+            for entry in logs:
+                icon = "🟢" if entry["level"] == "INFO" else "🔴"
+                st.markdown(
+                    f"`{entry['time']}` {icon} **[{entry['tag']}]** {entry['msg']}",
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.caption("Chưa có log nào. Log sẽ xuất hiện khi bạn chạy workflow.")
+        if st.button("🗑️ Xóa log", key="clear_logs_btn"):
+            clear_logs()
+            st.rerun()
 
 mode = st.session_state.mode
 styles = list_styles(mode)
