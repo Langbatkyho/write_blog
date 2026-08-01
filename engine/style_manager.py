@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Any, Tuple, List, Dict, Optional
 import yaml
 
-from engine.utils import resolve_path, write_text, load_yaml, read_text, auto_git_sync
+from engine.utils import resolve_path, write_text, load_yaml, read_text
+from engine.supabase_client import upsert_style_file, delete_style_files
 from engine.workflow_contracts import (
     WorkflowDefinition,
     validate_step_skill_contract,
@@ -17,6 +18,12 @@ from engine.style_repository import (
     move_to_trash,
 )
 from engine.style_contracts import is_valid_style_slug, validate_style_metadata
+
+def _sync_style_to_supabase(mode: str, slug: str, style_dir: Path) -> None:
+    """Helper to sync all yaml files in a style directory to Supabase."""
+    for f in style_dir.glob("*.yaml"):
+        content = read_text(f)
+        upsert_style_file(mode, slug, f.name, content)
 
 DEEP_GROUP_A_FILES = {
     "story_architect.yaml",
@@ -332,7 +339,12 @@ def save_style_file(mode: str, slug: str, filename: str, content: str) -> Tuple[
             )
         validate_style_directory(mode, slug, staging_dir)
         commit_staged_directory(staging_dir, style_dir)
-        auto_git_sync(str(style_dir), f"feat(style): Cập nhật file {filename} của style {slug}")
+        
+        # Sync file đã sửa lên Supabase
+        upsert_style_file(mode, slug, filename, content)
+        if meta_path.exists():
+            upsert_style_file(mode, slug, "style_meta.yaml", read_text(meta_path))
+            
         return True, "", warn
     except Exception as e:
         if staging_dir and staging_dir.exists():
@@ -383,7 +395,7 @@ def create_style(
         )
         validate_style_directory(mode, slug, staging_dir)
         commit_staged_directory(staging_dir, target_dir)
-        auto_git_sync(str(target_dir), f"feat(style): Tạo mới style {slug}")
+        _sync_style_to_supabase(mode, slug, target_dir)
         return True, ""
     except Exception as e:
         if staging_dir and staging_dir.exists():
@@ -451,10 +463,12 @@ def rename_style(mode: str, old_slug: str, new_name: str, new_slug: str) -> Tupl
         )
         if old_slug == new_slug:
             commit_staged_directory(staging_dir, style_dir)
-            auto_git_sync(str(style_dir), f"feat(style): Cập nhật tên của style {new_slug}")
+            _sync_style_to_supabase(mode, new_slug, style_dir)
         else:
             commit_staged_rename(staging_dir, style_dir, target_dir)
-            auto_git_sync(str(style_dir.parent), f"feat(style): Đổi tên style {old_slug} thành {new_slug}")
+            # Sync style mới và xóa style cũ
+            _sync_style_to_supabase(mode, new_slug, target_dir)
+            delete_style_files(mode, old_slug)
         return True, ""
     except Exception as e:
         if staging_dir and staging_dir.exists():
@@ -487,10 +501,7 @@ def delete_style(mode: str, slug: str) -> Tuple[bool, str]:
     try:
         trash_root = resolve_path(f"profile_history/style_trash/{mode}")
         trash_path = move_to_trash(style_dir, trash_root)
-        auto_git_sync(
-            [str(style_dir.parent), str(trash_path)], 
-            f"feat(style): Xoá style {slug} và chuyển vào thùng rác"
-        )
+        delete_style_files(mode, slug)
         return True, f"Style đã chuyển vào thùng rác: {trash_path}"
     except Exception as e:
         return False, f"Lỗi khi xóa folder style: {str(e)}"

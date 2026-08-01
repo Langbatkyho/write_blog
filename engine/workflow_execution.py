@@ -10,7 +10,7 @@ from typing import Any, Callable
 from engine.openai_client import call_openai, get_openai_options
 from engine.parser import build_context_package, estimate_tokens, parse_stage_response
 from engine.style_manager import validate_style_contract
-from engine.utils import load_yaml, read_text, resolve_path, auto_git_sync
+from engine.utils import load_yaml, read_text, resolve_path
 from engine.workflow_artifacts import append_run_log, derive_artifact_file_contents
 from engine.workflow_context import build_dry_run_response, build_step_prompt
 from engine.workflow_contracts import (
@@ -390,8 +390,6 @@ def run_workflow(
     )
     if repository and run_dir:
         repository.write_metadata(run_dir, metadata)
-        if final_status == "completed" and should_persist:
-            auto_git_sync(str(run_dir), f"feat(run): Tự động lưu blog workflow {run_dir.name}")
     if terminal_error:
         raise terminal_error
     result = WorkflowRunResult(

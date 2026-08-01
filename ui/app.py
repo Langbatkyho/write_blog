@@ -9,8 +9,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.style_manager import list_styles
-from engine.utils import read_text, check_git_sync_status
+from engine.utils import read_text
 from engine.app_logger import get_logs, clear_logs
+from engine.supabase_client import check_supabase_status, restore_all_styles
 from ui.state import initialize_session_state, switch_mode
 from ui.views.gallery import render_gallery
 from ui.views.voice_lab import render_voice_lab
@@ -27,6 +28,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Restore styles from Supabase (only runs once per session/deploy if cached, 
+# but Streamlit runs this every time, so we could optimize, but for now we run it)
+if "supabase_restored" not in st.session_state:
+    restore_all_styles()
+    st.session_state["supabase_restored"] = True
+
 css_path = ROOT / "ui" / "styles.css"
 if css_path.exists():
     st.markdown(
@@ -77,14 +85,14 @@ with st.sidebar:
             clear_logs()
             st.rerun()
     
-    with st.expander("🔧 Trạng thái Git Sync", expanded=False):
-        sync_status = check_git_sync_status()
+    with st.expander("🔧 Trạng thái Supabase", expanded=False):
+        sync_status = check_supabase_status()
         for k, v in sync_status.items():
             st.markdown(f"**{k}**: {v}")
         if not sync_status.get("ready"):
             st.warning(
-                "Cần khai báo `GITHUB_USERNAME` và `GITHUB_TOKEN` "
-                "trên Render Dashboard để bật tính năng lưu dữ liệu về GitHub."
+                "Cần khai báo `SUPABASE_URL` và `SUPABASE_KEY` "
+                "trên Render Dashboard để bật tính năng lưu dữ liệu Style."
             )
 
 mode = st.session_state.mode
