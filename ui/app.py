@@ -9,7 +9,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.style_manager import list_styles
-from engine.utils import read_text
+from engine.utils import read_text, check_git_sync_status
 from engine.app_logger import get_logs, clear_logs
 from ui.state import initialize_session_state, switch_mode
 from ui.views.gallery import render_gallery
@@ -76,6 +76,16 @@ with st.sidebar:
         if st.button("🗑️ Xóa log", key="clear_logs_btn"):
             clear_logs()
             st.rerun()
+    
+    with st.expander("🔧 Trạng thái Git Sync", expanded=False):
+        sync_status = check_git_sync_status()
+        for k, v in sync_status.items():
+            st.markdown(f"**{k}**: {v}")
+        if not sync_status.get("ready"):
+            st.warning(
+                "Cần khai báo `GITHUB_USERNAME` và `GITHUB_TOKEN` "
+                "trên Render Dashboard để bật tính năng lưu dữ liệu về GitHub."
+            )
 
 mode = st.session_state.mode
 styles = list_styles(mode)

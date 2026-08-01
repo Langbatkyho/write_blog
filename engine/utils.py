@@ -37,10 +37,38 @@ def resolve_path(raw_path: str | Path) -> Path:
     path = Path(raw_path)
     return path if path.is_absolute() else ROOT / path
 
+def check_git_sync_status() -> dict[str, Any]:
+    """Kiểm tra trạng thái cấu hình Git Sync (dùng cho UI debug)."""
+    is_render = bool(os.environ.get("RENDER"))
+    has_user = bool(os.environ.get("GITHUB_USERNAME"))
+    has_token = bool(os.environ.get("GITHUB_TOKEN"))
+    
+    status = {
+        "platform": "Render" if is_render else "Local",
+        "enabled": is_render,
+        "github_username": "✅ Đã cấu hình" if has_user else "❌ Chưa cấu hình",
+        "github_token": "✅ Đã cấu hình" if has_token else "❌ Chưa cấu hình",
+        "ready": is_render and has_user and has_token,
+    }
+    
+    if is_render:
+        try:
+            result = subprocess.run(
+                ["git", "remote", "get-url", "origin"],
+                cwd=str(ROOT), capture_output=True, text=True,
+            )
+            status["remote_url"] = result.stdout.strip()[:50] + "..." if len(result.stdout.strip()) > 50 else result.stdout.strip()
+        except Exception:
+            status["remote_url"] = "Không xác định"
+    
+    return status
+
+
 def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự động lưu thay đổi") -> bool:
     """
     Tự động Git Add, Commit và Push cho một thư mục hoặc file cụ thể.
     Chạy tất cả git command từ thư mục ROOT của repo.
+    Dùng token-embedded URL thay vì .netrc (đáng tin cậy hơn trên Render).
     """
     if not os.environ.get("RENDER"):
         app_log("GIT", "Local mode, bỏ qua Auto Git Sync.")
@@ -73,12 +101,10 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
             app_log("GIT", "GITHUB_USERNAME hoặc GITHUB_TOKEN chưa cấu hình!", level="ERROR")
             return False
         
-        # Cấu hình authentication
-        netrc_path = Path.home() / ".netrc"
-        netrc_path.write_text(
-            f"machine github.com\nlogin {github_user}\npassword {github_token}\n",
-            encoding="utf-8",
-        )
+        # Cấu hình remote URL với token (đáng tin cậy hơn .netrc)
+        auth_url = f"https://{github_user}:{github_token}@github.com/{github_user}/write_blog.git"
+        _run(["git", "remote", "set-url", "origin", auth_url])
+        app_log("GIT", f"Remote URL set cho user: {github_user}")
 
         # Xử lý target_path: hỗ trợ list hoặc string đơn (KHÔNG split)
         if isinstance(target_path, list):
@@ -86,8 +112,9 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
         else:
             targets = [target_path]
         
-        app_log("GIT", f"Repo: {repo_root} | Targets: {targets}")
+        app_log("GIT", f"Repo: {repo_root} | Targets: {len(targets)} path(s)")
         
+        # git add tất cả thay đổi (bao gồm cả thay đổi ngoài target)
         _run(["git", "add", "--"] + targets)
         
         status = _run(["git", "status", "--porcelain"])
@@ -97,6 +124,9 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
 
         changed = status.stdout.strip().split('\n')
         app_log("GIT", f"Staged: {len(changed)} file(s)")
+        for c in changed[:5]:  # Chỉ log 5 file đầu
+            app_log("GIT", f"  {c.strip()}")
+        
         _run(["git", "commit", "-m", commit_message])
         _run(["git", "push", "origin", "HEAD:main"])
         
@@ -108,4 +138,6 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
     except Exception as e:
         app_log("GIT", f"Lỗi hệ thống: {e}", level="ERROR")
         return False
+
+
 
