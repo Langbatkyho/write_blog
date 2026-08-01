@@ -42,24 +42,30 @@ def check_git_sync_status() -> dict[str, Any]:
     is_render = bool(os.environ.get("RENDER"))
     has_user = bool(os.environ.get("GITHUB_USERNAME"))
     has_token = bool(os.environ.get("GITHUB_TOKEN"))
+    git_exists = (Path(str(ROOT)) / ".git").exists()
     
     status = {
         "platform": "Render" if is_render else "Local",
         "enabled": is_render,
+        "git_repo": "✅ Có .git" if git_exists else "⚠️ Chưa có .git (sẽ tự tạo khi sync)",
         "github_username": "✅ Đã cấu hình" if has_user else "❌ Chưa cấu hình",
         "github_token": "✅ Đã cấu hình" if has_token else "❌ Chưa cấu hình",
         "ready": is_render and has_user and has_token,
     }
     
-    if is_render:
+    if is_render and git_exists:
         try:
             result = subprocess.run(
                 ["git", "remote", "get-url", "origin"],
                 cwd=str(ROOT), capture_output=True, text=True,
             )
-            status["remote_url"] = result.stdout.strip()[:50] + "..." if len(result.stdout.strip()) > 50 else result.stdout.strip()
+            url = result.stdout.strip()
+            # Che giấu token trong URL
+            if "@github.com" in url:
+                url = url.split("@")[0][:20] + "***@github.com/..."
+            status["remote_url"] = url if url else "Chưa có remote"
         except Exception:
-            status["remote_url"] = "Không xác định"
+            status["remote_url"] = "Chưa có remote"
     
     return status
 
@@ -89,8 +95,11 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
                 capture_output=True, text=True,
             )
             if result.returncode != 0:
-                app_log("GIT", f"CMD FAIL: {' '.join(cmd)}", level="ERROR")
-                app_log("GIT", f"STDERR: {result.stderr.strip()}", level="ERROR")
+                # Che giấu token trong log
+                safe_cmd = ' '.join(cmd).replace(github_token, "***TOKEN***") if github_token else ' '.join(cmd)
+                safe_err = result.stderr.strip().replace(github_token, "***TOKEN***") if github_token else result.stderr.strip()
+                app_log("GIT", f"CMD FAIL: {safe_cmd}", level="ERROR")
+                app_log("GIT", f"STDERR: {safe_err}", level="ERROR")
                 result.check_returncode()
             return result
 
@@ -101,10 +110,33 @@ def auto_git_sync(target_path: str | list[str], commit_message: str = "Tự đ�
             app_log("GIT", "GITHUB_USERNAME hoặc GITHUB_TOKEN chưa cấu hình!", level="ERROR")
             return False
         
-        # Cấu hình remote URL với token (đáng tin cậy hơn .netrc)
+        # Đảm bảo có git repo (Render extract archive, không git clone)
+        git_dir = Path(repo_root) / ".git"
+        if not git_dir.exists():
+            subprocess.run(["git", "init"], cwd=repo_root, env=env, capture_output=True)
+            subprocess.run(["git", "add", "."], cwd=repo_root, env=env, capture_output=True)
+            subprocess.run(
+                ["git", "commit", "-m", "Initial commit from Render"],
+                cwd=repo_root, env=env, capture_output=True,
+            )
+            app_log("GIT", "Đã khởi tạo git repo trên Render.")
+        
+        # Cấu hình remote URL với token
         auth_url = f"https://{github_user}:{github_token}@github.com/{github_user}/write_blog.git"
-        _run(["git", "remote", "set-url", "origin", auth_url])
-        app_log("GIT", f"Remote URL set cho user: {github_user}")
+        
+        # Kiểm tra remote 'origin' đã tồn tại chưa
+        check_remote = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=repo_root, env=env, capture_output=True, text=True,
+        )
+        if check_remote.returncode != 0:
+            # Remote chưa tồn tại → thêm mới
+            _run(["git", "remote", "add", "origin", auth_url])
+            app_log("GIT", f"Đã thêm remote origin cho user: {github_user}")
+        else:
+            # Remote đã tồn tại → cập nhật URL
+            _run(["git", "remote", "set-url", "origin", auth_url])
+            app_log("GIT", f"Đã cập nhật remote origin cho user: {github_user}")
 
         # Xử lý target_path: hỗ trợ list hoặc string đơn (KHÔNG split)
         if isinstance(target_path, list):
