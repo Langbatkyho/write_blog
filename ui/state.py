@@ -4,6 +4,7 @@ from typing import Any, MutableMapping
 
 
 SESSION_DEFAULTS: dict[str, Any] = {
+    "user_info": None,
     "mode": "deep",
     "selected_style_slug": "reflective",
     "active_tab": 0,

@@ -17,6 +17,7 @@ from ui.views.gallery import render_gallery
 from ui.views.voice_lab import render_voice_lab
 from ui.views.workbench import render_workbench
 from ui.views.blog_workflow import render_blog_workflow
+from ui.auth import require_login
 
 
 
@@ -28,6 +29,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+require_login()
 
 # Restore styles from Supabase (only runs once per session/deploy if cached, 
 # but Streamlit runs this every time, so we could optimize, but for now we run it)
@@ -44,6 +47,15 @@ if css_path.exists():
 initialize_session_state(st.session_state)
 
 with st.sidebar:
+    user_info = st.session_state.get("user_info", {})
+    if user_info:
+        st.markdown("### 👤 Tài khoản")
+        st.markdown(f"**Email:** {user_info.get('email', 'Không rõ')}")
+        if st.button("🚪 Đăng xuất", key="logout_btn", use_container_width=True):
+            st.session_state.pop("user_info", None)
+            st.rerun()
+        st.divider()
+
     st.markdown("### 🧭 Chọn loại blog")
     selected_mode = st.radio(
         "Writing Mode",
