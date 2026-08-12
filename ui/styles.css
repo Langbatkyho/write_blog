@@ -1,16 +1,16 @@
-/* Antigravity Mindful Writing OS - Premium Dark Theme CSS */
+/* Antigravity Mindful Writing OS - Premium Light Theme CSS */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-primary: #0f172a;      /* Slate 900 */
-  --bg-secondary: #1e293b;    /* Slate 800 */
-  --bg-card: rgba(30, 41, 59, 0.7); /* Glassmorphism Slate */
-  --text-primary: #f8fafc;    /* Slate 50 */
-  --text-secondary: #cbd5e1;  /* Slate 300 */
+  --bg-primary: #f8fafc;      /* Slate 50 */
+  --bg-secondary: #f1f5f9;    /* Slate 100 */
+  --bg-card: rgba(255, 255, 255, 0.7); /* Glassmorphism White */
+  --text-primary: #0f172a;    /* Slate 900 */
+  --text-secondary: #475569;  /* Slate 600 */
   --accent-gold: #f59e0b;     /* Warm Gold */
   --accent-gold-hover: #d97706;
-  --accent-cyan: #06b6d4;     /* Electric Cyan */
-  --border-color: #334155;    /* Slate 700 */
+  --accent-cyan: #0ea5e9;     /* Light Blue */
+  --border-color: #e2e8f0;    /* Slate 200 */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -25,13 +25,13 @@ html, body, [class*="css"] {
 .stApp {
   background-color: var(--bg-primary);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.08) 0, transparent 50%), 
+    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.08) 0, transparent 50%), 
     radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0, transparent 50%);
 }
 
 /* Sidebar styling */
 section[data-testid="stSidebar"] {
-  background-color: #0b1120 !important;
+  background-color: #ffffff !important;
   border-right: 1px solid var(--border-color);
 }
 
@@ -45,7 +45,7 @@ section[data-testid="stSidebar"] .stRadio label {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius);
   padding: 1.5rem;
   margin-bottom: 1rem;
@@ -70,9 +70,9 @@ section[data-testid="stSidebar"] .stRadio label {
 }
 
 .badge-protected {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.2);
   padding: 0.25rem 0.6rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -81,9 +81,9 @@ section[data-testid="stSidebar"] .stRadio label {
 }
 
 .badge-custom {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.2));
-  color: #22d3ee;
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(2, 132, 199, 0.1));
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.2);
   padding: 0.25rem 0.6rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -103,7 +103,7 @@ section[data-testid="stSidebar"] .stRadio label {
   color: #64748b;
   display: flex;
   gap: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   padding-top: 0.75rem;
 }
 
@@ -117,7 +117,7 @@ section[data-testid="stSidebar"] .stRadio label {
 .stButton > button[kind="primary"] {
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-hover)) !important;
   border: none !important;
-  color: #0f172a !important;
+  color: #ffffff !important;
   font-weight: 600 !important;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25) !important;
 }
@@ -130,8 +130,8 @@ section[data-testid="stSidebar"] .stRadio label {
 /* Code editor area */
 textarea, .stTextArea textarea {
   font-family: 'JetBrains Mono', monospace !important;
-  background-color: #0b1120 !important;
-  color: #38bdf8 !important;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 8px !important;
 }
