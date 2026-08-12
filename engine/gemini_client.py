@@ -159,13 +159,15 @@ def call_gemini(
     temperature: float = 0.7,
     max_output_tokens: int = 4096,
     thinking_budget: int = 1024,
-    max_retries: int = 3,
+    max_retries: int | None = None,
 ) -> str:
     """
-    Call Gemini API (e.g. gemini-3.5-flash) with rate limiting, key rotation,
-    and High Thinking Mode (thinking_budget=1024).
+    Call Gemini API with rate limiting, key rotation, and High Thinking Mode.
     Compatible signature with call_openai / call_antigravity.
     """
+    keys_count = len(_load_keys())
+    if max_retries is None:
+        max_retries = max(3, keys_count + 1)
     config = dict(config or {})
     model = model or get_gemini_model(config, stage_id)
     _rate_limit()
@@ -210,8 +212,8 @@ def call_gemini(
             except Exception as exc:
                 if attempt < max_retries - 1:
                     api_key = _next_key()
-                    wait = 2 ** attempt
-                    print(f"[GEMINI SDK] Retry {attempt+1}/{max_retries} due to: {exc}. Waiting {wait}s...")
+                    wait = 2 if keys_count > 1 else 2 ** attempt
+                    print(f"[GEMINI SDK] Retry {attempt+1}/{max_retries} due to: {exc}. Rotating & waiting {wait}s...")
                     time.sleep(wait)
                 else:
                     print(f"[GEMINI SDK] Fallback to REST API due to: {exc}")
@@ -272,7 +274,7 @@ def call_gemini(
                 # Rate limited — try next key and wait
                 api_key = _next_key()
                 url = f"{endpoint}?key={api_key}"
-                wait = 12 * (attempt + 1)
+                wait = 2 if keys_count > 1 else 12 * (attempt + 1)
                 print(f"[GEMINI] 429 Rate limited. Rotating key & waiting {wait}s... (Attempt {attempt+1}/{max_retries})")
                 time.sleep(wait)
                 continue
