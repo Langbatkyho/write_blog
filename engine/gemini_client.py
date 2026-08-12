@@ -128,6 +128,27 @@ try:
 except ImportError:
     _HAS_GENAI_SDK = False
 
+# ---------- Schema Cleaning for REST API ----------
+
+_UNSUPPORTED_SCHEMA_KEYS = {"additionalProperties", "title", "$schema"}
+
+def _clean_schema_for_rest(schema: Any) -> Any:
+    """Recursively remove keys that Gemini REST API does not accept.
+
+    Pydantic v2 generates `additionalProperties`, `title`, and `$schema`
+    in its JSON schemas. The official SDK strips these automatically, but
+    the REST endpoint returns HTTP 400 if they are present.
+    """
+    if isinstance(schema, dict):
+        return {
+            k: _clean_schema_for_rest(v)
+            for k, v in schema.items()
+            if k not in _UNSUPPORTED_SCHEMA_KEYS
+        }
+    if isinstance(schema, list):
+        return [_clean_schema_for_rest(item) for item in schema]
+    return schema
+
 # ---------- API Call ----------
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -240,9 +261,9 @@ def call_gemini(
     if response_mime_type:
         generation_config["responseMimeType"] = response_mime_type
     if response_schema and is_json_schema:
-        generation_config["responseJsonSchema"] = response_schema
+        generation_config["responseJsonSchema"] = _clean_schema_for_rest(response_schema)
     elif response_schema:
-        generation_config["responseSchema"] = response_schema
+        generation_config["responseSchema"] = _clean_schema_for_rest(response_schema)
 
     payload = {
         "contents": [
