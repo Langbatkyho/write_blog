@@ -60,7 +60,14 @@ def _load_keys() -> list[str]:
             val = os.environ[key_name].strip().strip('\'"')
             matched_vars.append((key_name, val))
             if val and val != "YOUR_KEY_HERE":
-                _keys.append(val)
+                # Handle comma-separated keys in a single variable
+                if "," in val:
+                    for k in val.split(","):
+                        k = k.strip()
+                        if k and k != "YOUR_KEY_HERE":
+                            _keys.append(k)
+                else:
+                    _keys.append(val)
 
     app_log("KEY", f"Matched vars: {[(name, _mask_key(val)) for name, val in matched_vars]}")
 
@@ -270,12 +277,15 @@ def call_gemini(
             return json.dumps(data, ensure_ascii=False, indent=2)
 
         except urllib.error.HTTPError as exc:
-            if exc.code == 429 and attempt < max_retries - 1:
+            body = exc.read().decode("utf-8", errors="replace")
+            is_quota_error = exc.code == 429 or (exc.code in (400, 403) and ("quota" in body.lower() or "rate limit" in body.lower()))
+            
+            if is_quota_error and attempt < max_retries - 1:
                 # Rate limited — try next key and wait
                 api_key = _next_key()
                 url = f"{endpoint}?key={api_key}"
                 wait = 2 if keys_count > 1 else 12 * (attempt + 1)
-                print(f"[GEMINI] 429 Rate limited. Rotating key & waiting {wait}s... (Attempt {attempt+1}/{max_retries})")
+                print(f"[GEMINI] {exc.code} Quota/Rate limit. Rotating key & waiting {wait}s... (Attempt {attempt+1}/{max_retries})")
                 time.sleep(wait)
                 continue
             elif exc.code in (500, 503) and attempt < max_retries - 1:
@@ -283,7 +293,6 @@ def call_gemini(
                 print(f"[GEMINI] Server error {exc.code}. Retrying in {wait}s...")
                 time.sleep(wait)
                 continue
-            body = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"Gemini API failed: HTTP {exc.code}\n{body}") from exc
         except urllib.error.URLError as exc:
             if attempt < max_retries - 1:
