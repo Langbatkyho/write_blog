@@ -147,6 +147,7 @@ def run_workflow(
             log_root = resolve_path(config.get("workflow", {}).get("log_dir", "runs"))
         repository = RunRepository(log_root)
         run_dir = repository.create(author_input, style, mode)
+        config["_current_run_dir"] = str(run_dir)
         log_file = run_dir / "run_log.md"
         repository.write_internal(run_dir, "input.md", author_input)
 

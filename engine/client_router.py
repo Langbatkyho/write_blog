@@ -24,17 +24,23 @@ def _get_gemini() -> LlmClient:
     from engine.gemini_client import call_gemini
     return call_gemini
 
+def _get_deepseek() -> LlmClient:
+    from engine.deepseek_client import call_deepseek
+    return call_deepseek
+
 # Registry: tên client -> hàm import lazy
 _CLIENT_REGISTRY: dict[str, Callable[[], LlmClient]] = {
     "openai": _get_openai,
     "antigravity": _get_antigravity,
     "gemini": _get_gemini,
+    "deepseek": _get_deepseek,
 }
 
 _PROVIDER_API_CAPABILITY = {
     "openai": True,
     "gemini": True,
     "antigravity": False,
+    "deepseek": True,
 }
 
 VALID_CLIENTS = set(_CLIENT_REGISTRY.keys())
@@ -175,6 +181,10 @@ def create_routing_client(
             from engine.openai_client import get_openai_options
 
             model = str(get_openai_options(config, stage_id).get("model"))
+        elif provider == "deepseek":
+            from engine.deepseek_client import get_deepseek_options
+
+            model = str(get_deepseek_options(config, stage_id).get("model"))
         else:
             from engine.gemini_client import get_gemini_model
 

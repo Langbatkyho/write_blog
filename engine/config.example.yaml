@@ -7,7 +7,17 @@ gemini:
     # Ví dụ:
     # story_architect:
     #   model: gemini-2.0-pro-exp
-    
+
+deepseek:
+  api_key_env: DEEPSEEK_API_KEY
+  endpoint: https://api.deepseek.com/chat/completions
+  model: deepseek-v4-pro
+  max_output_tokens: 8192
+  timeout: 300
+  thinking:
+    enabled: true
+    reasoning_effort: high
+
 openai:
   # Keep the real key outside the repo. Set this environment variable before running.
   api_key_env: OPENAI_API_KEY

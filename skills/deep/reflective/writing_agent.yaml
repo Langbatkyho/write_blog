@@ -65,6 +65,7 @@ step_3_organize_story:
   rules:
     - Do not force dramatic structure.
     - Let the experience determine the rhythm.
+    - Tích hợp các tiêu đề phụ (subheadings) đã được đề xuất bởi story_architect vào bài viết để ngắt nhịp và tạo bố cục rõ ràng.
 
 draft_mindset:
   - Write forward.
@@ -82,6 +83,9 @@ story_loyalty:
   - Stay faithful to lived experience.
 
 voice_rules:
+  mandatory:
+    - BẮT BUỘC giữ nguyên đại từ nhân xưng (tôi/mình/ta/anh/chị...) như trong raw_notes, không được tự ý chuyển đổi.
+    - BẮT BUỘC giữ lại phong cách sử dụng emoji của tác giả nếu có trong raw_notes.
   prefer:
     - spoken Vietnamese
     - familiar vocabulary

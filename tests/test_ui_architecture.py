@@ -88,11 +88,14 @@ def test_streamlit_app_smoke_has_no_exception():
 
 def test_streamlit_has_four_tabs_and_mode_round_trip_resets_voice_lab():
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run(timeout=20)
+    main_menu_radio = next(item for item in app.radio if getattr(item, "key", "") == "main_menu_radio")
+    main_menu_radio.set_value("Quản lý phong cách viết")
+    app.run(timeout=20)
+    
     assert [tab.label for tab in app.tabs] == [
-        "📚 Style Gallery",
-        "🎨 Style Studio",
-        "💻 YAML Code Editor",
-        "🧪 Live Workbench",
+        "📚 Quản trị phong cách viết",
+        "🎨 Tạo mới phong cách viết",
+        "🧪 Thử nghiệm phong cách viết",
     ]
 
     app.session_state["vl_step"] = 4
@@ -100,24 +103,22 @@ def test_streamlit_has_four_tabs_and_mode_round_trip_resets_voice_lab():
     mode_radio = next(item for item in app.radio if item.label == "Writing Mode")
     mode_radio.set_value("moment")
     app.run(timeout=20)
+    
+    main_menu_radio = next(item for item in app.radio if getattr(item, "key", "") == "main_menu_radio")
+    main_menu_radio.set_value("Quản lý phong cách viết")
+    app.run(timeout=20)
+
     assert app.session_state["mode"] == "moment"
     assert app.session_state["vl_step"] == 1
     assert app.session_state["vl_calibration_selection"] is None
-    editor_style = next(
-        item
-        for item in app.selectbox
-        if item.label == "Chọn Style để chỉnh sửa:"
-    )
+    
     workbench_style = next(
         item
         for item in app.selectbox
         if item.label == "Chọn Style kiểm chứng:"
     )
-    assert editor_style.value in editor_style.options
     assert workbench_style.value in workbench_style.options
-    assert "provocative" not in editor_style.options
     assert "provocative" not in workbench_style.options
-    assert app.session_state["editor_style_select_moment"] in editor_style.options
     assert app.session_state["wb_style_select_moment"] in workbench_style.options
 
     mode_radio = next(item for item in app.radio if item.label == "Writing Mode")
@@ -131,6 +132,10 @@ def test_streamlit_has_four_tabs_and_mode_round_trip_resets_voice_lab():
 def test_workbench_template_and_custom_preview_are_in_memory():
     before = _runs_signature()
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run(timeout=20)
+
+    main_menu_radio = next(item for item in app.radio if getattr(item, "key", "") == "main_menu_radio")
+    main_menu_radio.set_value("Quản lý phong cách viết")
+    app.run(timeout=20)
 
     _button(app, "⚡ Chạy Preview").click()
     app.run(timeout=20)
@@ -234,6 +239,11 @@ def test_voice_lab_wizard_reaches_compile_review_with_fakes(monkeypatch):
     )
 
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run(timeout=20)
+    
+    main_menu_radio = next(item for item in app.radio if getattr(item, "key", "") == "main_menu_radio")
+    main_menu_radio.set_value("Quản lý phong cách viết")
+    app.run(timeout=20)
+
     sample = next(item for item in app.text_area if item.label == "Mẫu 1")
     sample.set_value("Một đoạn văn đủ dài để kiểm thử Voice Lab.")
     _button(app, "🔍 Phân tích Mẫu").click()

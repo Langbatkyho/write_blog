@@ -12,6 +12,12 @@ from engine.workflow import run_workflow, run_learning_loop
 from engine.workflow_contracts import LearningRunResult, WorkflowRunResult
 
 def main() -> int:
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
     parser = argparse.ArgumentParser(description="Run the mindful blog workflow.")
     parser.add_argument("--input", help="Path to the author input markdown file.")
     parser.add_argument(
@@ -40,15 +46,15 @@ def main() -> int:
     )
     parser.add_argument(
         "--client",
-        choices=["openai", "antigravity", "gemini"],
+        choices=["openai", "antigravity", "gemini", "deepseek"],
         default="openai",
-        help="LLM Client to use. 'openai' (default), 'antigravity', or 'gemini'.",
+        help="LLM Client to use. 'openai' (default), 'antigravity', 'gemini', or 'deepseek'.",
     )
     parser.add_argument(
         "--client-map",
         help=(
             "Per-stage LLM client mapping. Format: 'stage1=client,stage2=client'. "
-            "Valid clients: openai, antigravity, gemini. "
+            "Valid clients: openai, antigravity, gemini, deepseek. "
             "Stages not listed use --client as fallback."
         ),
     )

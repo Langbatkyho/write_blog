@@ -20,9 +20,9 @@ def _parse_strict_stage_response(response_text: str) -> tuple[str, str]:
             "## Artifact, ## Handoff."
         )
     if response_text[: sections[0].start()].strip():
-        raise StageResponseError(
-            "Stage response strict không được có nội dung trước ## Artifact."
-        )
+        # Relaxed: we allow preamble before ## Artifact, even in strict mode, 
+        # because some LLMs (like DeepSeek) might still output intro text despite prompts.
+        pass
     artifact = response_text[
         sections[0].end() : sections[1].start()
     ].strip()

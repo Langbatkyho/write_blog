@@ -264,3 +264,52 @@ Input tốt không cần bóng bẩy. Nó nên có:
 - một câu hỏi bạn vẫn đang mang theo
 
 Workflow hoạt động tốt nhất khi AI được phép ở lại với sự chưa rõ trước khi cố tạo insight.
+
+## Đăng Nhập Google OAuth (Render Deployment)
+
+Hệ thống hỗ trợ đăng nhập bảo mật bằng Google OAuth 2.0 khi triển khai trên Render.com:
+
+- **Whitelisting**: Chỉ các tài khoản Gmail được khai báo trong biến môi trường `GOOGLE_OAUTH_ALLOWED_EMAILS` mới được phép truy cập giao diện ứng dụng.
+- **Cấu hình Render**: Khai báo `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_ALLOWED_EMAILS` và `SESSION_SECRET` trong phần Environment Variables của Render.
+- **Hướng dẫn chi tiết**: Xem tại [`docs/google_oauth_guide.md`](docs/google_oauth_guide.md) và file kế hoạch [`docs/2026-08-04-google-oauth-plan.md`](docs/2026-08-04-google-oauth-plan.md).
+
+## Chỉ Mục Tài Liệu Tiến Độ & Kiến Trúc (`docs/`)
+
+Thư mục `docs/` lưu trữ toàn bộ lịch sử theo dõi tiến độ, kế hoạch kiến trúc, nhật ký refactoring và hướng dẫn vận hành:
+
+### 1. Kế Hoạch & Nhật Ký Tiến Độ (Progress & Implementation Logs)
+- **DeepSeek API & Reasoning Models:**
+  - [`docs/2026-08-06-deepseek-integration-plan.md`](docs/2026-08-06-deepseek-integration-plan.md): Kế hoạch tích hợp API DeepSeek (model deepseek-v4-pro) hỗ trợ thinking mode và context caching.
+- **Google OAuth & Render Deployment:**
+  - [`docs/2026-08-04-google-oauth-plan.md`](docs/2026-08-04-google-oauth-plan.md): Kế hoạch tích hợp Google OAuth bảo mật bằng Whitelist (Phê duyệt 04/08/2026).
+  - [`docs/google_oauth_guide.md`](docs/google_oauth_guide.md): Hướng dẫn chi tiết cấu hình Google Cloud Console & Render environment variables.
+- **Voice Lab & Style Management:**
+  - [`docs/2026-07-27-voice-lab-refactor-plan-final.md`](docs/2026-07-27-voice-lab-refactor-plan-final.md): Kế hoạch tái cấu trúc Voice Lab chuẩn hóa 5 bước & safety guarantees (Chính thức).
+  - [`docs/2026-07-27-voice-lab-rules-skill-refactor-summary.md`](docs/2026-07-27-voice-lab-rules-skill-refactor-summary.md): Báo cáo tổng kết refactor Rules & Skill theo tiêu chuẩn Agentic.
+  - [`docs/2026-07-27-rules-skill-refactor-plan.md`](docs/2026-07-27-rules-skill-refactor-plan.md): Kế hoạch chuẩn hóa hệ thống quy tắc `.agents/AGENTS.md`.
+  - [`docs/2026-07-26-guided-style-voice-lab-plan-final.md`](docs/2026-07-26-guided-style-voice-lab-plan-final.md): Kế hoạch nâng cấp Guided Style Voice Lab.
+  - [`docs/2026-07-25-multi-editable-style-upgrade-plan-final.md`](docs/2026-07-25-multi-editable-style-upgrade-plan-final.md): Kế hoạch hỗ trợ đa phong cách chỉnh sửa.
+  - [`docs/2026-07-20-multi-style-implementation-log.md`](docs/2026-07-20-multi-style-implementation-log.md): Nhật ký triển khai Multi-Style Engine.
+- **Writing Modes (Deep & Moment):**
+  - [`docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md`](docs/2026-07-22-mindful_writing_os-two-writing-modes-final.md): Quy hoạch hệ thống 2 chế độ viết (Deep Blog & Moment Blog).
+- **Tiến Độ Agent & Bàn Giao:**
+  - [`docs/2026-07-27-project-progress-agent-handoff.md`](docs/2026-07-27-project-progress-agent-handoff.md): Báo cáo bàn giao tiến độ tổng thể của Agent.
+  - [`docs/2026-07-20-antigravity-workflow-run-log.md`](docs/2026-07-20-antigravity-workflow-run-log.md): Log nghiệm thu chạy workflow qua Antigravity Bridge.
+  - [`docs/agent_activities.md`](docs/agent_activities.md): Lịch sử hoạt động và nhật ký thực thi của các agent.
+- **Nhật Ký Refactoring Lịch Sử:**
+  - [`docs/2026-07-15-client-routing-implementation-log.md`](docs/2026-07-15-client-routing-implementation-log.md): Triển khai Client Routing (OpenAI / Gemini / Antigravity).
+  - [`docs/2026-07-14-editorial-workflow-redesign.md`](docs/2026-07-14-editorial-workflow-redesign.md) & [`docs/2026-07-14-refactoring-log.md`](docs/2026-07-14-refactoring-log.md): Cải tiến luồng biên tập và refactoring engine.
+  - [`docs/2026-07-10-handoff-layer-implementation-log.md`](docs/2026-07-10-handoff-layer-implementation-log.md): Xây dựng Handoff Layer giữa các Agent stage.
+
+### 2. Hướng Dẫn Vận Hành (User & Deployment Guides)
+- [`docs/ui_user_guide.md`](docs/ui_user_guide.md): Hướng dẫn sử dụng giao diện Streamlit Workbench & Voice Lab.
+- [`docs/render_deployment_guide.md`](docs/render_deployment_guide.md): Hướng dẫn đóng gói Docker & triển khai Render.com.
+- [`docs/moment_local_quota_guide_AntiGravity.md`](docs/moment_local_quota_guide_AntiGravity.md): Hướng dẫn chạy workflow qua Antigravity Bridge dùng Local Model Quota.
+- [`docs/moment_local_quota_guide_ChatGPT_Work.md`](docs/moment_local_quota_guide_ChatGPT_Work.md): Hướng dẫn tương tác thủ công với ChatGPT Web.
+
+### 3. Phân Tích & Kiến Trúc Core (Architecture & Analysis)
+- [`docs/current_architecture.md`](docs/current_architecture.md): Tổng quan kiến trúc hiện tại của dự án.
+- [`docs/workflow_analysis.md`](docs/workflow_analysis.md): Phân tích thiết kế quy trình và luồng dữ liệu workflow.
+- [`docs/changelog.md`](docs/changelog.md): Nhật ký thay đổi và lịch sử phát triển qua các mốc phiên bản.
+- [`docs/token_optimization_report.md`](docs/token_optimization_report.md): Báo cáo phân tích và giải pháp tối ưu chi phí Token.
+

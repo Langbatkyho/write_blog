@@ -83,12 +83,6 @@ H
 ## Handoff
 H2
 """,
-            """Preamble
-## Artifact
-A
-## Handoff
-H
-""",
         )
         for response in invalid_responses:
             with self.subTest(response=response):

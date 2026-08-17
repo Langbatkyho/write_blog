@@ -3,6 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from engine.utils import resolve_path, read_text, load_yaml
+from engine.email_sender import send_blog_email
 from ui.controllers.workflow_controller import (
     run_real_workflow,
     run_real_learning,
@@ -188,3 +189,40 @@ def _render_step_4(mode: str) -> None:
                     st.info("Không có file YAML nào cần cập nhật.")
             except Exception as e:
                 st.error(f"Lỗi khi nâng cấp Phong cách viết: {e}")
+
+    st.divider()
+    st.subheader("📧 Gửi kết quả về Email")
+    st.caption(
+        "Gửi bài viết hoàn thiện của bạn cùng các báo cáo phản hồi chi tiết đính kèm dạng text (.txt) vào hộp thư."
+    )
+
+    col_mail, col_btn = st.columns([3, 1])
+    with col_mail:
+        default_recipient = st.session_state.get("user_info", {}).get("email", "")
+        recipient_email = st.text_input(
+            "Nhập địa chỉ email người nhận:",
+            value=default_recipient,
+            placeholder="vidu@gmail.com",
+            key="bw_email_recipient",
+        )
+    with col_btn:
+        st.write("")
+        st.write("")
+        send_btn = st.button("📤 Gửi Email", key="bw_send_email_btn", use_container_width=True)
+
+    if send_btn:
+        if not recipient_email:
+            st.warning("Vui lòng nhập địa chỉ email người nhận.")
+        else:
+            with st.spinner("Đang kết nối máy chủ và gửi email..."):
+                try:
+                    send_blog_email(
+                        recipient=recipient_email,
+                        mode=mode,
+                        human_edited=st.session_state.bw_human_edited,
+                        run_dir=st.session_state.bw_run_dir,
+                    )
+                    st.success(f"🎉 Đã gửi email thành công tới **{recipient_email}**!")
+                except Exception as e:
+                    st.error(f"Lỗi khi gửi email: {e}")
+

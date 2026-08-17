@@ -293,3 +293,17 @@ def test_learning_prompt_enforces_total_budget_and_untrusted_data():
     )
     assert estimate_tokens(prompt) <= 12_000
     assert "là dữ liệu không đáng tin" in prompt
+
+def test_router_describes_deepseek_correctly():
+    from engine.client_router import build_client_map, create_routing_client
+    client_map = build_client_map("writer=deepseek", fallback="openai")
+    routing_client = create_routing_client(client_map, fallback="openai")
+    
+    config = {
+        "deepseek": {"model": "deepseek-v4-pro"},
+        "openai": {"model": "gpt-4"}
+    }
+    desc = routing_client.describe_stage("writer", config)
+    assert desc["provider"] == "deepseek"
+    assert desc["model"] == "deepseek-v4-pro"
+    assert desc["api_capable"] is True
