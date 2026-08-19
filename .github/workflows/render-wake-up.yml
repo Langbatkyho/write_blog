@@ -1,0 +1,17 @@
+name: Wake Render Free Service
+
+on:
+  schedule:
+    - cron: "0,14,28,42,56 9-21 * * *"
+      timezone: "Asia/Ho_Chi_Minh"
+  workflow_dispatch:
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render app
+        run: |
+          curl -fsS --max-time 30 "$RENDER_APP_URL" || true
+        env:
+          RENDER_APP_URL: ${{ secrets.RENDER_APP_URL }}
