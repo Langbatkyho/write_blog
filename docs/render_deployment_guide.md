@@ -140,6 +140,7 @@ Render.com mặc định chỉ có quyền Đọc (Read) để pull code. Bạn 
 4. Vào mục **Environment Variables (Biến môi trường)**, tạo các biến sau:
    - `OPENAI_API_KEY`: API Key OpenAI của bạn
    - `GEMINI_API_KEY`: API Key Gemini của bạn
+   - `GEMINI_MODEL`: Model Gemini sử dụng (Tùy chọn, mặc định là `gemini-3.8-flash`)
    - `PYTHON_VERSION`: `3.10.0` (Khuyến khích khai báo cụ thể để tránh lỗi không tương thích bản Python mặc định).
    - `GITHUB_USERNAME`: Tên user GitHub của bạn (VD: `nguyenhan1982`)
    - `GITHUB_TOKEN`: Mã Token dài bạn vừa copy ở Phần 3.

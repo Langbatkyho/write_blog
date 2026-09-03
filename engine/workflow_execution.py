@@ -53,11 +53,18 @@ def _client_descriptor(
     provider = getattr(llm_client, "provider_name", None) or getattr(
         llm_client, "__name__", "unknown"
     ).replace("call_", "")
-    model = (
-        str(get_openai_options(config, stage_id).get("model"))
-        if provider in {"openai", "routing_client"}
-        else None
-    )
+    if provider in {"openai", "routing_client"}:
+        model = str(get_openai_options(config, stage_id).get("model"))
+    elif provider == "gemini":
+        from engine.gemini_client import get_gemini_model
+
+        model = get_gemini_model(config, stage_id)
+    elif provider == "deepseek":
+        from engine.deepseek_client import get_deepseek_options
+
+        model = str(get_deepseek_options(config, stage_id).get("model"))
+    else:
+        model = None
     return (
         str(provider),
         model,

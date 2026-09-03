@@ -152,7 +152,7 @@ def _clean_schema_for_rest(schema: Any) -> Any:
 # ---------- API Call ----------
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-DEFAULT_MODEL = "gemini-3.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"
 
 
 def get_gemini_model(
@@ -162,7 +162,8 @@ def get_gemini_model(
     gemini_config = (config or {}).get("gemini", {})
     if not isinstance(gemini_config, dict):
         raise ValueError("Cấu hình 'gemini' phải là object.")
-    model = gemini_config.get("model", DEFAULT_MODEL)
+    env_model = os.environ.get("GEMINI_MODEL", "").strip()
+    model = env_model or gemini_config.get("model", DEFAULT_MODEL)
     stages = gemini_config.get("stages", {})
     if not isinstance(stages, dict):
         raise ValueError("Cấu hình 'gemini.stages' phải là object.")
@@ -324,3 +325,7 @@ def call_gemini(
             raise RuntimeError(f"Gemini API network error: {exc}") from exc
 
     raise RuntimeError("Gemini API: all retries exhausted")
+ 
+ 
+call_gemini.provider_name = "gemini"
+call_gemini.api_capable = True

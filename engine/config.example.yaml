@@ -1,12 +1,12 @@
 gemini:
   # Model mặc định cho Gemini API
-  model: gemini-3.5-flash
+  model: gemini-3.8-flash
   
   stages: {}
     # Bạn có thể override model cho từng stage cụ thể ở đây
     # Ví dụ:
     # story_architect:
-    #   model: gemini-2.0-pro-exp
+    #   model: gemini-3.8-flash
 
 deepseek:
   api_key_env: DEEPSEEK_API_KEY
