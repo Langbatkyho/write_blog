@@ -45,7 +45,7 @@ test("tra cứu style và model", () => {
 test("core không dùng DOM, window, capability của Artifact hay module ngoài core", () => {
   const coreDir = join(ARTIFACT_DIR, "src", "core");
   for (const file of readdirSync(coreDir).filter((name) => name.endsWith(".js"))) {
-    const source = readFileSync(join(coreDir, file), "utf8").replace(/\/\/.*$/gm, "");
+    const source = readFileSync(join(coreDir, file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
     assert.doesNotMatch(source, /\b(window|document|localStorage|claude\.use|fetch)\b/, file);
     for (const [, target] of source.matchAll(/from\s+"([^"]+)"/g)) {
       assert.match(target, /^\.\/[a-z_]+\.js$/, `${file} import ngoài core: ${target}`);

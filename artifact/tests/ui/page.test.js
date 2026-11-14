@@ -10,7 +10,10 @@ import { join } from "node:path";
 import { after, before, test } from "node:test";
 import { pathToFileURL } from "node:url";
 
+import { createFakeDb } from "../js/fake_db.js";
 import { ARTIFACT_DIR } from "../js/helpers.js";
+
+const JSZIP_URL = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
 
 let chromium = null;
 try {
@@ -25,6 +28,8 @@ let browser;
 let workDir;
 let pageUrl;
 let bundle;
+let buildInfo;
+let jszipPath = null;
 
 before(async () => {
   if (skip) return;
@@ -33,6 +38,14 @@ before(async () => {
   execFileSync(process.env.PYTHON || "python3", [join(ARTIFACT_DIR, "build_html.py"), "--out", out], { stdio: "pipe" });
   const body = readFileSync(out, "utf8");
   bundle = JSON.parse(body.match(/<script type="application\/json" id="bundle-data">([\s\S]*?)<\/script>/)[1]);
+  buildInfo = JSON.parse(body.match(/<script type="application\/json" id="build-info">([\s\S]*?)<\/script>/)[1]);
+  // JSZip được trang nạp từ cdnjs; test phục vụ bản tải sẵn. Không tải được thì bỏ qua test zip.
+  try {
+    execFileSync("curl", ["-sSfL", "-o", join(workDir, "jszip.min.js"), JSZIP_URL], { stdio: "pipe", timeout: 30000 });
+    jszipPath = join(workDir, "jszip.min.js");
+  } catch (_) {
+    jszipPath = null;
+  }
   // Giống khung mà Artifact bọc quanh trang khi publish.
   const wrapped = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>${body}</body></html>`;
   writeFileSync(join(workDir, "page.html"), wrapped);
@@ -50,13 +63,30 @@ function fakeClaude(config) {
   window.__calls = [];
   window.__downloads = [];
   if (config.noClaude) return;
+  // db giả lưu trong sessionStorage để còn nguyên khi tải lại trang.
+  const KEY = "__fakeDbStore";
+  const read = () => new Map(JSON.parse(sessionStorage.getItem(KEY) || "[]"));
+  const write = (map) => sessionStorage.setItem(KEY, JSON.stringify([...map]));
+  const storage = {
+    get: (k) => read().get(k),
+    has: (k) => read().has(k),
+    set: (k, v) => { const m = read(); m.set(k, v); write(m); },
+    delete: (k) => { const m = read(); m.delete(k); write(m); },
+    keys: () => read().keys(),
+  };
+  const never = () => new Promise(() => {});
+  const db = config.hangDb
+    ? { doc: () => ({ collection: () => ({ orderBy: () => ({ limit: () => ({ get: never }) }), doc: () => ({ get: never }) }) }) }
+    : window.__createFakeDb({ storage, failOn: config.dbFailStages ? (op, path) => op === "set" && path.includes("/stages/") : null });
+  const user = { id: async () => "u_test_owner", isOwner: async () => true };
   const sample = async (prompt, options) => {
     const cfg = window.__config;
     const id = /\n- id: (\S+)/.exec(prompt)[1];
     window.__calls.push({ id, model: options.model, effort: options.effort, tier: options.modelTier, cache: options.cache });
     await new Promise((resolve) => setTimeout(resolve, 20));
     if (cfg.failOn === id) throw { code: "rate_limited", message: "Đã chạm giới hạn." };
-    if (cfg.holdOn === id) {
+    if (cfg.holdOn === id && sessionStorage.getItem("__held") !== "1") {
+      sessionStorage.setItem("__held", "1");
       options.onText({ text: "## Artifact\n\nĐang viết dở…", delta: "" });
       await new Promise((resolve, reject) => {
         options.signal.addEventListener("abort", () => reject({ code: "cancelled", message: "Đã dừng.", text: "## Artifact\n\nĐang viết dở…" }));
@@ -77,20 +107,43 @@ function fakeClaude(config) {
       modelApplied: cfg.downgradeOn === id ? undefined : options.model,
     };
   };
-  const downloads = { save: async (request) => { window.__downloads.push({ filename: request.filename, data: request.data }); } };
-  window.claude = { use: async (name) => (name === "sample" ? (config.noSample ? null : sample) : name === "downloads" ? downloads : null) };
+  const downloads = {
+    save: async (request) => {
+      let base64 = null;
+      if (request.data instanceof Blob) {
+        const bytes = new Uint8Array(await request.data.arrayBuffer());
+        let binary = "";
+        for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+        base64 = btoa(binary);
+      }
+      window.__downloads.push({ filename: request.filename, data: typeof request.data === "string" ? request.data : null, base64 });
+    },
+  };
+  const capabilities = { sample: config.noSample ? null : sample, downloads, db: config.noDb ? null : db, user };
+  window.claude = { use: async (name) => capabilities[name] ?? null };
 }
 
 async function openPage(config = {}, { width = 1280, colorScheme = "light" } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme, deviceScaleFactor: 1 });
-  await context.route("**/*", (route) => (route.request().url().startsWith("file:") ? route.continue() : route.abort()));
+  await context.route("**/*", (route) => {
+    const url = route.request().url();
+    if (url.startsWith("file:")) return route.continue();
+    if (url === JSZIP_URL && jszipPath) return route.fulfill({ path: jszipPath, contentType: "application/javascript" });
+    return route.abort();
+  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript({ content: `window.__createFakeDb = ${createFakeDb.toString()};` });
   await page.addInitScript(fakeClaude, config);
   await page.goto(pageUrl);
-  await page.waitForFunction(() => !document.getElementById("chip-claude").textContent.includes("đang kiểm tra"));
+  await ready(page);
   return { context, page, errors };
+}
+
+async function ready(page) {
+  await page.waitForFunction(() => !document.getElementById("chip-storage").textContent.includes("đang kiểm tra"));
+  await page.waitForFunction(() => !document.getElementById("history-note").textContent.startsWith("Đang tải"));
 }
 
 async function noHorizontalScroll(page) {
@@ -114,6 +167,11 @@ for (const [width, colorScheme] of [[390, "light"], [390, "dark"], [1280, "light
   test(`trang trống hiển thị đúng ở ${width}px, theme ${colorScheme}`, { skip }, async () => {
     const { context, page, errors } = await openPage({}, { width, colorScheme });
     assert.equal(await page.textContent("#chip-claude"), "Claude: sẵn sàng");
+    assert.equal(await page.textContent("#chip-storage"), "Lưu trữ: sẵn sàng");
+    assert.ok((await page.textContent("#chip-build")).startsWith(`Phiên bản: ${buildInfo.build_id}`));
+    if (buildInfo.commit_date) assert.match(await page.textContent("#chip-build"), / · \d{2}\/\d{2}\/\d{4}$/);
+    assert.equal(await page.textContent("#history-note"), "Chưa có lần chạy nào được lưu.");
+    assert.ok(await page.isHidden("#run-actions"));
     assert.equal(await page.locator("#stages > li").count(), 6);
     assert.equal(await page.locator('#stages > li[data-status="pending"]').count(), 6);
     assert.equal(await page.inputValue("#desired-length"), "300-600 từ");
@@ -247,7 +305,7 @@ test("bản nháp form được giữ khi tải lại trang", { skip }, async ()
   await page.fill("#raw-notes", "Ghi chú dang dở 🌿");
   await page.waitForTimeout(600);
   await page.reload();
-  await page.waitForFunction(() => !document.getElementById("chip-claude").textContent.includes("đang kiểm tra"));
+  await ready(page);
   assert.equal(await page.inputValue("#raw-notes"), "Ghi chú dang dở 🌿");
   assert.equal(await page.getAttribute("#mode-deep", "aria-pressed"), "true");
   assert.equal(await page.locator("#stages > li").count(), 7);
@@ -259,6 +317,100 @@ test("thiếu input: báo ngay, không gọi Claude", { skip }, async () => {
   await page.click("#run");
   assert.match(await page.textContent("#form-note"), /ghi chú thô/);
   assert.equal((await page.evaluate(() => window.__calls)).length, 0);
+  await context.close();
+});
+
+const doneAll = (page, total) =>
+  page.waitForFunction((n) => document.getElementById("run-status").textContent.includes(`Xong cả ${n} bước`), total);
+
+test("lưu lịch sử: tải lại trang vẫn còn, mở lại xem đủ kết quả mà không gọi lại Claude", { skip }, async () => {
+  const { context, page, errors } = await openPage({}, { width: 390 });
+  await page.selectOption("#style", "va-natural");
+  await fillAndRun(page);
+  await doneAll(page, 6);
+  await page.waitForFunction(() => document.querySelectorAll("#history li").length === 1);
+  const item = page.locator("#history button").first();
+  assert.match(await item.textContent(), /Chiều mưa/);
+  assert.match(await item.textContent(), /Xong 6\/6/);
+  assert.equal(await item.getAttribute("aria-current"), "true");
+  await page.reload();
+  await ready(page);
+  assert.equal(await page.locator("#history li").count(), 1);
+  await page.locator("#history button").first().click();
+  await doneAll(page, 6);
+  assert.equal(await page.locator('#stages > li[data-status="completed"]').count(), 6);
+  assert.match(await page.textContent("#final-text"), /Mưa rơi trên mái tôn/);
+  assert.equal((await page.evaluate(() => window.__calls)).length, 0);
+  await noHorizontalScroll(page);
+  await shot(page, "history-390-light");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("lần chạy bị gián đoạn: mở lại từ lịch sử và chạy tiếp các bước còn lại", { skip }, async () => {
+  const { context, page } = await openPage({ holdOn: "moment_writer" });
+  await fillAndRun(page);
+  await page.waitForSelector("#live-moment_writer");
+  await page.reload();
+  await ready(page);
+  const item = page.locator("#history button").first();
+  assert.match(await item.textContent(), /Đang dở 3\/6/);
+  await item.click();
+  await page.waitForFunction(() => !document.getElementById("next").hidden);
+  assert.equal(await page.textContent("#next"), "Chạy tiếp tới hết");
+  await page.click("#next");
+  await doneAll(page, 6);
+  assert.deepEqual((await page.evaluate(() => window.__calls)).map((c) => c.id), ["moment_writer", "breath_editor", "gentle_witness"]);
+  await page.waitForFunction(() => /Xong 6\/6/.test(document.querySelector("#history button").textContent));
+  await context.close();
+});
+
+test("tải zip: đúng bố cục thư mục run của engine", { skip: skip || (jszipPath ? false : "Không tải được JSZip để test") }, async () => {
+  const { context, page } = await openPage();
+  await page.selectOption("#style", "va-natural");
+  await fillAndRun(page);
+  await doneAll(page, 6);
+  assert.ok(!(await page.isHidden("#run-actions")));
+  await page.click("#download-zip");
+  await page.waitForFunction(() => window.__downloads.length === 1);
+  const download = (await page.evaluate(() => window.__downloads))[0];
+  assert.match(download.filename, /^\d{8}_\d{6}_\d{6}_[0-9a-f]{8}_moment_va-natural_chiều-mưa\.zip$/);
+  const zipPath = join(workDir, "run.zip");
+  writeFileSync(zipPath, Buffer.from(download.base64, "base64"));
+  const names = JSON.parse(execFileSync(process.env.PYTHON || "python3", ["-c", "import json,sys,zipfile;print(json.dumps(zipfile.ZipFile(sys.argv[1]).namelist()))", zipPath], { encoding: "utf8" }));
+  const folder = download.filename.replace(/\.zip$/, "");
+  for (const file of ["input.md", "metadata.json", "step_outputs.json", "run_log.md", "handoff_log.md", "moment_edited.md", "edit_log.md", "witness_report.md"]) {
+    assert.ok(names.includes(`${folder}/${file}`), file);
+  }
+  await context.close();
+});
+
+test("lỗi lưu trữ: báo rõ, lần chạy vẫn hoàn tất", { skip }, async () => {
+  const { context, page } = await openPage({ dbFailStages: true });
+  await fillAndRun(page);
+  await doneAll(page, 6);
+  assert.ok(!(await page.isHidden("#persist-note")));
+  assert.match(await page.textContent("#persist-note"), /Không lưu được bước .*tải zip/);
+  await context.close();
+});
+
+test("không có quyền lưu trữ: vẫn chạy được, báo không có lịch sử", { skip }, async () => {
+  const { context, page, errors } = await openPage({ noDb: true });
+  assert.equal(await page.textContent("#chip-storage"), "Lưu trữ: không khả dụng");
+  assert.match(await page.textContent("#history-note"), /không có quyền lưu trữ/);
+  await fillAndRun(page);
+  await doneAll(page, 6);
+  assert.equal(await page.locator("#history li").count(), 0);
+  assert.ok(!(await page.isDisabled("#download-run")));
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("lịch sử không phản hồi: sau 10 giây báo chưa tải được, trang vẫn dùng được", { skip, timeout: 30000 }, async () => {
+  // openPage chờ ghi chú lịch sử rời trạng thái "Đang tải", tức là chờ hết 10 giây.
+  const { context, page } = await openPage({ hangDb: true });
+  assert.match(await page.textContent("#history-note"), /chưa phản hồi sau 10 giây/);
+  assert.ok(await page.isEnabled("#run"));
   await context.close();
 });
 

@@ -46,6 +46,14 @@ def test_page_embeds_bundle_and_all_modules(page):
     assert not re.search(r"^\s*(import|export)\b", script, re.M)
 
 
+def test_page_has_version_stamp(page):
+    info = json.loads(re.search(r'<script type="application/json" id="build-info">(.*?)</script>', page).group(1))
+    assert re.fullmatch(r"[0-9a-f]{12}", info["build_id"])
+    bundle = json.loads(BUNDLE_RE.search(page).group(1))
+    assert info["bundle_hash"] == bundle["content_hash"]
+    assert set(info) == {"build_id", "bundle_hash", "commit", "commit_date"}
+
+
 @pytest.mark.skipif(shutil.which("node") is None, reason="Cần Node.js để kiểm tra cú pháp.")
 def test_page_script_is_valid_javascript(page, tmp_path):
     script = tmp_path / "page.mjs"

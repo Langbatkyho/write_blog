@@ -108,6 +108,18 @@ pre.text.live { max-height: 220px; color: var(--muted); }
 .final pre.text { max-height: none; font-size: 1.02rem; background: transparent; padding: 0; }
 .final .reading { border-top: 1px solid var(--line); padding-top: 12px; }
 .empty { color: var(--muted); font-size: 0.9rem; }
+.left { display: grid; gap: 20px; min-width: 0; align-content: start; }
+.warn-text { color: var(--warn); }
+ul.history { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.history button {
+  width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; cursor: pointer; display: grid; gap: 2px;
+}
+ul.history button[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+ul.history button:disabled { cursor: not-allowed; opacity: 0.6; }
+ul.history .h-title { font-weight: 500; overflow-wrap: anywhere; }
+ul.history .h-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-family: var(--font-data); font-size: 0.72rem; color: var(--muted); }
+ul.history .h-meta .bad { color: var(--bad); } ul.history .h-meta .ok { color: var(--ok); } ul.history .h-meta .warn { color: var(--warn); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
@@ -119,12 +131,14 @@ pre.text.live { max-height: 220px; color: var(--muted); }
     </div>
     <div class="chips" id="chips">
       <span class="chip" id="chip-claude">Claude: đang kiểm tra…</span>
-      <span class="chip" id="chip-bundle">Bản build: …</span>
+      <span class="chip" id="chip-storage">Lưu trữ: đang kiểm tra…</span>
+      <span class="chip" id="chip-build">Phiên bản: …</span>
     </div>
   </header>
   <div class="banner" id="banner" role="alert" hidden></div>
 
   <div class="columns">
+    <div class="left">
     <form class="panel" id="form" novalidate>
       <div class="field">
         <span class="label" id="mode-label">Chế độ viết</span>
@@ -174,6 +188,15 @@ pre.text.live { max-height: 220px; color: var(--muted); }
       </div>
       <p class="hint" id="form-note" aria-live="polite"></p>
     </form>
+    <section class="panel" id="history-panel" aria-labelledby="history-title">
+      <div class="row" style="justify-content:space-between">
+        <h2 id="history-title">Lịch sử</h2>
+        <button type="button" class="small" id="history-reload">Tải lại</button>
+      </div>
+      <p class="hint" id="history-note" aria-live="polite">Đang tải…</p>
+      <ul class="history" id="history"></ul>
+    </section>
+    </div>
 
     <div class="panel" style="gap:18px">
       <section class="final" id="final" aria-labelledby="final-title" hidden>
@@ -182,7 +205,6 @@ pre.text.live { max-height: 220px; color: var(--muted); }
           <div class="row">
             <button type="button" class="small" id="copy-draft">Sao chép</button>
             <button type="button" class="small" id="download-draft">Tải bài (.md)</button>
-            <button type="button" class="small" id="download-run">Tải toàn bộ (.md)</button>
           </div>
         </div>
         <p class="meta" id="final-meta"></p>
@@ -196,9 +218,14 @@ pre.text.live { max-height: 220px; color: var(--muted); }
       <section aria-labelledby="stages-title" style="display:grid;gap:12px">
         <div class="row" style="justify-content:space-between">
           <h2 id="stages-title">Các bước</h2>
-          <button type="button" class="ghost" id="next" hidden>Chạy bước tiếp</button>
+          <div class="row" id="run-actions" hidden>
+            <button type="button" class="small" id="download-run">Tải toàn bộ (.md)</button>
+            <button type="button" class="small" id="download-zip">Tải zip (thư mục run)</button>
+          </div>
         </div>
         <p class="hint" id="run-status" aria-live="polite">Chưa chạy. Mỗi bước bên dưới sẽ gọi một model Claude riêng.</p>
+        <p class="hint warn-text" id="persist-note" aria-live="polite" hidden></p>
+        <div class="row"><button type="button" class="ghost" id="next" hidden>Chạy bước tiếp</button></div>
         <ol class="stages" id="stages"></ol>
       </section>
     </div>
@@ -206,6 +233,8 @@ pre.text.live { max-height: 220px; color: var(--muted); }
 </div>
 
 <script type="application/json" id="bundle-data">/*__BUNDLE__*/</script>
+<script type="application/json" id="build-info">/*__BUILD_INFO__*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script type="module">
 /*__SCRIPT__*/
 </script>

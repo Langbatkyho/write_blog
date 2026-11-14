@@ -13,8 +13,10 @@ Không gọi API, không ghi vào runs/.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -111,16 +113,36 @@ def _var(key: str) -> str:
     return "__module_" + re.sub(r"\W", "_", key)
 
 
+def source_commit() -> Dict[str, str | None]:
+    """Commit nguồn của bản build (để đồng đội so phiên bản); None nếu không có git."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(ROOT), "log", "-1", "--format=%h|%cI"],
+            capture_output=True, text=True, timeout=10, check=True,
+        ).stdout.strip()
+        commit, date = out.split("|", 1)
+        return {"commit": commit, "commit_date": date}
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return {"commit": None, "commit_date": None}
+
+
 def build_html(config_path: Path = DEFAULT_CONFIG) -> Tuple[str, str]:
     """Trả (content_hash của bundle, nội dung trang)."""
     content_hash, bundle_text = serialize(build_bundle_content(config_path))
     template = TEMPLATE.read_text(encoding="utf-8")
-    for marker in ("/*__BUNDLE__*/", "/*__SCRIPT__*/"):
+    for marker in ("/*__BUNDLE__*/", "/*__SCRIPT__*/", "/*__BUILD_INFO__*/"):
         if template.count(marker) != 1:
             raise HtmlBuildError(f"Template phải có đúng một {marker}.")
     # "<\/" là escape hợp lệ trong chuỗi JSON và chặn việc đóng thẻ script sớm.
     safe_bundle = bundle_text.strip().replace("</", "<\\/")
     page = template.replace("/*__BUNDLE__*/", safe_bundle).replace("/*__SCRIPT__*/", bundle_modules())
+    # Tem phiên bản: build_id phủ cả code lẫn dữ liệu (content_hash chỉ phủ dữ liệu).
+    build_info = {
+        "build_id": hashlib.sha256(page.encode("utf-8")).hexdigest()[:12],
+        "bundle_hash": content_hash,
+        **source_commit(),
+    }
+    page = page.replace("/*__BUILD_INFO__*/", json.dumps(build_info, ensure_ascii=False))
     return content_hash, page
 
 
