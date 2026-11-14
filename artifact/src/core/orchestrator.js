@@ -158,7 +158,7 @@ export async function runStage(run, index, { bundle, client, signal, onText } = 
     }
     const warnings = [];
     if (response.truncated) warnings.push("Phản hồi chạm giới hạn độ dài; nên đọc lại trước khi dùng.");
-    if (warned) warnings.push(`Không tách được bài và edit log; ${step.output} chứa toàn bộ artifact.`);
+    if (warned) warnings.push(`Không tìm thấy phần edit log riêng; ${step.output} có thể chứa cả ghi chú chỉnh sửa, hãy đọc lại trước khi dùng.`);
     if (!response.modelApplied) warnings.push(`Model ${modelConfig.model} không trả lời; đã chạy bằng hạng ${response.tierApplied}.`);
     const artifactTokens = estimateTokens(artifact);
     const handoffTokens = estimateTokens(handoff);

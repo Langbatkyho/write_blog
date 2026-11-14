@@ -171,6 +171,36 @@
   },
   {
    "skill": "deep/reflective/editor_agent",
+   "artifact_case": "moment_section_headings",
+   "artifact": "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu.",
+   "files": {
+    "edited_blog.md": "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu.",
+    "edit_log.md": "- Cắt một câu."
+   },
+   "warned": true
+  },
+  {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "moment_spaced_headings",
+   "artifact": "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu.",
+   "files": {
+    "edited_blog.md": "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu.",
+    "edit_log.md": "- Cắt một câu."
+   },
+   "warned": true
+  },
+  {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "moment_filename_headings",
+   "artifact": "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.",
+   "files": {
+    "edited_blog.md": "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.",
+    "edit_log.md": "- Cắt một câu."
+   },
+   "warned": true
+  },
+  {
+   "skill": "deep/reflective/editor_agent",
    "artifact_case": "internal_blog_headings",
    "artifact": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
    "files": {
@@ -221,6 +251,36 @@
   },
   {
    "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "moment_section_headings",
+   "artifact": "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu.",
+   "files": {
+    "moment_edited.md": "Bài khoảnh khắc 🌿",
+    "edit_log.md": "- Cắt một câu."
+   },
+   "warned": false
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "moment_spaced_headings",
+   "artifact": "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu.",
+   "files": {
+    "moment_edited.md": "Bài khoảnh khắc 🌿",
+    "edit_log.md": "- Cắt một câu."
+   },
+   "warned": false
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "moment_filename_headings",
+   "artifact": "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.",
+   "files": {
+    "moment_edited.md": "Bài khoảnh khắc 🌿",
+    "edit_log.md": "- Cắt một câu."
+   },
+   "warned": false
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
    "artifact_case": "internal_blog_headings",
    "artifact": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
    "files": {
@@ -262,6 +322,33 @@
    "artifact": "Chỉ có bài, không có tiêu đề nào.",
    "files": {
     "story_map.md": "Chỉ có bài, không có tiêu đề nào."
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "moment_section_headings",
+   "artifact": "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu.",
+   "files": {
+    "story_map.md": "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu."
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "moment_spaced_headings",
+   "artifact": "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu.",
+   "files": {
+    "story_map.md": "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu."
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "moment_filename_headings",
+   "artifact": "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.",
+   "files": {
+    "story_map.md": "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu."
    },
    "warned": false
   },

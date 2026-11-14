@@ -189,5 +189,30 @@ Another edited article section.
             self.assertTrue("Could not split" in str(w[0].message))
 
 
+    def test_moment_skill_headings_are_split(self) -> None:
+        """Moment khai báo output.sections; model có thể dùng tên phần hoặc tên file làm tiêu đề."""
+        import warnings
+        skill = {
+            "output": {
+                "artifact": "moment_edited.md",
+                "secondary_artifact": "edit_log.md",
+                "sections": ["edited_moment_blog", "edit_log"],
+            }
+        }
+        artifacts = (
+            "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu.\n",
+            "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu.\n",
+            "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.\n",
+        )
+        for artifact in artifacts:
+            with self.subTest(artifact=artifact.splitlines()[0]):
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter("always")
+                    contents = derive_artifact_file_contents(skill, artifact)
+                self.assertEqual(contents["moment_edited.md"], "Bài khoảnh khắc 🌿")
+                self.assertEqual(contents["edit_log.md"], "- Cắt một câu.")
+                self.assertEqual(caught, [])
+
+
 if __name__ == "__main__":
     unittest.main()

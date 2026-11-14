@@ -175,6 +175,10 @@ def golden_parser_cases() -> Dict[str, Any]:
         "snake_case_headings": "### edited_blog\n\nBài đã sửa.\n\n### edit_log\n\n- Sửa 1",
         "edited_draft_heading": "## Edited Draft\nBài.\n## Edit Log\nLog.",
         "no_headings": "Chỉ có bài, không có tiêu đề nào.",
+        # Moment: tiêu đề theo output.sections hoặc theo tên file (lỗi thấy khi nghiệm thu ART-3)
+        "moment_section_headings": "## edited_moment_blog\n\nBài khoảnh khắc 🌿\n\n## edit_log\n\n- Cắt một câu.",
+        "moment_spaced_headings": "## Edited Moment Blog\n\nBài khoảnh khắc 🌿\n\n## Edit Log\n\n- Cắt một câu.",
+        "moment_filename_headings": "### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.",
         # Từ tests/test_handoff_parser.py: giữ H2 nội bộ của bài
         "internal_blog_headings": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
     }

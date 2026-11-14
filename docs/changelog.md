@@ -1,5 +1,11 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Sửa lỗi tách bài Moment khỏi edit log (2026-11-14)
+
+- `engine/workflow_artifacts.py::derive_artifact_file_contents` chỉ nhận tiêu đề kiểu Deep ("Edited Blog", "Edit Log"), trong khi skill Moment khai báo `output.sections: [edited_moment_blog, edit_log]` và model thường đặt tiêu đề theo tên file. Hậu quả: `moment_edited.md` chứa luôn edit log, `edit_log.md` chỉ có dòng "not found" (đã thấy trong run cũ ở `web_runs/`).
+- Sửa: nhận thêm tên phần trong `output.sections` và tên file làm tiêu đề, coi gạch dưới và khoảng trắng như nhau (`heading_pattern`); tiêu đề cũ được ưu tiên nên Deep không đổi. Port giống hệt sang `artifact/src/core/artifacts.js`.
+- Test: 3 subtest mới trong `tests/test_handoff_parser.py`, 3 case golden mới, 1 test orchestrator JS. Kiểm chứng: 165 test pass; 2 test lỗi có sẵn về đường dẫn kiểu Windows.
+
 ## Claude Artifact: ART-3 MVP (2026-11-14)
 
 - Trang một file `artifact/dist/index.html` do `artifact/build_html.py` dựng (bundler tối giản cho các ES module trong `artifact/src`), đã publish tại https://claude.ai/artifact/A4a9RofpD22TCCx6cgWEHT.

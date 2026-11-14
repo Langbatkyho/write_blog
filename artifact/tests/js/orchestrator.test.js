@@ -147,3 +147,15 @@ test("style theo alias, style lạ và input rỗng", () => {
   assert.throws(() => createRun({ bundle, mode: "deep", style: "reflective", authorInput: "  " }), /Thiếu input/);
   assert.throws(() => createRun({ bundle, mode: "dai", style: "reflective", authorInput: INPUT }), /Mode không hợp lệ/);
 });
+
+test("moment: breath_editor dùng tên file làm tiêu đề vẫn tách được bài và edit log (lỗi khi nghiệm thu ART-3)", async () => {
+  const bundle = loadBundle();
+  const breath = "## Artifact\n\n### moment_edited.md\n\nBài khoảnh khắc 🌿\n\n### edit_log.md\n\n- Cắt một câu.\n\n## Handoff\n\nĐã cắt một câu.";
+  const run = await runWorkflow({
+    bundle, mode: "moment", style: "va-natural", authorInput: INPUT, client: createFakeClient({ responses: { breath_editor: breath } }),
+  });
+  const result = run.results.breath_editor;
+  assert.equal(result.files["moment_edited.md"], "Bài khoảnh khắc 🌿");
+  assert.equal(result.files["edit_log.md"], "- Cắt một câu.");
+  assert.deepEqual(result.warnings, []);
+});
