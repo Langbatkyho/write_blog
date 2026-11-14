@@ -68,8 +68,9 @@ write_blog/
 │   ├── make_golden.py        # Sinh golden fixtures; `--check` báo golden cũ
 │   ├── build_html.py         # Gộp bundle + module thành trang một file artifact/dist/index.html, kèm tem phiên bản
 │   ├── CLONE.md              # Hướng dẫn đồng đội tạo và cập nhật bản Artifact riêng
+│   ├── gen_learning_templates.py # Sinh src/core/learning_templates.js từ f-string của engine/learning.py
 │   ├── package.json          # ES module, không dependency; `npm test` = `node --test`
-│   ├── src/core/             # Core JS: contracts, context, prompt, parser, artifacts, orchestrator, client_fake/client_sample, input, outputs, run_record, repository, export, pycompat
+│   ├── src/core/             # Core JS: contracts, context, prompt, parser, artifacts, orchestrator, client_fake/client_sample, input, outputs, run_record, repository, export, learning, learning_templates, pydifflib, pycompat
 │   ├── src/ui/               # page.html (template, CSS) và app.js (giao diện MVP)
 │   ├── tests/ui/             # Test giao diện Playwright với window.claude giả
 │   ├── tests/golden/         # Input/output thật của engine để test phần JS
@@ -216,7 +217,7 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 Do Render.com sử dụng ephemeral filesystem, mọi thay đổi trên đĩa sẽ bị mất khi deploy mới. Giải pháp được chọn là dùng **Supabase PostgreSQL** làm nơi lưu trữ bền vững cho các Style (Phong cách viết).
 Mỗi khi ứng dụng khởi động, hệ thống gọi `restore_all_styles()` (qua REST API bằng urllib) để kéo toàn bộ Style ghi đè vào filesystem. Mọi thay đổi (sửa/xóa) trong runtime sẽ ngay lập tức được upsert/delete trên Supabase (thông qua `engine/supabase_client.py`), đảm bảo tính nhất quán dữ liệu mà không cần phụ thuộc Git Sync.
 
-### 2.9. Claude Artifact (đang xây dựng — ART-0 → ART-3 xong, ART-4 chờ nghiệm thu)
+### 2.9. Claude Artifact (đang xây dựng — ART-0 → ART-3 xong, ART-4 chờ AC2, ART-5 chờ nghiệm thu)
 
 Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy workflow deep/moment và Voice Lab trong một Artifact riêng trên claude.ai; mỗi stage là một lần gọi `sample` độc lập với model Claude gọi theo tên.
 
@@ -228,4 +229,5 @@ Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy
 - **Core JS** (`artifact/src/core/`, ART-2): port của vòng lặp `run_workflow`, `build_context_package`, `build_step_prompt`, parser chặt, `count_words`/`estimate_tokens`, `derive_artifact_file_contents`. Client gọi model được inject (client giả cho test, client `sample` ở ART-3); không ghi file, không chạm DOM. Hỗ trợ chạy liền, chạy từng bước và chạy lại stage lỗi. `pycompat.js` tái tạo ngữ nghĩa Python cần cho khớp byte: tập khoảng trắng của `str.strip`, ranh giới dòng của `re.MULTILINE`, `str(None)`.
 - **Trang MVP** (ART-3): `artifact/build_html.py` gộp bundle và mọi module thành một trang HTML duy nhất (script inline), publish tại https://claude.ai/artifact/A4a9RofpD22TCCx6cgWEHT với capability `sample` và `downloads`. Giao diện chỉ hiển thị; nội dung do model sinh luôn gán qua `textContent`. Bản nháp form lưu `localStorage`.
 - **Lưu trữ** (ART-4): mỗi tác giả một bản Artifact riêng (`artifact/CLONE.md`). Run lưu qua capability `db` tại `data/users/<uid>/blog/runs/<runId>` (+ `/stages/<stageId>`), vùng riêng của từng tài khoản; checkpoint sau mỗi stage, mở lại và chạy tiếp được. `core/export.js` xuất zip đúng bố cục thư mục run của engine, đọc lại được bằng `load_step_outputs_from_run` và learning loop Python.
-- **Đặc điểm engine mà phần JS phải bám theo:** parser chặt từ chối chuỗi CRLF trong bộ nhớ (file thì được `read_text` chuẩn hóa); `count_words` dùng `\w+` của Python (không đếm ký tự biến thể emoji U+FE0F); `json.dumps` dùng separators `", "`/`": "` và giữ `1.0`; `quote_start` tính theo code point; learning prompt chịu ảnh hưởng của `textwrap.dedent` lên chuỗi đã nội suy.
+- **Learning loop** (ART-5): người viết sửa bản cuối ngay trên trang; `core/learning.js` chạy `editorial_learning` và `workflow_tuning` bằng model trong `claude.learning` (hoặc offline), dùng artifact đầy đủ, không tự sửa skill. Template văn bản sinh tự động từ `engine/learning.py`; `core/pydifflib.js` port `difflib` để báo cáo offline khớp từng byte. Learning loop offline của engine chạy trên zip xuất từ Artifact cho đúng báo cáo của Artifact.
+- **Đặc điểm engine mà phần JS phải bám theo:** parser chặt từ chối chuỗi CRLF trong bộ nhớ (file thì được `read_text` chuẩn hóa); `count_words` dùng `\w+` của Python (không đếm ký tự biến thể emoji U+FE0F); `json.dumps` dùng separators `", "`/`": "` và giữ `1.0`; `quote_start` tính theo code point; learning prompt và báo cáo offline chịu ảnh hưởng của `textwrap.dedent` lên chuỗi đã nội suy (báo cáo offline giữ thụt lề 8 dấu cách); số thực định dạng kiểu Python (half-even).

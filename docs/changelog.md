@@ -1,5 +1,12 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-5 bản cuối và learning loop (2026-11-14)
+
+- Khung "Bản cuối của bạn" (khởi tạo từ bản nháp AI, lưu vào `db`) và vòng học qua Claude (`editorial_learning`, `workflow_tuning`) hoặc offline; kết quả học gắn nhãn mode/style, tải về được, có trong zip theo bố cục `learning/<mode>/<timestamp>/` của engine.
+- `artifact/gen_learning_templates.py` sinh template từ `engine/learning.py`; `core/pydifflib.js` port `difflib` của CPython 3.13 (fuzz 300/300 khớp).
+- Kiểm chứng chéo: learning loop offline của engine trên run xuất từ Artifact cho báo cáo giống hệt bản Artifact.
+- Test giao diện ổn định hơn: `db` giả dùng `window.name`; sửa hai race. Kiểm chứng: 174 test pass; 2 test lỗi có sẵn về đường dẫn kiểu Windows. Trang publish lại cùng URL (phiên bản 5).
+
 ## Claude Artifact: ART-4 lưu trữ và gói clone (2026-11-14)
 
 - Lưu lịch sử run qua capability `db` tại `data/users/<uid>/blog/runs/<runId>`, checkpoint sau mỗi stage; mở lại, chạy tiếp run bị gián đoạn, chạy lại bước lỗi (xóa kết quả cũ của các bước sau).
