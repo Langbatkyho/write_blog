@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.1 | 2026-11-14 | Ghi kết quả ART-0; bổ sung yêu cầu `countWords` vào ART-2 và input 1200–1800 từ vào ART-3 |
 
 ---
 
@@ -258,7 +259,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 
 | PRD | Tên | Chặng | Owner tổng hợp | Nghiệm thu | Trạng thái |
 |---|---|---|---|---|---|
-| ART-0 | Spike runtime | T0 | Agent | Owner | ON-GOING |
+| ART-0 | Spike runtime | T0 | Agent | Owner | ON-GOING (đã chạy; chờ owner duyệt báo cáo) |
 | ART-1 | Quy tắc, bundle, contract | T1 | Agent | Owner | BACKLOG |
 | ART-2 | Core engine JS | T2 | Agent | Owner | BACKLOG |
 | ART-3 | MVP vertical slice | T3 | Agent | Owner | BACKLOG |
@@ -294,8 +295,9 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-0-AC2: bài 1200–1800 từ kèm handoff không bị `truncated`, đủ hai section. Nếu bị cắt: đề xuất cách xử lý trước ART-2.
   - ART-0-AC3: tỉ lệ `sample.json` qua được `parse_analysis_response` của repo. Nếu dưới 3/3: đề xuất cách sửa prompt hoặc chia nhỏ.
   - ART-0-AC4: ghi và đọc lại document khoảng 200 KB thành công.
+- **Kết quả (2026-11-14):** AC1, AC3, AC4 đạt; AC2 đạt một phần (bài 721 từ, chưa thử 1200–1800 từ, chuyển sang ART-3-AC2). Chi tiết: `docs/2026-11-14-art0-spike-report.md`.
 - **Điều kiện đóng:**
-  - Owner duyệt báo cáo `docs/2026-11-xx-art0-spike-report.md`.
+  - Owner duyệt báo cáo `docs/2026-11-14-art0-spike-report.md`.
   - Gỡ quyền chia sẻ tạm của spike.
   - Nếu model nào không chạy theo tên, ghi rõ việc hạ xuống `modelTier` vào ART-1.
 - **Issue dự kiến:** 1.
@@ -330,7 +332,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 - **Phạm vi:** các module workflow ở mục 2.1, trừ `client_sample`, `repository_db`, `export`, `gmail`; test bằng `node --test`.
 - **Dependency:** O-04, O-05.
 - **AC:**
-  - ART-2-AC1: prompt khớp từng byte với golden cho mọi stage × mode.
+  - ART-2-AC1: prompt khớp từng byte với golden cho mọi stage × mode; `countWords` khớp `count_words` của Python (`\w+`) trên các bài có emoji (ART-0: bản dùng regex Unicode đếm thừa 3 từ do ký tự U+FE0F).
   - ART-2-AC2: parser chặt pass các case tương đương `tests/test_handoff_parser.py`.
   - ART-2-AC3: orchestrator với client giả: chạy đủ stage; dừng khi lỗi; bỏ qua đúng stage phụ thuộc; telemetry đủ; `api_called: false`.
   - ART-2-AC4: tách Edited Blog / Edit Log giống Python.
@@ -352,7 +354,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 - **Dependency:** O-06.
 - **AC:**
   - ART-3-AC1: Playwright với `window.claude` giả: màn 390px và desktop, sáng/tối, đủ các trạng thái.
-  - ART-3-AC2 (run thật): một run `moment/va-natural` và một run `deep/reflective` hoàn tất trên claude.ai.
+  - ART-3-AC2 (run thật): một run `moment/va-natural` và một run `deep/reflective` hoàn tất trên claude.ai. Run deep dùng input có `desired_length` 1200–1800 từ để đóng phần còn thiếu của ART-0-AC2 (không bị cắt, đủ hai section).
   - ART-3-AC3: telemetry đúng model thực chạy.
   - ART-3-AC4: không dùng mock để tuyên bố runtime đạt.
 - **NFR:** trang vẫn tải được khi không có `sample`; không cuộn ngang ở 390px.
