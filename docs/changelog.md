@@ -1,5 +1,11 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-2 (2026-11-14)
+
+- Thêm core JS tại `artifact/src/core/` (`contracts`, `context`, `prompt`, `parser`, `artifacts`, `orchestrator`, `client_fake`, `pycompat`): port vòng lặp workflow, chọn context, dựng prompt, parser chặt, đếm từ, tách Edited Blog/Edit Log. Chạy liền, từng bước, chạy lại stage lỗi; dừng bằng AbortSignal.
+- Thêm `artifact/tests/js/` (51 case `node --test`) và `tests/test_artifact_js.py` để chạy chúng trong regression; thêm 3 input lấy từ `tests/test_handoff_parser.py` vào golden.
+- Kiểm chứng: **152 test pass** (gồm bộ test JS); 2 test lỗi có sẵn về đường dẫn kiểu Windows. Không gọi API; dữ liệu không đổi.
+
 ## Claude Artifact: ART-0 và ART-1 (2026-11-14)
 
 - Kế hoạch `docs/2026-11-14-claude-artifact-plan.md`: đưa workflow deep/moment và Voice Lab lên Claude Artifact, mỗi tác giả một bản riêng.

@@ -58,6 +58,25 @@
    "input": "## Artifact\r\n\r\nA\r\n\r\n## Handoff\r\n\r\nH",
    "ok": false,
    "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
+  },
+  {
+   "name": "py_test_exact_contract",
+   "input": "## Artifact\n\nNội dung đầy đủ.\n\n### Chi tiết hợp lệ\n\nMột mục con.\n\n## Tiêu đề H2 thuộc Artifact\n\nNội dung bài viết.\n\n## Handoff\n\nTóm tắt bàn giao.\n",
+   "ok": true,
+   "artifact": "Nội dung đầy đủ.\n\n### Chi tiết hợp lệ\n\nMột mục con.\n\n## Tiêu đề H2 thuộc Artifact\n\nNội dung bài viết.",
+   "handoff": "Tóm tắt bàn giao."
+  },
+  {
+   "name": "py_test_trailing_duplicate_handoff",
+   "input": "## Artifact\nA\n## Handoff\nH\n## Handoff\nH2\n",
+   "ok": false,
+   "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
+  },
+  {
+   "name": "bom_before_artifact",
+   "input": "﻿## Artifact\n\nA\n\n## Handoff\n\nH",
+   "ok": false,
+   "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
   }
  ],
  "words": [
@@ -151,6 +170,16 @@
    "warned": true
   },
   {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "internal_blog_headings",
+   "artifact": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
+   "files": {
+    "edited_blog.md": "# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.",
+    "edit_log.md": "- Merged two paragraphs."
+   },
+   "warned": false
+  },
+  {
    "skill": "moment/va-natural/breath_editor",
    "artifact_case": "edited_blog_and_log",
    "artifact": "## Edited Blog\n\nBài đã sửa.\n\n## Edit Log\n\n- Sửa 1",
@@ -191,6 +220,16 @@
    "warned": true
   },
   {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "internal_blog_headings",
+   "artifact": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
+   "files": {
+    "moment_edited.md": "# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.",
+    "edit_log.md": "- Merged two paragraphs."
+   },
+   "warned": false
+  },
+  {
    "skill": "deep/reflective/story_architect",
    "artifact_case": "edited_blog_and_log",
    "artifact": "## Edited Blog\n\nBài đã sửa.\n\n## Edit Log\n\n- Sửa 1",
@@ -223,6 +262,15 @@
    "artifact": "Chỉ có bài, không có tiêu đề nào.",
    "files": {
     "story_map.md": "Chỉ có bài, không có tiêu đề nào."
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "internal_blog_headings",
+   "artifact": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
+   "files": {
+    "story_map.md": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n"
    },
    "warned": false
   }

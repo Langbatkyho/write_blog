@@ -66,7 +66,10 @@ write_blog/
 │   ├── claude_config.py      # Contract khối `claude:`: model/effort theo stage, model ID đã kiểm chứng
 │   ├── build_bundle.py       # Build bundle.json từ flow/skill/config bằng validator của engine (fail-closed)
 │   ├── make_golden.py        # Sinh golden fixtures; `--check` báo golden cũ
+│   ├── package.json          # ES module, không dependency; `npm test` = `node --test`
+│   ├── src/core/             # Core JS: contracts, context, prompt, parser, artifacts, orchestrator, client_fake, pycompat
 │   ├── tests/golden/         # Input/output thật của engine để test phần JS
+│   ├── tests/js/             # Test JS (node --test), chạy kèm regression qua tests/test_artifact_js.py
 │   └── spike/                # Trang spike ART-0 (đo runtime `sample`/`db`)
 ├── ui/                       # [UPGRADED V6.0] Streamlit Local UI Experience
 │   ├── app.py                # Composition root và render 4 tab
@@ -218,4 +221,5 @@ Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy
 - **Bảng model:** khối `claude:` quy định model/effort cho 13 stage workflow, 2 stage learning, 4 stage Voice Lab. `artifact/claude_config.py` chỉ chấp nhận model ID đã kiểm chứng trong spike ART-0, vì `sample` âm thầm hạ hạng khi model sai tên. Bundle ghi kèm `model_tier` tương ứng.
 - **Bundle Voice Lab:** hằng số `VOICE_DIMENSIONS`, `DIMENSION_AGENTS`, `AGENT_FILENAME_MAP`, `REQUIRED_AGENTS`, `SKILL_LEVEL_INVARIANTS`, tham số calibration và JSON Schema xuất từ Pydantic. Builder kiểm tra `AGENT_FILENAME_MAP` khớp đúng các file skill của flow.
 - **Golden fixtures** (`artifact/tests/golden/`): prompt workflow, learning, Voice Lab; parser chặt; đếm từ; tách Edited Blog/Edit Log; kiểm tra evidence; tính confidence; `compile_style`. `tests/test_artifact_bundle.py` báo lỗi khi golden lệch engine.
+- **Core JS** (`artifact/src/core/`, ART-2): port của vòng lặp `run_workflow`, `build_context_package`, `build_step_prompt`, parser chặt, `count_words`/`estimate_tokens`, `derive_artifact_file_contents`. Client gọi model được inject (client giả cho test, client `sample` ở ART-3); không ghi file, không chạm DOM. Hỗ trợ chạy liền, chạy từng bước và chạy lại stage lỗi. `pycompat.js` tái tạo ngữ nghĩa Python cần cho khớp byte: tập khoảng trắng của `str.strip`, ranh giới dòng của `re.MULTILINE`, `str(None)`.
 - **Đặc điểm engine mà phần JS phải bám theo:** parser chặt từ chối chuỗi CRLF trong bộ nhớ (file thì được `read_text` chuẩn hóa); `count_words` dùng `\w+` của Python (không đếm ký tự biến thể emoji U+FE0F); `json.dumps` dùng separators `", "`/`": "` và giữ `1.0`; `quote_start` tính theo code point; learning prompt chịu ảnh hưởng của `textwrap.dedent` lên chuỗi đã nội suy.

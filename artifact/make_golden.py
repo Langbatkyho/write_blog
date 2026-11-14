@@ -138,6 +138,10 @@ def golden_parser_cases() -> Dict[str, Any]:
         "duplicate_artifact": "## Artifact\nA\n## Artifact\nB\n## Handoff\nH",
         "heading_level_three_ignored": "## Artifact\n\n### Handoff\n\nvẫn là artifact\n\n## Handoff\n\nH",
         "crlf": "## Artifact\r\n\r\nA\r\n\r\n## Handoff\r\n\r\nH",
+        # Từ tests/test_handoff_parser.py
+        "py_test_exact_contract": "## Artifact\n\nNội dung đầy đủ.\n\n### Chi tiết hợp lệ\n\nMột mục con.\n\n## Tiêu đề H2 thuộc Artifact\n\nNội dung bài viết.\n\n## Handoff\n\nTóm tắt bàn giao.\n",
+        "py_test_trailing_duplicate_handoff": "## Artifact\nA\n## Handoff\nH\n## Handoff\nH2\n",
+        "bom_before_artifact": "\ufeff## Artifact\n\nA\n\n## Handoff\n\nH",
     }
     strict = []
     for name, text in strict_inputs.items():
@@ -171,6 +175,8 @@ def golden_parser_cases() -> Dict[str, Any]:
         "snake_case_headings": "### edited_blog\n\nBài đã sửa.\n\n### edit_log\n\n- Sửa 1",
         "edited_draft_heading": "## Edited Draft\nBài.\n## Edit Log\nLog.",
         "no_headings": "Chỉ có bài, không có tiêu đề nào.",
+        # Từ tests/test_handoff_parser.py: giữ H2 nội bộ của bài
+        "internal_blog_headings": "## Edited Blog\n\n# Kết nối\n\n## Nơi mình thuộc về\n\nEdited article section.\n\n## Vẫn đi tiếp\n\nAnother edited article section.\n\n## Edit Log\n\n- Merged two paragraphs.\n",
     }
     splits = []
     for skill_name, skill in split_skills.items():
