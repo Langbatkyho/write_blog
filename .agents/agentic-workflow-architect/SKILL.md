@@ -29,7 +29,7 @@ Thiết kế thay đổi kiến trúc nhỏ, có thể kiểm chứng và không
 - Mỗi agent bảo vệ một trách nhiệm và không trả lời thay vai trò khác.
 - Tách artifact đầy đủ cho audit/learning khỏi handoff gọn cho downstream context.
 - Dùng dependency injection tại biên; không vá provider fallback trong low-level module.
-- Voice Lab giữ Gemini-only cho đến khi người dùng phê duyệt provider khác. Inject callable để test không đồng nghĩa mở multi-provider.
+- Voice Lab Python giữ Gemini-only. Voice Lab trong Claude Artifact (`artifact/`) gọi Claude qua `sample` theo phê duyệt của người dùng ngày 2026-11-14 (D1); không mở rộng ngoại lệ này sang Voice Lab Python hoặc provider khác. Inject callable để test không đồng nghĩa mở multi-provider.
 - Fail-closed khi contract sai; không silent fallback.
 - Publish nhiều file phải theo transaction có staging, validation và rollback.
 - Không ghi test/dry-run vào `runs/`; tuân thủ toàn bộ quy tắc I/O trong `.agents/AGENTS.md`.

@@ -21,7 +21,7 @@
 
 - Inject client/callable từ biên để test bằng fake hoặc stub.
 - Provider mặc định không được ẩn sau silent fallback.
-- Voice Lab gọi Gemini; OpenAI workflow blog và Antigravity là ranh giới khác.
+- Voice Lab Python gọi Gemini. Voice Lab trong Claude Artifact (`artifact/`) gọi Claude qua `sample` (ngoại lệ D1, phê duyệt 2026-11-14). OpenAI workflow blog và Antigravity là ranh giới khác.
 - Không để metadata `provider` thay thế bằng chứng `api_called`.
 
 ## I/O và tính nguyên tử

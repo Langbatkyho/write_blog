@@ -37,7 +37,8 @@
 - Unit test, regression test, smoke test và dry-run mặc định không được gọi API bên ngoài.
 - Phải dùng fake, stub, mock hoặc deterministic dry-run response.
 - Chỉ gọi API thật khi người dùng yêu cầu rõ ràng hoặc test integration thật đã được phê duyệt.
-- Voice Lab hiện chỉ sử dụng Gemini API. Không tự thêm OpenAI API hoặc Antigravity Bridge vào Voice Lab.
+- Voice Lab Python/Streamlit (`engine/voice_lab/`, `ui/views/voice_lab.py`, `ui/controllers/voice_lab_controller.py`) chỉ sử dụng Gemini API. Không tự thêm OpenAI API, Claude API hoặc Antigravity Bridge vào Voice Lab Python.
+- Ngoại lệ có phạm vi, người dùng phê duyệt ngày 2026-11-14 (quyết định D1 trong `docs/2026-11-14-claude-artifact-plan.md`): Voice Lab trong Claude Artifact (mã nguồn tại `artifact/`) gọi Claude qua capability `sample` của Artifact. Ngoại lệ chỉ áp dụng cho mã trong `artifact/` và không mở multi-provider cho Voice Lab Python.
 - Không được suy luận rằng trường `provider` trong metadata chứng minh API đã được gọi; phải kiểm tra nhánh thực thi.
 
 ## 5. Quy tắc thiết kế workflow và logging
