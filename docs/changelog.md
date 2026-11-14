@@ -1,5 +1,13 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-3 MVP (2026-11-14)
+
+- Trang một file `artifact/dist/index.html` do `artifact/build_html.py` dựng (bundler tối giản cho các ES module trong `artifact/src`), đã publish tại https://claude.ai/artifact/A4a9RofpD22TCCx6cgWEHT.
+- Giao diện `artifact/src/ui/`: form theo mẫu input của engine, chọn mode/style, chạy liền hoặc từng bước, xem chữ đang viết, dừng, chạy lại bước lỗi, model yêu cầu so với model thực chạy, cảnh báo khi bị hạ hạng hoặc bị cắt, sao chép và tải bài.
+- Lõi mới: `client_sample.js`, `input.js`, `outputs.js`.
+- Test: `artifact/tests/js/mvp_core.test.js` (7 case), `artifact/tests/ui/page.test.js` (15 kịch bản Playwright), `tests/test_artifact_html.py` (bundler).
+- Kiểm chứng: **164 test pass**; 2 test lỗi có sẵn về đường dẫn kiểu Windows. Không gọi API; dữ liệu không đổi. Chạy thật trên claude.ai chờ owner nghiệm thu.
+
 ## Claude Artifact: ART-2 (2026-11-14)
 
 - Thêm core JS tại `artifact/src/core/` (`contracts`, `context`, `prompt`, `parser`, `artifacts`, `orchestrator`, `client_fake`, `pycompat`): port vòng lặp workflow, chọn context, dựng prompt, parser chặt, đếm từ, tách Edited Blog/Edit Log. Chạy liền, từng bước, chạy lại stage lỗi; dừng bằng AbortSignal.

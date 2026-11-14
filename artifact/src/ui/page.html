@@ -1,0 +1,211 @@
+<title>Mindful Blog Workflow</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: bàn viết hai cột — trái là ghi chú thô và lựa chọn, phải là dòng chảy các stage và bản nháp; một cột trên điện thoại. */
+:root {
+  --bg: #f3f5f2;
+  --surface: #fbfcfa;
+  --ink: #1d2621;
+  --muted: #5a675f;
+  --line: #d9dfd9;
+  --accent: #2e6b57;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2eee8;
+  --ok: #2b7a4b;
+  --warn: #946200;
+  --bad: #b3362a;
+  --chip: #e9eee9;
+  --font-ui: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-read: "Lora", Georgia, "Times New Roman", serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1a201c; --ink: #e3e9e4; --muted: #9aa79f; --line: #2c3530;
+    --accent: #7cc4a8; --accent-ink: #0f1a15; --accent-soft: #1f3129; --ok: #6fcf97; --warn: #e5b45a; --bad: #ff8f80; --chip: #232b26;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1a201c; --ink: #e3e9e4; --muted: #9aa79f; --line: #2c3530;
+  --accent: #7cc4a8; --accent-ink: #0f1a15; --accent-soft: #1f3129; --ok: #6fcf97; --warn: #e5b45a; --bad: #ff8f80; --chip: #232b26;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+/* Không phụ thuộc reset của khung Artifact: phần tử ẩn luôn ẩn, kể cả khi lớp CSS đặt display. */
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 56px;
+}
+.app { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+h1 { margin: 0; font-size: 1.45rem; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+h3 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+p { margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font-data); font-size: 0.74rem; background: var(--chip); color: var(--muted); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.chip.ok { color: var(--ok); } .chip.bad { color: var(--bad); } .chip.warn { color: var(--warn); }
+.banner { border: 1px solid var(--bad); color: var(--bad); border-radius: 8px; padding: 10px 14px; }
+.columns { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .columns { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.field { display: grid; gap: 4px; }
+label, .label { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+input[type="text"], textarea, select {
+  width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px;
+}
+textarea { resize: vertical; line-height: 1.55; }
+textarea#raw-notes { min-height: 220px; font-family: var(--font-read); font-size: 1rem; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr; background: var(--chip); border-radius: 9px; padding: 3px; gap: 3px; }
+.segmented button { border: 0; background: transparent; color: var(--muted); padding: 7px; border-radius: 7px; font: inherit; font-weight: 500; cursor: pointer; }
+.segmented button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
+.hint { font-size: 0.8rem; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button.primary, button.ghost, button.small {
+  font: inherit; font-weight: 500; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--accent);
+}
+button.primary { background: var(--accent); color: var(--accent-ink); }
+button.ghost { background: transparent; color: var(--accent); }
+button.small { background: transparent; color: var(--accent); padding: 4px 10px; font-size: 0.82rem; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+details > summary { cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+.radio { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.9rem; }
+.radio label { color: var(--ink); font-size: 0.9rem; font-weight: 400; display: flex; gap: 6px; align-items: center; }
+ol.stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.stage { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; background: var(--surface); min-width: 0; }
+.stage[data-status="running"] { border-color: var(--accent); }
+.stage[data-status="failed"] { border-color: var(--bad); }
+.stage-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.stage-num { font-family: var(--font-data); font-size: 0.78rem; color: var(--muted); padding-top: 2px; }
+.stage-title { display: grid; gap: 1px; min-width: 0; }
+.stage-title .q { font-size: 0.82rem; color: var(--muted); }
+.stage-id { font-family: var(--font-data); font-size: 0.85rem; overflow-wrap: anywhere; }
+.status { font-size: 0.75rem; font-weight: 500; border-radius: 999px; padding: 2px 9px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.status[data-status="running"] { background: var(--accent-soft); color: var(--accent); }
+.status[data-status="completed"] { color: var(--ok); }
+.status[data-status="failed"] { color: var(--bad); }
+.status[data-status="skipped"] { color: var(--warn); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); }
+.meta .warn { color: var(--warn); }
+.notes { margin: 0; padding-left: 18px; font-size: 0.85rem; color: var(--warn); }
+.error { color: var(--bad); font-size: 0.88rem; }
+pre.text {
+  margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-read); font-size: 0.95rem; line-height: 1.65;
+  background: var(--bg); border-radius: 8px; padding: 12px; max-height: 420px; overflow: auto;
+}
+pre.text.live { max-height: 220px; color: var(--muted); }
+.thinking { font-size: 0.88rem; color: var(--accent); }
+.final { display: grid; gap: 12px; }
+.final pre.text { max-height: none; font-size: 1.02rem; background: transparent; padding: 0; }
+.final .reading { border-top: 1px solid var(--line); padding-top: 12px; }
+.empty { color: var(--muted); font-size: 0.9rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Mindful Blog Workflow</h1>
+      <p class="hint">Từ ghi chú thô tới bản nháp, mỗi bước là một agent Claude riêng. Bạn vẫn là người viết bản cuối.</p>
+    </div>
+    <div class="chips" id="chips">
+      <span class="chip" id="chip-claude">Claude: đang kiểm tra…</span>
+      <span class="chip" id="chip-bundle">Bản build: …</span>
+    </div>
+  </header>
+  <div class="banner" id="banner" role="alert" hidden></div>
+
+  <div class="columns">
+    <form class="panel" id="form" novalidate>
+      <div class="field">
+        <span class="label" id="mode-label">Chế độ viết</span>
+        <div class="segmented" role="group" aria-labelledby="mode-label">
+          <button type="button" id="mode-deep" data-mode="deep" aria-pressed="false">Deep · bài dài</button>
+          <button type="button" id="mode-moment" data-mode="moment" aria-pressed="true">Moment · bài ngắn</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="style">Giọng văn (style)</label>
+        <select id="style"></select>
+      </div>
+      <div class="field">
+        <label for="title">Tiêu đề (không bắt buộc)</label>
+        <input type="text" id="title" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="raw-notes">Ghi chú thô</label>
+        <textarea id="raw-notes" placeholder="- Chuyện gì vừa xảy ra, ở đâu?&#10;- Mình thấy, nghe, ngửi thấy gì?&#10;- Trong người mình có phản ứng gì?&#10;- Điều gì còn chưa rõ?"></textarea>
+        <span class="hint">Cứ viết vụn, giữ nguyên emoji và cách nói của bạn.</span>
+      </div>
+      <details id="more">
+        <summary>Bối cảnh và người đọc</summary>
+        <div class="field" style="margin-top:10px">
+          <label for="optional-context">Bối cảnh thêm</label>
+          <textarea id="optional-context" rows="3"></textarea>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label for="target-reader">Viết cho ai</label>
+          <textarea id="target-reader" rows="2"></textarea>
+        </div>
+      </details>
+      <div class="field">
+        <label for="desired-length">Độ dài mong muốn</label>
+        <input type="text" id="desired-length" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label" id="pace-label">Cách chạy</span>
+        <div class="radio" role="radiogroup" aria-labelledby="pace-label">
+          <label><input type="radio" name="pace" id="pace-all" value="all" checked> Chạy liền</label>
+          <label><input type="radio" name="pace" id="pace-step" value="step"> Từng bước, đọc rồi bấm tiếp</label>
+        </div>
+      </div>
+      <div class="row">
+        <button type="submit" class="primary" id="run">Chạy workflow</button>
+        <button type="button" class="ghost" id="stop" disabled>Dừng</button>
+      </div>
+      <p class="hint" id="form-note" aria-live="polite"></p>
+    </form>
+
+    <div class="panel" style="gap:18px">
+      <section class="final" id="final" aria-labelledby="final-title" hidden>
+        <div class="row" style="justify-content:space-between">
+          <h2 id="final-title">Bản nháp</h2>
+          <div class="row">
+            <button type="button" class="small" id="copy-draft">Sao chép</button>
+            <button type="button" class="small" id="download-draft">Tải bài (.md)</button>
+            <button type="button" class="small" id="download-run">Tải toàn bộ (.md)</button>
+          </div>
+        </div>
+        <p class="meta" id="final-meta"></p>
+        <pre class="text" id="final-text"></pre>
+        <details class="reading" id="reflection" hidden>
+          <summary id="reflection-title">Phản tư</summary>
+          <pre class="text" id="reflection-text" style="margin-top:10px"></pre>
+        </details>
+        <p class="hint" id="final-note" aria-live="polite"></p>
+      </section>
+      <section aria-labelledby="stages-title" style="display:grid;gap:12px">
+        <div class="row" style="justify-content:space-between">
+          <h2 id="stages-title">Các bước</h2>
+          <button type="button" class="ghost" id="next" hidden>Chạy bước tiếp</button>
+        </div>
+        <p class="hint" id="run-status" aria-live="polite">Chưa chạy. Mỗi bước bên dưới sẽ gọi một model Claude riêng.</p>
+        <ol class="stages" id="stages"></ol>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="bundle-data">/*__BUNDLE__*/</script>
+<script type="module">
+/*__SCRIPT__*/
+</script>

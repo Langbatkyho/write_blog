@@ -1,4 +1,4 @@
-"""ART-2: chạy bộ test JS của Claude Artifact trong regression của dự án.
+"""ART-2/ART-3: chạy bộ test JS và test giao diện của Claude Artifact trong regression của dự án.
 
 Test JS dùng client giả, không gọi API. Bundle được build vào thư mục tạm của
 hệ điều hành; không ghi vào repo hay runs/.
@@ -19,7 +19,8 @@ ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifact"
 @pytest.mark.skipif(shutil.which("node") is None, reason="Cần Node.js >= 22 để chạy test JS.")
 def test_artifact_js_suite_passes():
     result = subprocess.run(
-        ["node", "--test", "tests/js/**/*.test.js"],
+        # tests/ui dùng Playwright + Chromium với window.claude giả; tự bỏ qua nếu máy không có Playwright.
+        ["node", "--test", "tests/js/**/*.test.js", "tests/ui/**/*.test.js"],
         cwd=ARTIFACT_DIR,
         env={**os.environ, "PYTHON": sys.executable},
         capture_output=True,

@@ -66,8 +66,11 @@ write_blog/
 │   ├── claude_config.py      # Contract khối `claude:`: model/effort theo stage, model ID đã kiểm chứng
 │   ├── build_bundle.py       # Build bundle.json từ flow/skill/config bằng validator của engine (fail-closed)
 │   ├── make_golden.py        # Sinh golden fixtures; `--check` báo golden cũ
+│   ├── build_html.py         # Gộp bundle + module thành trang một file artifact/dist/index.html
 │   ├── package.json          # ES module, không dependency; `npm test` = `node --test`
-│   ├── src/core/             # Core JS: contracts, context, prompt, parser, artifacts, orchestrator, client_fake, pycompat
+│   ├── src/core/             # Core JS: contracts, context, prompt, parser, artifacts, orchestrator, client_fake/client_sample, input, outputs, pycompat
+│   ├── src/ui/               # page.html (template, CSS) và app.js (giao diện MVP)
+│   ├── tests/ui/             # Test giao diện Playwright với window.claude giả
 │   ├── tests/golden/         # Input/output thật của engine để test phần JS
 │   ├── tests/js/             # Test JS (node --test), chạy kèm regression qua tests/test_artifact_js.py
 │   └── spike/                # Trang spike ART-0 (đo runtime `sample`/`db`)
@@ -212,7 +215,7 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 Do Render.com sử dụng ephemeral filesystem, mọi thay đổi trên đĩa sẽ bị mất khi deploy mới. Giải pháp được chọn là dùng **Supabase PostgreSQL** làm nơi lưu trữ bền vững cho các Style (Phong cách viết).
 Mỗi khi ứng dụng khởi động, hệ thống gọi `restore_all_styles()` (qua REST API bằng urllib) để kéo toàn bộ Style ghi đè vào filesystem. Mọi thay đổi (sửa/xóa) trong runtime sẽ ngay lập tức được upsert/delete trên Supabase (thông qua `engine/supabase_client.py`), đảm bảo tính nhất quán dữ liệu mà không cần phụ thuộc Git Sync.
 
-### 2.9. Claude Artifact (đang xây dựng — ART-0, ART-1 xong)
+### 2.9. Claude Artifact (đang xây dựng — ART-0 → ART-2 xong, ART-3 chờ chạy thật)
 
 Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy workflow deep/moment và Voice Lab trong một Artifact riêng trên claude.ai; mỗi stage là một lần gọi `sample` độc lập với model Claude gọi theo tên.
 
@@ -222,4 +225,5 @@ Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy
 - **Bundle Voice Lab:** hằng số `VOICE_DIMENSIONS`, `DIMENSION_AGENTS`, `AGENT_FILENAME_MAP`, `REQUIRED_AGENTS`, `SKILL_LEVEL_INVARIANTS`, tham số calibration và JSON Schema xuất từ Pydantic. Builder kiểm tra `AGENT_FILENAME_MAP` khớp đúng các file skill của flow.
 - **Golden fixtures** (`artifact/tests/golden/`): prompt workflow, learning, Voice Lab; parser chặt; đếm từ; tách Edited Blog/Edit Log; kiểm tra evidence; tính confidence; `compile_style`. `tests/test_artifact_bundle.py` báo lỗi khi golden lệch engine.
 - **Core JS** (`artifact/src/core/`, ART-2): port của vòng lặp `run_workflow`, `build_context_package`, `build_step_prompt`, parser chặt, `count_words`/`estimate_tokens`, `derive_artifact_file_contents`. Client gọi model được inject (client giả cho test, client `sample` ở ART-3); không ghi file, không chạm DOM. Hỗ trợ chạy liền, chạy từng bước và chạy lại stage lỗi. `pycompat.js` tái tạo ngữ nghĩa Python cần cho khớp byte: tập khoảng trắng của `str.strip`, ranh giới dòng của `re.MULTILINE`, `str(None)`.
+- **Trang MVP** (ART-3): `artifact/build_html.py` gộp bundle và mọi module thành một trang HTML duy nhất (script inline), publish tại https://claude.ai/artifact/A4a9RofpD22TCCx6cgWEHT với capability `sample` và `downloads`. Giao diện chỉ hiển thị; nội dung do model sinh luôn gán qua `textContent`. Bản nháp form lưu `localStorage`; kết quả chưa được lưu bền vững (thuộc ART-4).
 - **Đặc điểm engine mà phần JS phải bám theo:** parser chặt từ chối chuỗi CRLF trong bộ nhớ (file thì được `read_text` chuẩn hóa); `count_words` dùng `\w+` của Python (không đếm ký tự biến thể emoji U+FE0F); `json.dumps` dùng separators `", "`/`": "` và giữ `1.0`; `quote_start` tính theo code point; learning prompt chịu ảnh hưởng của `textwrap.dedent` lên chuỗi đã nội suy.

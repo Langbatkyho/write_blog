@@ -4,6 +4,6 @@
   "description": "Claude Artifact cho Mindful Blog Workflow. Không có dependency; test chạy bằng node --test.",
   "type": "module",
   "scripts": {
-    "test": "node --test \"tests/js/**/*.test.js\""
+    "test": "node --test \"tests/js/**/*.test.js\" \"tests/ui/**/*.test.js\""
   }
 }

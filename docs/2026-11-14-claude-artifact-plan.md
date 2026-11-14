@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.4 | 2026-11-14 | ART-2 DONE; ghi kết quả ART-3 (AC1) và URL trang MVP |
 | 3.3 | 2026-11-14 | ART-1 DONE; ghi kết quả ART-2 |
 | 3.2 | 2026-11-14 | ART-0 DONE; ghi kết quả ART-1 và các đặc điểm engine mà ART-2/ART-8.1 phải bám theo |
 | 3.1 | 2026-11-14 | Ghi kết quả ART-0; bổ sung yêu cầu `countWords` vào ART-2 và input 1200–1800 từ vào ART-3 |
@@ -263,8 +264,8 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 |---|---|---|---|---|---|
 | ART-0 | Spike runtime | T0 | Agent | Owner | DONE (owner duyệt 2026-11-14) |
 | ART-1 | Quy tắc, bundle, contract | T1 | Agent | Owner | DONE (owner cho chuyển sang ART-2, 2026-11-14) |
-| ART-2 | Core engine JS | T2 | Agent | Owner | ON-GOING (AC đạt; chờ owner nghiệm thu) |
-| ART-3 | MVP vertical slice | T3 | Agent | Owner | BACKLOG |
+| ART-2 | Core engine JS | T2 | Agent | Owner | DONE (owner cho chuyển sang ART-3, 2026-11-14) |
+| ART-3 | MVP vertical slice | T3 | Agent | Owner | ON-GOING (AC1 đạt; chờ owner chạy thật cho AC2/AC3) |
 | ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | BACKLOG |
 | ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | BACKLOG |
 | ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | BACKLOG |
@@ -378,6 +379,12 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-3-AC3: telemetry đúng model thực chạy.
   - ART-3-AC4: không dùng mock để tuyên bố runtime đạt.
 - **NFR:** trang vẫn tải được khi không có `sample`; không cuộn ngang ở 390px.
+- **Kết quả (2026-11-14):**
+  - Trang: https://claude.ai/artifact/A4a9RofpD22TCCx6cgWEHT, publish từ `artifact/dist/index.html` (capability `sample`, `downloads`). Lần cập nhật sau phải publish lại đúng file này để giữ URL.
+  - Đóng gói: `artifact/build_html.py` gộp bundle và các ES module thành một trang duy nhất (script inline, cách đã chạy được ở spike). Bundler tối giản, mỗi module một phạm vi riêng; từ chối cú pháp không hỗ trợ, import vòng, `</script`.
+  - Lõi mới: `input.js` (input đúng mẫu `examples/*_input_template.md`, `slugify`), `outputs.js` (thành phẩm theo `final_output` của flow, file gộp toàn bộ), `client_sample.js` (`model`/`modelTier`/`effort`, `cache: false`, chặn prompt > 256 KiB trước khi gọi, `apiCalled` chỉ true khi chắc lời gọi đã tới Claude).
+  - AC1: 15 kịch bản Playwright với `window.claude` giả ở 390px và 1280px, sáng/tối: trang trống, chạy liền đủ bước rồi tải bài, lỗi rồi chạy lại bước, bấm dừng giữ phần đã viết, chạy từng bước, bị hạ hạng/bị cắt, đổi sang Deep không mất kết quả cũ, khôi phục bản nháp form, thiếu input, không có Claude; nội dung độc hại từ model không được thực thi. Đã xem ảnh chụp và sửa lỗi khung "Bản nháp" hiện ra khi chưa có bài.
+  - AC2, AC3: chờ owner chạy thật một bài `moment/va-natural` và một bài `deep/reflective` dài 1200–1800 từ. AC4: không tuyên bố runtime đạt dựa trên bản giả lập.
 - **Issue dự kiến:** 2.
 
 ### ART-4 — Lưu trữ, xuất file, gói clone
