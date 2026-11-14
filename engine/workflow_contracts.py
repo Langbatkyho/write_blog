@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
 from typing import Any, Literal
 
 
@@ -19,13 +19,22 @@ RUN_INTERNAL_PATHS = frozenset(
 )
 
 
+def _is_unsafe_relative_path(candidate: PurePath) -> bool:
+    return (
+        candidate.is_absolute()
+        or bool(candidate.drive)
+        or bool(candidate.anchor)
+        or any(part in {"", ".", ".."} for part in candidate.parts)
+    )
+
+
 def validate_relative_output_path(value: str, *, field_name: str) -> str:
-    candidate = Path(value)
+    # Check both flavours so that Windows-style paths (backslashes, drive
+    # letters, UNC shares) are rejected on POSIX hosts too.
     if (
         not value.strip()
-        or candidate.is_absolute()
-        or any(part in {"", ".", ".."} for part in candidate.parts)
-        or candidate.drive
+        or _is_unsafe_relative_path(PurePosixPath(value))
+        or _is_unsafe_relative_path(PureWindowsPath(value))
     ):
         raise ValueError(f"{field_name} phải là đường dẫn tương đối an toàn: {value!r}")
     return value
