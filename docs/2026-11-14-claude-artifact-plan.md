@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.6 | 2026-11-14 | ART-3 DONE; ghi kết quả ART-4 và đường dẫn lưu trữ thực tế |
 | 3.5 | 2026-11-14 | ART-3 AC2 đạt; sửa lỗi tách bài Moment trong engine và JS |
 | 3.4 | 2026-11-14 | ART-2 DONE; ghi kết quả ART-3 (AC1) và URL trang MVP |
 | 3.3 | 2026-11-14 | ART-1 DONE; ghi kết quả ART-2 |
@@ -71,7 +72,7 @@ claude.ai Artifact, runtime contract `0.2.96`.
 
 | Đường dẫn `db` | Nội dung |
 |---|---|
-| `data/users/<id>/runs/...` | Run, các stage, bản cuối, learning |
+| `data/users/<id>/blog/runs/...` | Run, các stage, bản cuối, learning |
 | `data/users/<id>/voicelab/...` | Mẫu văn, hồ sơ giọng văn đang soạn, phỏng vấn, A/B |
 | `data/users/<id>/library/<slug>/...` | Style tác giả đã publish (D3a) |
 | `data/users/<id>/settings` | Ghi đè model, người nhận email mặc định |
@@ -266,8 +267,8 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | ART-0 | Spike runtime | T0 | Agent | Owner | DONE (owner duyệt 2026-11-14) |
 | ART-1 | Quy tắc, bundle, contract | T1 | Agent | Owner | DONE (owner cho chuyển sang ART-2, 2026-11-14) |
 | ART-2 | Core engine JS | T2 | Agent | Owner | DONE (owner cho chuyển sang ART-3, 2026-11-14) |
-| ART-3 | MVP vertical slice | T3 | Agent | Owner | ON-GOING (AC1, AC2 đạt; chờ owner xác nhận AC3 và chạy lại Moment sau bản sửa) |
-| ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | BACKLOG |
+| ART-3 | MVP vertical slice | T3 | Agent | Owner | DONE (owner xác nhận 2026-11-14) |
+| ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | ON-GOING (AC4, AC5 đạt; AC1 một phần; chờ AC2, AC3) |
 | ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | BACKLOG |
 | ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | BACKLOG |
 | ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | BACKLOG |
@@ -393,7 +394,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 ### ART-4 — Lưu trữ, xuất file, gói clone
 
 - **Phạm vi:**
-  - `repository_db.js` lưu tại `data/users/<id>/runs/{runId}` và `.../stages/{stageId}`; checkpoint sau mỗi stage.
+  - `repository.js` lưu tại `data/users/<id>/blog/runs/{runId}` và `.../stages/{stageId}` (đường dẫn đã chỉnh theo quy tắc phân đoạn của `db`); checkpoint sau mỗi stage.
   - Lịch sử run; "Chạy tiếp từ stage lỗi".
   - Zip bố cục `runs/`.
   - **Gói clone cho đồng đội:**
@@ -406,6 +407,14 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-4-AC3: publish lại bản build mới lên cùng URL vẫn giữ lịch sử run.
   - ART-4-AC4: pytest (tmp_path): `load_step_outputs_from_run` đọc đúng zip mẫu.
   - ART-4-AC5: Run ID không trùng; không ghi đè run; hẹn giờ tải 10 giây; `db` rỗng hiển thị đúng.
+- **Kết quả (2026-11-14):**
+  - Đường dẫn thực tế: `data/users/<uid>/blog/runs/<runId>` và `.../runs/<runId>/stages/<stageId>`, vì theo quy tắc chẵn/lẻ phân đoạn của `db`, `data/users/<uid>/runs` là document chứ không phải collection.
+  - Mã: `core/run_record.js` (Run ID cùng dạng engine, chuyển đổi và khôi phục run), `core/repository.js` (hàng đợi ghi tuần tự, không ghi đè, chặn document > 256 KiB), `core/export.js` (bố cục thư mục run của engine), giao diện lịch sử/mở lại/chạy tiếp/tải zip, tem phiên bản trong `build_html.py`, `artifact/CLONE.md`. Không lưu `files` của stage; khi khôi phục thì tách lại từ artifact.
+  - Trang đã publish lại cùng URL (phiên bản 3) với capability `sample`, `downloads`, `db`, `user`.
+  - AC1 (một phần): ghi, đọc, xóa một document thử tại `data/users/me/blog/runs` qua `ArtifactData`. Đọc ở quyền `view` vẫn thấy vì công cụ giữ danh tính owner, nên phép thử này không chứng minh được tính riêng tư với người khác; điều đó dựa trên quy tắc mặc định của nền tảng và được kiểm chứng thật ở AC2.
+  - AC2, AC3: chờ đồng đội clone theo `CLONE.md`, và chờ một run thật được lưu trước lần publish tiếp theo để kiểm tra lịch sử còn nguyên.
+  - AC4: `tests/test_artifact_export.py`: engine đọc đúng `step_outputs.json` của run xuất ra (bỏ qua stage lỗi như run của chính nó) và chạy trọn learning loop offline trên đó.
+  - AC5: test JS cho Run ID (định dạng, 200 ID không trùng, thử lại khi trùng, báo lỗi sau 5 lần, không ghi đè); Playwright cho lịch sử trống, hết 10 giây chờ, lưu lỗi, không có quyền lưu trữ, mở lại sau khi tải lại trang, chạy tiếp run bị gián đoạn, tải zip đúng bố cục (kiểm tra bằng `zipfile` của Python).
 - **Issue dự kiến:** 2.
 
 ### ART-5 — Bản cuối và learning loop

@@ -1,5 +1,12 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-4 lưu trữ và gói clone (2026-11-14)
+
+- Lưu lịch sử run qua capability `db` tại `data/users/<uid>/blog/runs/<runId>`, checkpoint sau mỗi stage; mở lại, chạy tiếp run bị gián đoạn, chạy lại bước lỗi (xóa kết quả cũ của các bước sau).
+- Xuất zip theo bố cục thư mục run của engine (`core/export.js`, JSZip 3.10.1 từ cdnjs); engine đọc lại được và chạy được learning loop offline trên đó.
+- Tem phiên bản trên trang (`build_id`, commit nguồn); `artifact/CLONE.md` cho đồng đội.
+- Test: 13 case JS lưu trữ/xuất, 6 kịch bản Playwright mới với `db` giả, `tests/test_artifact_export.py`. Kiểm chứng: 171 test pass; 2 test lỗi có sẵn về đường dẫn kiểu Windows. Trang publish lại cùng URL.
+
 ## Sửa lỗi tách bài Moment khỏi edit log (2026-11-14)
 
 - `engine/workflow_artifacts.py::derive_artifact_file_contents` chỉ nhận tiêu đề kiểu Deep ("Edited Blog", "Edit Log"), trong khi skill Moment khai báo `output.sections: [edited_moment_blog, edit_log]` và model thường đặt tiêu đề theo tên file. Hậu quả: `moment_edited.md` chứa luôn edit log, `edit_log.md` chỉ có dòng "not found" (đã thấy trong run cũ ở `web_runs/`).
