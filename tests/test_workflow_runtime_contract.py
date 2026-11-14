@@ -227,6 +227,37 @@ def test_successful_api_capable_fake_records_attempted_and_called(tmp_path):
     )
 
 
+def test_parse_failure_after_api_call_records_api_called(tmp_path):
+    def fake_external_client(prompt, config, stage_id):
+        return "Reply without the required sections."
+
+    fake_external_client.provider_name = "fake_external"
+    fake_external_client.api_capable = True
+
+    with pytest.raises(StageResponseError):
+        run_workflow(
+            config_path=ROOT / "engine" / "config.example.yaml",
+            input_path=ROOT / "examples" / "moment_blog_input_template.md",
+            llm_client=fake_external_client,
+            style="reflective",
+            mode="moment",
+            persist=True,
+            output_root=tmp_path,
+            run_source="test",
+        )
+
+    run_dirs = [path for path in tmp_path.iterdir() if path.is_dir()]
+    assert len(run_dirs) == 1
+    metadata = json.loads(read_text(run_dirs[0] / "metadata.json"))
+    assert metadata["status"] == "failed"
+    assert metadata["api_attempted"] is True
+    assert metadata["api_called"] is True
+    stage = metadata["stage_telemetry"]["sensory_capture"]
+    assert stage["status"] == "failed"
+    assert stage["api_attempted"] is True
+    assert stage["api_called"] is True
+
+
 def test_persistence_failure_closes_run_as_failed(tmp_path, monkeypatch):
     original = RunRepository.write_artifact
 

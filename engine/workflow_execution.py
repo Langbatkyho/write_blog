@@ -273,7 +273,10 @@ def run_workflow(
                 provider=provider,
                 model=str(model) if model else None,
                 api_attempted=api_attempted,
-                api_called=bool(getattr(exc, "api_called", False)),
+                api_called=(
+                    stage_api_called
+                    or bool(getattr(exc, "api_called", False))
+                ),
                 duration_ms=int((time.perf_counter() - started) * 1000),
             )
             stage_results[step_id] = result
