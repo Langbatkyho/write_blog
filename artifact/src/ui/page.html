@@ -109,6 +109,11 @@ pre.text.live { max-height: 220px; color: var(--muted); }
 .final .reading { border-top: 1px solid var(--line); padding-top: 12px; }
 .empty { color: var(--muted); font-size: 0.9rem; }
 .left { display: grid; gap: 20px; min-width: 0; align-content: start; }
+.production, .learning { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; min-width: 0; }
+textarea#production { font-family: var(--font-read); font-size: 1rem; min-height: 260px; }
+#learning-select { width: auto; max-width: 100%; padding: 4px 8px; font-size: 0.82rem; }
+.learning pre.text { max-height: 520px; font-family: var(--font-ui); font-size: 0.9rem; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .warn-text { color: var(--warn); }
 ul.history { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 ul.history button {
@@ -214,6 +219,42 @@ ul.history .h-meta .bad { color: var(--bad); } ul.history .h-meta .ok { color: v
           <pre class="text" id="reflection-text" style="margin-top:10px"></pre>
         </details>
         <p class="hint" id="final-note" aria-live="polite"></p>
+        <div class="production" id="production-block">
+          <div class="row" style="justify-content:space-between">
+            <h3 id="production-title">Bản cuối của bạn</h3>
+            <span class="meta" id="production-meta"></span>
+          </div>
+          <p class="hint">Sửa bản nháp thành bài bạn sẽ đăng rồi lưu lại. Hệ thống so sánh với bản nháp để học thói quen biên tập của bạn; skill không tự thay đổi.</p>
+          <textarea id="production" rows="14" aria-labelledby="production-title"></textarea>
+          <div class="row">
+            <button type="button" class="ghost" id="production-save">Lưu bản cuối</button>
+            <button type="button" class="small" id="production-reset">Lấy lại bản nháp AI</button>
+          </div>
+          <div class="row">
+            <button type="button" class="primary" id="learn-claude">Học từ bản sửa (Claude)</button>
+            <button type="button" class="ghost" id="learn-offline">So sánh offline</button>
+          </div>
+          <p class="hint" id="learning-note" aria-live="polite"></p>
+        </div>
+        <div class="learning" id="learning-block" hidden>
+          <div class="row" style="justify-content:space-between">
+            <h3>Kết quả học</h3>
+            <div class="row">
+              <label for="learning-select" class="visually-hidden">Chọn vòng học</label>
+              <select id="learning-select"></select>
+              <button type="button" class="small" id="download-learning">Tải kết quả học (.md)</button>
+            </div>
+          </div>
+          <p class="meta" id="learning-meta"></p>
+          <details id="learning-report-box" open>
+            <summary>Báo cáo chẩn đoán</summary>
+            <pre class="text" id="learning-report"></pre>
+          </details>
+          <details id="learning-tuning-box">
+            <summary>Gợi ý tinh chỉnh workflow</summary>
+            <pre class="text" id="learning-tuning"></pre>
+          </details>
+        </div>
       </section>
       <section aria-labelledby="stages-title" style="display:grid;gap:12px">
         <div class="row" style="justify-content:space-between">

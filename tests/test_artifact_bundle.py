@@ -197,3 +197,11 @@ def test_golden_fixtures_are_up_to_date():
         if (make_golden.GOLDEN_DIR / name).read_text(encoding="utf-8") != text
     ]
     assert not stale, f"Golden đã cũ, chạy `python artifact/make_golden.py`: {stale}"
+
+
+def test_learning_templates_are_generated_from_engine():
+    from artifact import gen_learning_templates
+
+    assert gen_learning_templates.TARGET.read_text(encoding="utf-8") == gen_learning_templates.render(), (
+        "learning_templates.js đã cũ, chạy `python artifact/gen_learning_templates.py`"
+    )

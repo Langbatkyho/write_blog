@@ -5,6 +5,8 @@
 //   data/users/<uid>/blog                       document của tác giả
 //   data/users/<uid>/blog/runs/<runId>          một lần chạy
 //   data/users/<uid>/blog/runs/<runId>/stages/<stageId>
+//   data/users/<uid>/blog/runs/<runId>/production/current     bản cuối của người viết
+//   data/users/<uid>/blog/runs/<runId>/learning/<learningId>  một vòng học
 // Vùng data/users/<uid>/ là riêng tư với từng người xem, kể cả với chủ Artifact.
 import { newRunId, serializeRunDoc, serializeStageDoc } from "./run_record.js";
 
@@ -80,6 +82,39 @@ export function createRunRepository({ db, userId, randomHex, clock = () => new D
         for (const id of run.stageIds.slice(index)) {
           await runs.doc(run.id).collection("stages").doc(id).delete();
         }
+      });
+    },
+
+    /** Lưu bản cuối (production) của người viết cho run. */
+    saveProduction(run, text) {
+      return enqueue(async () => {
+        const doc = { schema: 1, text, updated_at: clock().toISOString() };
+        checkSize("Bản cuối", doc);
+        await runs.doc(run.id).collection("production").doc("current").set(doc);
+      });
+    },
+
+    /** Bản cuối đã lưu của run, hoặc null. */
+    async loadProduction(runId) {
+      const snapshot = await runs.doc(runId).collection("production").doc("current").get();
+      return snapshot.exists ? snapshot.data().text : null;
+    },
+
+    /** Lưu kết quả một vòng học (báo cáo, gợi ý, telemetry). */
+    saveLearning(run, session) {
+      return enqueue(async () => {
+        const doc = { schema: 1, ...session };
+        checkSize("Kết quả học", doc);
+        await runs.doc(run.id).collection("learning").doc(session.id).set(doc);
+      });
+    },
+
+    /** Các vòng học của run, mới nhất trước. */
+    async listLearning(runId, limit = 20) {
+      const snapshot = await runs.doc(runId).collection("learning").orderBy("created_at", "desc").limit(limit).get();
+      return snapshot.docs.map((doc) => {
+        const { schema, ...session } = doc.data();
+        return session;
       });
     },
 

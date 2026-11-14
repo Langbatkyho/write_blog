@@ -223,3 +223,34 @@ test("xuất run lỗi: ghi ERROR vào run_log, chỉ có file của các bướ
   assert.equal(JSON.parse(files["step_outputs.json"]).inner_weather.status, "failed");
   resetFromStage(run, 0);
 });
+
+test("lưu và đọc bản cuối và kết quả học; xuất zip có production_blog.md và thư mục learning của engine", async () => {
+  const { runLearning } = await import("../../src/core/learning.js");
+  const bundle = loadBundle();
+  const db = createFakeDb();
+  const repo = createRunRepository({ db, userId: UID });
+  const run = await persistedRun(bundle, repo);
+  const production = "# Chiều mưa\n\nBản cuối người viết đã sửa 🌿.";
+  assert.equal(await repo.loadProduction(run.id), null);
+  await repo.saveProduction(run, production);
+  assert.equal(await repo.loadProduction(run.id), production);
+  const older = await runLearning({ bundle, run, productionBlog: production, offline: true, now: new Date(Date.UTC(2026, 0, 1)) });
+  const newer = await runLearning({ bundle, run, productionBlog: production, offline: true, now: new Date(Date.UTC(2026, 5, 1)) });
+  await repo.saveLearning(run, older);
+  await repo.saveLearning(run, newer);
+  const sessions = await repo.listLearning(run.id);
+  assert.deepEqual(sessions.map((s) => s.id), [newer.id, older.id]);
+  assert.equal(sessions[0].report, newer.report);
+  assert.equal(sessions[0].schema, undefined);
+
+  const { files } = exportRunFiles(bundle, run, { production, learnings: sessions });
+  assert.equal(files["production_blog.md"], production);
+  const base = `learning/moment/${newer.id}/`;
+  for (const name of ["production_blog.md", "moment_blog_patterns.md", "workflow_tuning_suggestions.md", "metadata.json", "learning_log.md"]) {
+    assert.ok(`${base}${name}` in files, name);
+  }
+  const metadata = JSON.parse(files[`${base}metadata.json`]);
+  assert.equal(metadata.offline, true);
+  assert.equal(metadata.provider, "offline");
+  assert.ok(files[`${base}learning_log.md`].includes("# Moment Diagnostic Report\n\n"));
+});

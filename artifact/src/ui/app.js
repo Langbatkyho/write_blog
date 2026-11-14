@@ -4,6 +4,7 @@ import { listStyles, validateBundle } from "../core/contracts.js";
 import { createSampleClient } from "../core/client_sample.js";
 import { exportRunFiles } from "../core/export.js";
 import { buildAuthorInput, slugify } from "../core/input.js";
+import { learningBlocker, runLearning } from "../core/learning.js";
 import { createRun, nextStageIndex, retryStage, runStage, RUN_STATUS } from "../core/orchestrator.js";
 import { buildRunMarkdown, collectFinalOutputs } from "../core/outputs.js";
 import { countWords } from "../core/parser.js";
@@ -72,6 +73,13 @@ const state = {
   armedOpen: null,
   persistNote: "",
   buildInfo: {},
+  productionForRun: null,
+  productionLoaded: null,
+  productionSaved: null,
+  learnings: [],
+  learningSelected: null,
+  learningLive: null,
+  learningMessage: "",
 };
 
 function withTimeout(promise, ms) {
@@ -310,6 +318,14 @@ function renderFinal() {
   }
   $("download-draft").disabled = !state.downloads;
   if (!state.downloads) $("final-note").textContent = "Tải file chỉ có khi mở trang trong claude.ai; vẫn có thể sao chép bài.";
+  if (state.productionForRun !== state.run.id) {
+    // Lần đầu thấy bản nháp của run này: bắt đầu từ bản cuối đã lưu, nếu không thì từ bản nháp AI.
+    state.productionForRun = state.run.id;
+    state.productionSaved = state.productionLoaded;
+    $("production").value = state.productionLoaded ?? primary.text;
+  }
+  renderProduction();
+  renderLearning();
 }
 
 function updateControls() {
@@ -329,6 +345,7 @@ function updateControls() {
   $("run-status").textContent = runStatusText();
   $("run-actions").hidden = !state.run;
   $("download-run").disabled = busy || !state.downloads;
+  if (state.run && !$("final").hidden) renderProduction();
   $("download-zip").disabled = busy || !state.downloads || !window.JSZip;
   $("persist-note").hidden = !state.persistNote;
   $("persist-note").textContent = state.persistNote;
@@ -492,6 +509,14 @@ async function openRun(id) {
     const { run, resumable, problems } = restoreRun(state.bundle, data.runDoc, data.stageDocs);
     run.readOnly = !resumable;
     run.problems = problems;
+    resetLearningState();
+    try {
+      state.productionLoaded = await withTimeout(state.repo.loadProduction(id), STORE_TIMEOUT_MS);
+      state.learnings = await withTimeout(state.repo.listLearning(id), STORE_TIMEOUT_MS);
+      state.learningSelected = state.learnings[0]?.id || null;
+    } catch (error) {
+      state.learningMessage = `Chưa tải được bản cuối hoặc kết quả học: ${dbErrorText(error)}`;
+    }
     state.run = run;
     state.live = {};
     state.open.clear();
@@ -508,7 +533,10 @@ async function openRun(id) {
 async function downloadZip() {
   if (!state.run || !window.JSZip) return;
   try {
-    const { folderName, files } = exportRunFiles(state.bundle, state.run);
+    const { folderName, files } = exportRunFiles(state.bundle, state.run, {
+      production: productionForExport(),
+      learnings: state.learnings.filter((session) => session.report),
+    });
     const zip = new window.JSZip();
     const folder = zip.folder(folderName);
     for (const [name, content] of Object.entries(files)) folder.file(name, content);
@@ -543,6 +571,7 @@ function startRun(event) {
   state.run = createRun({ bundle: state.bundle, mode: state.mode, style: $("style").value, authorInput });
   state.run.title = $("title").value.trim();
   state.run.buildId = state.buildInfo.build_id || null;
+  resetLearningState();
   state.live = {};
   state.open.clear();
   state.persistNote = "";
@@ -598,6 +627,177 @@ async function copyDraft() {
     selection.addRange(range);
     $("final-note").textContent = "Không sao chép tự động được; bài đã được chọn sẵn, nhấn Ctrl+C hoặc ⌘C.";
   }
+}
+
+// --- Bản cuối và learning loop ---------------------------------------------
+
+function resetLearningState() {
+  state.productionForRun = null;
+  state.productionLoaded = null;
+  state.productionSaved = null;
+  state.learnings = [];
+  state.learningSelected = null;
+  state.learningLive = null;
+  state.learningMessage = "";
+}
+
+function primaryDraft() {
+  return state.run ? collectFinalOutputs(state.bundle.workflows[state.run.mode].definition, state.run).primary : null;
+}
+
+/** Bản cuối đưa vào zip: bản đã lưu, hoặc bản đang sửa nếu khác bản nháp AI. */
+function productionForExport() {
+  if (state.productionSaved) return state.productionSaved;
+  const text = $("production").value;
+  const primary = primaryDraft();
+  return text.trim() && primary && text !== primary.text ? text : null;
+}
+
+function renderProduction() {
+  const text = $("production").value;
+  const primary = primaryDraft();
+  const canStore = Boolean(state.repo && state.run && state.run.persisted);
+  const saved = text === state.productionSaved;
+  $("production-meta").textContent = `${countWords(text)} từ · ${!canStore ? "không lưu được trong lần mở này" : saved ? "đã lưu" : "chưa lưu"}`;
+  $("production-save").disabled = state.busy || !canStore || saved || !text.trim();
+  $("production-reset").disabled = state.busy || !primary || text === primary.text;
+  const blocker = learningBlocker(state.bundle, state.run, text);
+  const unchanged = Boolean(primary) && text === primary.text;
+  $("learn-claude").disabled = state.busy || !state.client || Boolean(blocker) || unchanged;
+  $("learn-offline").disabled = state.busy || Boolean(blocker);
+  const hint = blocker || (unchanged ? "Bản cuối đang giống hệt bản nháp AI, chưa có gì để học. Sửa bài rồi bấm học." : !state.client ? "Học qua Claude cần mở trang trong claude.ai; vẫn so sánh offline được." : "");
+  $("learning-note").textContent = state.learningMessage || hint;
+}
+
+/** Lưu bản cuối; trả lỗi dạng chữ, hoặc null nếu lưu được. */
+async function persistProduction(text) {
+  if (!state.repo || !state.run || !state.run.persisted) return "Lần mở này không lưu được bản cuối.";
+  try {
+    await state.repo.saveProduction(state.run, text);
+    state.productionSaved = text;
+    return null;
+  } catch (error) {
+    return `Không lưu được bản cuối: ${dbErrorText(error)}`;
+  }
+}
+
+async function saveProduction() {
+  const problem = await persistProduction($("production").value);
+  state.learningMessage = problem || "Đã lưu bản cuối.";
+  renderProduction();
+}
+
+const LEARNING_LABEL = { editorial_learning: "Báo cáo chẩn đoán", workflow_tuning: "Gợi ý tinh chỉnh workflow" };
+
+function sessionLabel(session) {
+  const kind = session.kind === "offline" ? "Offline" : "Claude";
+  const status = { completed: "xong", failed: "lỗi", cancelled: "đã dừng" }[session.status] || session.status;
+  return `${formatWhen(session.created_at)} · ${kind} · ${status}`;
+}
+
+function renderLearning() {
+  const block = $("learning-block");
+  const live = state.learningLive;
+  const session = state.learnings.find((item) => item.id === state.learningSelected) || state.learnings[0];
+  block.hidden = !live && !session;
+  if (block.hidden) return;
+  const select = $("learning-select");
+  select.replaceChildren(...state.learnings.map((item) => h("option", { value: item.id, text: sessionLabel(item) })));
+  select.hidden = Boolean(live) || state.learnings.length < 2;
+  if (session) select.value = session.id;
+  $("download-learning").disabled = Boolean(live) || !state.downloads || !session?.report;
+  if (live) {
+    $("learning-meta").textContent = live.stageId ? `Đang chạy: ${LEARNING_LABEL[live.stageId]}…` : "Đang chuẩn bị…";
+    $("learning-report").textContent = live.stageId === "editorial_learning" ? live.text || "Đang suy nghĩ…" : live.report || "Đang suy nghĩ…";
+    $("learning-tuning").textContent = live.stageId === "workflow_tuning" ? live.text || "Đang suy nghĩ…" : "";
+    return;
+  }
+  const models = Object.entries(session.telemetry || {})
+    .map(([stage, entry]) => `${stage}: ${modelName(entry.model)} · ${entry.effort}${entry.status === "completed" && !entry.model_applied ? " (bị hạ hạng)" : ""}`)
+    .join(" · ");
+  $("learning-meta").textContent = `${session.mode} · ${session.style} · so với ${session.comparison_label} · ${models || "không gọi Claude"}`;
+  $("learning-report").textContent = session.report || session.error || "";
+  $("learning-tuning").textContent = session.tuning_suggestions || "";
+}
+
+async function learn(offline) {
+  if (state.busy || !state.run) return;
+  const text = $("production").value;
+  const blocker = learningBlocker(state.bundle, state.run, text);
+  if (blocker) {
+    state.learningMessage = blocker;
+    renderProduction();
+    return;
+  }
+  state.busy = true;
+  state.controller = new AbortController();
+  state.learningMessage = "";
+  state.learningLive = { stageId: null, text: "", report: "" };
+  renderAll();
+  try {
+    const saveProblem = state.repo && state.run.persisted && text !== state.productionSaved ? await persistProduction(text) : null;
+    const session = await runLearning({
+      bundle: state.bundle,
+      run: state.run,
+      productionBlog: text,
+      client: state.client,
+      offline,
+      signal: state.controller.signal,
+      onText: ({ stageId, text: partial }) => {
+        if (stageId === "workflow_tuning" && state.learningLive.stageId === "editorial_learning") state.learningLive.report = state.learningLive.text;
+        state.learningLive.stageId = stageId;
+        state.learningLive.text = partial;
+        renderLearning();
+      },
+    });
+    const notes = [];
+    if (saveProblem) notes.push(saveProblem);
+    if (session.report) {
+      state.learnings.unshift(session);
+      state.learningSelected = session.id;
+      if (state.repo && state.run.persisted) {
+        try {
+          await state.repo.saveLearning(state.run, session);
+        } catch (error) {
+          notes.push(`Không lưu được kết quả học: ${dbErrorText(error)} Hãy tải về để giữ lại.`);
+        }
+      }
+    }
+    {
+      const outcome =
+        session.status === "completed"
+          ? offline
+            ? "Đã so sánh offline. Đây chỉ là thống kê và câu hỏi chẩn đoán, chưa phải kết luận."
+            : "Đã xong vòng học. Đọc gợi ý, rồi tự quyết định sửa skill trong repo."
+          : session.status === "cancelled"
+            ? "Đã dừng vòng học."
+            : `Vòng học lỗi: ${ERROR_TEXT[session.error_code] || session.error}`;
+      state.learningMessage = [outcome, ...notes].join(" ");
+    }
+  } catch (error) {
+    state.learningMessage = error.message || String(error);
+  } finally {
+    state.busy = false;
+    state.controller = null;
+    state.learningLive = null;
+    renderAll();
+  }
+}
+
+function downloadLearning() {
+  const session = state.learnings.find((item) => item.id === state.learningSelected) || state.learnings[0];
+  if (!session || !session.report) return;
+  const header = `<!-- mode: ${session.mode} | style: ${session.style} | run: ${session.run_id || ""} | learning: ${session.id} | ${session.kind} -->`;
+  const body = [
+    header,
+    `# Kết quả học (${session.mode} · ${session.style})`,
+    `## Báo cáo chẩn đoán\n\n${session.report.trim()}`,
+    `## Gợi ý tinh chỉnh workflow\n\n${(session.tuning_suggestions || "").trim()}`,
+  ].join("\n\n");
+  saveFile(`${session.mode}_blog_patterns_${session.style}_${session.id}.md`, body + "\n", (note) => {
+    state.learningMessage = note;
+    renderProduction();
+  });
 }
 
 // --- Khởi động --------------------------------------------------------------
@@ -674,6 +874,24 @@ function boot() {
   $("stop").addEventListener("click", () => state.controller && state.controller.abort());
   $("next").addEventListener("click", () => go({ continuous: $("pace-all").checked }));
   $("history-reload").addEventListener("click", loadHistory);
+  $("production").addEventListener("input", () => {
+    state.learningMessage = "";
+    renderProduction();
+  });
+  $("production-save").addEventListener("click", saveProduction);
+  $("production-reset").addEventListener("click", () => {
+    const primary = primaryDraft();
+    if (primary) $("production").value = primary.text;
+    state.learningMessage = "";
+    renderProduction();
+  });
+  $("learn-claude").addEventListener("click", () => learn(false));
+  $("learn-offline").addEventListener("click", () => learn(true));
+  $("learning-select").addEventListener("change", (event) => {
+    state.learningSelected = event.target.value;
+    renderLearning();
+  });
+  $("download-learning").addEventListener("click", downloadLearning);
   $("download-zip").addEventListener("click", downloadZip);
   $("copy-draft").addEventListener("click", copyDraft);
   $("download-draft").addEventListener("click", () => {

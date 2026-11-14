@@ -63,10 +63,26 @@ function fakeClaude(config) {
   window.__calls = [];
   window.__downloads = [];
   if (config.noClaude) return;
-  // db giả lưu trong sessionStorage để còn nguyên khi tải lại trang.
-  const KEY = "__fakeDbStore";
-  const read = () => new Map(JSON.parse(sessionStorage.getItem(KEY) || "[]"));
-  const write = (map) => sessionStorage.setItem(KEY, JSON.stringify([...map]));
+  // db giả lưu trong window.name: ghi đồng bộ và còn nguyên khi tải lại trong cùng tab.
+  // (localStorage/sessionStorage được Chromium ghi xuống bất đồng bộ, nên tải lại ngay sau khi
+  // ghi có thể đọc ra dữ liệu cũ.) Mỗi kịch bản có context riêng nên dữ liệu không lẫn nhau.
+  const readAll = () => {
+    try {
+      return JSON.parse(window.name || "{}");
+    } catch (_) {
+      return {};
+    }
+  };
+  const writeAll = (all) => { window.name = JSON.stringify(all); };
+  window.__flag = (key, value) => {
+    const all = readAll();
+    if (value === undefined) return all[key];
+    all[key] = value;
+    writeAll(all);
+    return value;
+  };
+  const read = () => new Map(readAll().db || []);
+  const write = (map) => { const all = readAll(); all.db = [...map]; writeAll(all); };
   const storage = {
     get: (k) => read().get(k),
     has: (k) => read().has(k),
@@ -81,16 +97,26 @@ function fakeClaude(config) {
   const user = { id: async () => "u_test_owner", isOwner: async () => true };
   const sample = async (prompt, options) => {
     const cfg = window.__config;
-    const id = /\n- id: (\S+)/.exec(prompt)[1];
+    // Learning prompt chứa YAML của workflow (có "- id: ..."), nên nhận diện nó trước.
+    const id = prompt.startsWith("Bạn đang chạy learning loop")
+      ? "editorial_learning"
+      : prompt.startsWith("Chuyển editorial learning report")
+        ? "workflow_tuning"
+        : /\n- id: (\S+)/.exec(prompt)[1];
     window.__calls.push({ id, model: options.model, effort: options.effort, tier: options.modelTier, cache: options.cache });
     await new Promise((resolve) => setTimeout(resolve, 20));
     if (cfg.failOn === id) throw { code: "rate_limited", message: "Đã chạm giới hạn." };
-    if (cfg.holdOn === id && sessionStorage.getItem("__held") !== "1") {
-      sessionStorage.setItem("__held", "1");
+    if (cfg.holdOn === id && !window.__flag("held")) {
+      window.__flag("held", true);
       options.onText({ text: "## Artifact\n\nĐang viết dở…", delta: "" });
       await new Promise((resolve, reject) => {
         options.signal.addEventListener("abort", () => reject({ code: "cancelled", message: "Đã dừng.", text: "## Artifact\n\nĐang viết dở…" }));
       });
+    }
+    if (id === "editorial_learning" || id === "workflow_tuning") {
+      const text = id === "editorial_learning" ? "# Báo cáo học\n\n- Người viết thêm chi tiết lá bàng." : "## breath_editor\n- Giữ chi tiết đời thường.";
+      options.onText({ text, delta: text });
+      return { text, truncated: false, modelTierApplied: options.modelTier, modelApplied: options.model };
     }
     const editor = id === "breath_editor" || id === "editor_agent";
     const artifact = editor
@@ -119,7 +145,8 @@ function fakeClaude(config) {
       window.__downloads.push({ filename: request.filename, data: typeof request.data === "string" ? request.data : null, base64 });
     },
   };
-  const capabilities = { sample: config.noSample ? null : sample, downloads, db: config.noDb ? null : db, user };
+  const noSample = config.noSample || Boolean(window.__flag("noSample"));
+  const capabilities = { sample: noSample ? null : sample, downloads, db: config.noDb ? null : db, user };
   window.claude = { use: async (name) => capabilities[name] ?? null };
 }
 
@@ -249,8 +276,8 @@ test("lỗi ở một bước: dừng, báo lỗi theo mã, chạy lại bước
 test("bấm Dừng khi đang viết: giữ phần đã viết, trạng thái đã dừng", { skip }, async () => {
   const { context, page } = await openPage({ holdOn: "moment_writer" });
   await fillAndRun(page);
-  await page.waitForSelector("#live-moment_writer");
-  assert.match(await page.textContent("#live-moment_writer"), /Đang viết dở/);
+  // Chờ chữ đang viết (phần tử cùng id hiện "Đang suy nghĩ…" trước khi có chữ).
+  await page.waitForFunction(() => /Đang viết dở/.test(document.getElementById("live-moment_writer")?.textContent || ""));
   assert.ok(await page.isDisabled("#raw-notes"));
   await page.click("#stop");
   await page.waitForFunction(() => document.getElementById("run-status").textContent.includes("Đã dừng ở bước moment_writer"));
@@ -350,7 +377,8 @@ test("lưu lịch sử: tải lại trang vẫn còn, mở lại xem đủ kết
 test("lần chạy bị gián đoạn: mở lại từ lịch sử và chạy tiếp các bước còn lại", { skip }, async () => {
   const { context, page } = await openPage({ holdOn: "moment_writer" });
   await fillAndRun(page);
-  await page.waitForSelector("#live-moment_writer");
+  // Chờ chữ đang viết hiện ra: lúc đó Claude giả đã ghi cờ "đã treo" nên lần mở lại không treo nữa.
+  await page.waitForFunction(() => /Đang viết dở/.test(document.getElementById("live-moment_writer")?.textContent || ""));
   await page.reload();
   await ready(page);
   const item = page.locator("#history button").first();
@@ -411,6 +439,126 @@ test("lịch sử không phản hồi: sau 10 giây báo chưa tải được, t
   const { context, page } = await openPage({ hangDb: true });
   assert.match(await page.textContent("#history-note"), /chưa phản hồi sau 10 giây/);
   assert.ok(await page.isEnabled("#run"));
+  await context.close();
+});
+
+const EDITED = "# Chiều mưa\n\nMưa rơi trên mái tôn, chiếc lá bàng rơi nghiêng chạm vũng nước 🌧️. Mình ngồi yên.";
+
+async function finishRun(page) {
+  await page.selectOption("#style", "va-natural");
+  await fillAndRun(page);
+  await doneAll(page, 6);
+}
+
+test("bản cuối: khởi tạo từ bản nháp AI; chưa có hoặc chưa sửa thì không học được", { skip }, async () => {
+  const { context, page } = await openPage();
+  await finishRun(page);
+  assert.equal(await page.inputValue("#production"), await page.textContent("#final-text"));
+  assert.ok(await page.isDisabled("#learn-claude"), "chưa sửa gì thì không gọi Claude");
+  assert.ok(await page.isEnabled("#learn-offline"));
+  assert.match(await page.textContent("#learning-note"), /giống hệt bản nháp AI/);
+  await page.fill("#production", "   ");
+  assert.ok(await page.isDisabled("#learn-claude"));
+  assert.ok(await page.isDisabled("#learn-offline"));
+  assert.match(await page.textContent("#learning-note"), /Chưa có bản cuối/);
+  await page.click("#production-reset");
+  assert.equal(await page.inputValue("#production"), await page.textContent("#final-text"));
+  await context.close();
+});
+
+test("lưu bản cuối, học qua Claude đúng model; tải lại trang vẫn còn bản cuối và kết quả học", { skip }, async () => {
+  const { context, page, errors } = await openPage({}, { width: 390 });
+  await finishRun(page);
+  await page.fill("#production", EDITED);
+  assert.match(await page.textContent("#production-meta"), /chưa lưu/);
+  await page.click("#production-save");
+  await page.waitForFunction(() => /đã lưu/.test(document.getElementById("production-meta").textContent));
+  await page.click("#learn-claude");
+  await page.waitForFunction(() => /Đã xong vòng học/.test(document.getElementById("learning-note").textContent));
+  const calls = (await page.evaluate(() => window.__calls)).filter((c) => c.id === "editorial_learning" || c.id === "workflow_tuning");
+  assert.deepEqual(calls.map((c) => c.id), ["editorial_learning", "workflow_tuning"]);
+  for (const call of calls) {
+    const expected = bundle.models.learning[call.id];
+    assert.deepEqual([call.model, call.effort, call.tier, call.cache], [expected.model, expected.effort, expected.model_tier, false]);
+  }
+  assert.match(await page.textContent("#learning-report"), /Người viết thêm chi tiết lá bàng/);
+  assert.match(await page.textContent("#learning-meta"), /moment · va-natural · so với moment_edited\.md/);
+  await noHorizontalScroll(page);
+  await shot(page, "learning-390-light");
+  await page.reload();
+  await ready(page);
+  await page.locator("#history button").first().click();
+  await page.waitForFunction(() => !document.getElementById("learning-block").hidden);
+  assert.equal(await page.inputValue("#production"), EDITED);
+  assert.match(await page.textContent("#production-meta"), /đã lưu/);
+  assert.match(await page.textContent("#learning-report"), /Người viết thêm chi tiết lá bàng/);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("so sánh offline: không gọi Claude, tải kết quả học có nhãn mode và style", { skip }, async () => {
+  const { context, page } = await openPage();
+  await finishRun(page);
+  const before = (await page.evaluate(() => window.__calls)).length;
+  await page.fill("#production", EDITED);
+  await page.click("#learn-offline");
+  await page.waitForFunction(() => /Đã so sánh offline/.test(document.getElementById("learning-note").textContent));
+  assert.equal((await page.evaluate(() => window.__calls)).length, before);
+  assert.match(await page.textContent("#learning-report"), /^# Báo Cáo Chẩn Đoán Offline \(MOMENT MODE\)/);
+  assert.match(await page.textContent("#learning-report"), /\+\+\+ production_blog\.md/);
+  assert.match(await page.textContent("#learning-meta"), /không gọi Claude/);
+  await page.click("#download-learning");
+  await page.waitForFunction(() => window.__downloads.length === 1);
+  const download = (await page.evaluate(() => window.__downloads))[0];
+  assert.match(download.filename, /^moment_blog_patterns_va-natural_\d{8}_\d{6}_\d{6}\.md$/);
+  assert.match(download.data, /^<!-- mode: moment \| style: va-natural \| run: \S+ \| learning: \S+ \| offline -->/);
+  await context.close();
+});
+
+test("zip có production_blog.md và thư mục learning của engine", { skip: skip || (jszipPath ? false : "Không tải được JSZip để test") }, async () => {
+  const { context, page } = await openPage();
+  await finishRun(page);
+  await page.fill("#production", EDITED);
+  await page.click("#learn-offline");
+  await page.waitForFunction(() => /Đã so sánh offline/.test(document.getElementById("learning-note").textContent));
+  await page.click("#download-zip");
+  await page.waitForFunction(() => window.__downloads.length === 1);
+  const download = (await page.evaluate(() => window.__downloads))[0];
+  const zipPath = join(workDir, "learned.zip");
+  writeFileSync(zipPath, Buffer.from(download.base64, "base64"));
+  const names = JSON.parse(execFileSync(process.env.PYTHON || "python3", ["-c", "import json,sys,zipfile;print(json.dumps(zipfile.ZipFile(sys.argv[1]).namelist()))", zipPath], { encoding: "utf8" }));
+  const folder = download.filename.replace(/\.zip$/, "");
+  assert.ok(names.includes(`${folder}/production_blog.md`));
+  assert.ok(names.some((name) => /\/learning\/moment\/\d{8}_\d{6}_\d{6}\/moment_blog_patterns\.md$/.test(name)));
+  await context.close();
+});
+
+test("học qua Claude bị lỗi: báo lỗi theo mã, không lưu kết quả rỗng", { skip }, async () => {
+  const { context, page } = await openPage({ failOn: "editorial_learning" });
+  await finishRun(page);
+  await page.fill("#production", EDITED);
+  await page.click("#learn-claude");
+  await page.waitForFunction(() => /Vòng học lỗi/.test(document.getElementById("learning-note").textContent));
+  assert.match(await page.textContent("#learning-note"), /giới hạn sử dụng Claude/);
+  assert.ok(await page.isHidden("#learning-block"));
+  await context.close();
+});
+
+test("mở lại run khi không có Claude: nút học qua Claude bị khóa, so sánh offline vẫn chạy", { skip }, async () => {
+  const { context, page } = await openPage();
+  await finishRun(page);
+  // Lần mở sau không có capability sample (dữ liệu db giả trong window.name vẫn còn).
+  await page.evaluate(() => window.__flag("noSample", true));
+  await page.reload();
+  await ready(page);
+  assert.equal(await page.textContent("#chip-claude"), "Claude: không khả dụng");
+  await page.locator("#history button").first().click();
+  await page.waitForFunction(() => !document.getElementById("final").hidden);
+  await page.fill("#production", EDITED);
+  assert.ok(await page.isDisabled("#learn-claude"));
+  assert.match(await page.textContent("#learning-note"), /Học qua Claude cần mở trang trong claude\.ai/);
+  await page.click("#learn-offline");
+  await page.waitForFunction(() => /Đã so sánh offline/.test(document.getElementById("learning-note").textContent));
   await context.close();
 });
 

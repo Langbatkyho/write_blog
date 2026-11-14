@@ -1,6 +1,7 @@
 // Xuất một lần chạy thành bộ file theo bố cục thư mục run của engine
-// (input.md, metadata.json, step_outputs.json, run_log.md, handoff_log.md và
-// các file artifact/handoff), để engine Python đọc lại được, kể cả learning loop.
+// (input.md, metadata.json, step_outputs.json, run_log.md, handoff_log.md, các file
+// artifact/handoff, production_blog.md và learning/<mode>/<timestamp>/), để engine
+// Python đọc lại được, kể cả learning loop.
 // Chỉ dựng nội dung; việc nén zip do tầng UI làm.
 import { runFolderName } from "./run_record.js";
 import { stageTelemetry } from "./orchestrator.js";
@@ -61,8 +62,51 @@ export function runMetadata(bundle, run) {
   };
 }
 
-/** @returns {{folderName: string, files: Object<string,string>}} */
-export function exportRunFiles(bundle, run) {
+/** metadata.json của một vòng học, cùng khóa với engine/workflow_learning.py. */
+export function learningMetadata(bundle, run, session, folderName) {
+  return {
+    created_at: session.created_at,
+    config_file: "artifact",
+    workflow_file: bundle.workflows[run.mode]?.file || null,
+    source_run_dir: folderName,
+    production_file: "production_blog.md",
+    dry_run: false,
+    offline: session.kind === "offline",
+    run_source: run.runSource,
+    persisted: Boolean(run.persisted),
+    api_attempted: Boolean(session.api_attempted),
+    api_called: Boolean(session.api_called),
+    status: session.status,
+    provider: session.kind === "offline" ? "offline" : "claude-sample",
+    client_map: null,
+    style: session.style,
+    mode: session.mode,
+    telemetry: session.telemetry || {},
+  };
+}
+
+function addLearningFiles(files, bundle, run, session, folderName) {
+  if (!session.report) return;
+  const base = `learning/${session.mode}/${session.id}/`;
+  const metadata = JSON.stringify(learningMetadata(bundle, run, session, folderName), null, 2);
+  const title = session.mode.charAt(0).toUpperCase() + session.mode.slice(1);
+  files[`${base}production_blog.md`] = session.production_blog;
+  files[`${base}${session.mode}_blog_patterns.md`] = session.report;
+  files[`${base}workflow_tuning_suggestions.md`] = session.tuning_suggestions || "";
+  files[`${base}metadata.json`] = metadata;
+  files[`${base}learning_log.md`] = logText([
+    ["Learning Metadata", metadata],
+    [`${title} Diagnostic Report`, session.report],
+    ["Workflow Tuning Suggestions", session.tuning_suggestions || ""],
+  ]);
+}
+
+/**
+ * @param extras.production bản cuối của người viết (production_blog.md), nếu có
+ * @param extras.learnings  các vòng học đã có kết quả
+ * @returns {{folderName: string, files: Object<string,string>}}
+ */
+export function exportRunFiles(bundle, run, { production = null, learnings = [] } = {}) {
   if (!run.id) throw new Error("Run chưa có ID; hãy lưu run trước khi xuất.");
   const metadata = runMetadata(bundle, run);
   const files = {
@@ -88,6 +132,9 @@ export function exportRunFiles(bundle, run) {
   files["step_outputs.json"] = JSON.stringify(stepOutputs, null, 2);
   files["run_log.md"] = logText(runLog);
   if (handoffLog.length) files["handoff_log.md"] = logText(handoffLog);
-  return { folderName: runFolderName(run), files };
+  const folderName = runFolderName(run);
+  if (production) files["production_blog.md"] = production;
+  for (const session of learnings) addLearningFiles(files, bundle, run, session, folderName);
+  return { folderName, files };
 }
 

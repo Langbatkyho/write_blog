@@ -24,9 +24,17 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from engine.learning import build_learning_prompt, build_tuning_prompt  # noqa: E402
+from engine.learning import (  # noqa: E402
+    build_learning_prompt,
+    build_offline_learning_report,
+    build_offline_tuning_suggestions,
+    build_tuning_prompt,
+    render_offline_diff,
+)
 from engine.parser import (  # noqa: E402
+    average_sentence_words,
     build_context_package,
+    count_paragraphs,
     count_words,
     estimate_tokens,
     parse_stage_response,
@@ -263,10 +271,48 @@ def golden_learning_prompts() -> Dict[str, Any]:
         except ValueError as exc:
             entry["error"] = str(exc)
         tuning.append(entry)
+    ai_draft = (
+        "# Chiều mưa\n\nMưa rơi trên mái tôn. Mình ngồi yên, không vội.\n\n"
+        "Ly cà phê tan đá. Hình như không cần giải quyết mọi thứ ngay lập tức.\n\n"
+        "Người ơi, chậm lại một chút cũng được 🌿."
+    )
+    human_edit = (
+        "# Chiều mưa qua khung cửa\n\nMưa rơi trên mái tôn. Mình ngồi yên.\n\n"
+        "Ly cà phê tan đá, chiếc lá bàng rơi nghiêng chạm vũng nước. Không cần vội.\n\n"
+        "Người ơi, chậm lại một chút cũng được 🌿.\n\nMưa tạnh rồi đi tiếp."
+    )
+    offline_specs = [
+        ("moment_edit", "moment", "moment_edited.md", ai_draft, human_edit, True),
+        ("identical", "deep", "edited_blog.md", ai_draft, ai_draft, True),
+        ("long_autojunk", "deep", "final_blog.md", LONG_TEXT, LONG_TEXT.replace("dịu lại", "nhẹ đi", 7) + "\nĐoạn kết mới.", True),
+        ("shorter_no_steps", "moment", "moment_edited.md", human_edit, "Mưa.\nMình ngồi.", False),
+        ("crlf_and_blank_lines", "moment", "moment_edited.md", "A.\r\n\r\n\r\nB! C?", "A.\n  \nB!\n\nC? D。", True),
+    ]
+    offline = []
+    for name, mode, label, final_blog, production_blog, with_steps in offline_specs:
+        steps = {step["id"]: _fake_output(step["id"])["artifact"] for step in _workflow(mode)["steps"]} if with_steps else {}
+        stage_ids = [step["id"] for step in _workflow(mode)["steps"]] if with_steps else []
+        offline.append(
+            {
+                "name": name,
+                "inputs": {"mode": mode, "comparison_label": label, "final_blog": final_blog, "production_blog": production_blog, "step_outputs": steps, "stage_ids": stage_ids},
+                "report": build_offline_learning_report(final_blog, production_blog, steps, comparison_label=label, mode=mode),
+                "tuning": build_offline_tuning_suggestions("", mode=mode, stage_ids=stage_ids),
+                "diff": render_offline_diff(final_blog, production_blog, comparison_label=label),
+                "metrics": {
+                    "paragraphs": [count_paragraphs(final_blog), count_paragraphs(production_blog)],
+                    "sentence_avg": [average_sentence_words(final_blog), average_sentence_words(production_blog)],
+                },
+            }
+        )
+    floats = [0.0625, 0.125, 2.675, 1.0005, 0.5, 1.5, 2.5, 0.1234567, 12.3456, 0.0, -0.0, 0.9995, 1 / 3, 99.995, 2 / 3, 7.125, 0.875]
     return {
-        "description": "build_learning_prompt, build_tuning_prompt. YAML của workflow/skill lấy từ bundle.learning và styles[mode][style].learning_compact_skills_yaml.",
+        "description": "build_learning_prompt, build_tuning_prompt, báo cáo offline. YAML của workflow/skill lấy từ bundle.learning và styles[mode][style].learning_compact_skills_yaml.",
         "learning": learning,
         "tuning": tuning,
+        "offline": offline,
+        "format_fixed": [{"value": v, "3f": f"{v:.3f}", "2f": f"{v:.2f}"} for v in floats],
+        "signed_int": [{"value": n, "+d": f"{n:+d}"} for n in (-12, -1, 0, 1, 40)],
     }
 
 

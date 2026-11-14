@@ -13,12 +13,17 @@ const pad = (value, width = 2) => String(value).padStart(width, "0");
  * hex ngẫu nhiên + mode + style), chỉ gồm ký tự hợp lệ cho đường dẫn db.
  */
 export function newRunId({ mode, style, now = new Date(), randomHex }) {
-  const stamp =
+  const suffix = (randomHex || defaultRandomHex)(8);
+  return `${utcStamp(now)}_${suffix}_${mode}_${style}`;
+}
+
+/** Dấu thời gian kiểu `%Y%m%d_%H%M%S_%f` (UTC) mà engine dùng cho tên run và thư mục learning. */
+export function utcStamp(now = new Date()) {
+  return (
     `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}_` +
     `${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}_` +
-    `${pad(now.getUTCMilliseconds() * 1000, 6)}`;
-  const suffix = (randomHex || defaultRandomHex)(8);
-  return `${stamp}_${suffix}_${mode}_${style}`;
+    `${pad(now.getUTCMilliseconds() * 1000, 6)}`
+  );
 }
 
 function defaultRandomHex(length) {

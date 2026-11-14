@@ -85,3 +85,27 @@ def test_offline_learning_loop_runs_on_exported_run(tmp_path, exported, key):
     )
     assert Path(learning_dir).resolve().is_relative_to(output_root.resolve())
     assert (Path(learning_dir) / "metadata.json").exists()
+
+
+@pytest.mark.parametrize("key", ["moment/va-natural/learned", "deep/reflective/learned"])
+def test_engine_offline_learning_matches_artifact_report(tmp_path, exported, key):
+    """Learning offline của engine trên run do Artifact xuất ra cho đúng báo cáo mà Artifact đã tạo."""
+    export = exported[key]
+    mode = key.split("/")[0]
+    run_dir = _write_run(tmp_path / "exported", export)
+    learning_files = [name for name in export["files"] if name.startswith(f"learning/{mode}/")]
+    assert {Path(name).name for name in learning_files} == {
+        "production_blog.md", f"{mode}_blog_patterns.md", "workflow_tuning_suggestions.md", "metadata.json", "learning_log.md",
+    }
+    learning_dir = run_learning_loop(
+        ROOT / "engine" / "config.example.yaml",
+        run_dir,
+        offline=True,
+        persist=True,
+        output_root=tmp_path / "engine-learning",
+        run_source="test",
+    )
+    engine_report = (Path(learning_dir) / f"{mode}_blog_patterns.md").read_text(encoding="utf-8")
+    engine_tuning = (Path(learning_dir) / "workflow_tuning_suggestions.md").read_text(encoding="utf-8")
+    assert engine_report == export["report"]
+    assert engine_tuning == export["tuning"]
