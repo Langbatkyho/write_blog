@@ -1,5 +1,16 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-0 và ART-1 (2026-11-14)
+
+- Kế hoạch `docs/2026-11-14-claude-artifact-plan.md`: đưa workflow deep/moment và Voice Lab lên Claude Artifact, mỗi tác giả một bản riêng.
+- **ART-0:** spike trên claude.ai (`artifact/spike/`, báo cáo `docs/2026-11-14-art0-spike-report.md`): gọi model theo tên đúng 6/6 trên hai tài khoản; JSON Voice Lab qua Pydantic 3/3, 123/123 quote khớp nguyên văn; ghi/đọc document 256.200 byte.
+- **ART-1:**
+  - Quy tắc Voice Lab (`.agents/AGENTS.md` §4, `agentic-workflow-architect/SKILL.md`, `architecture-invariants.md`): Voice Lab Python giữ Gemini-only; Voice Lab trong `artifact/` dùng Claude qua `sample` (ngoại lệ D1 được người dùng phê duyệt).
+  - Thêm khối `claude:` vào `engine/config.example.yaml` (model/effort theo stage) và contract `artifact/claude_config.py`.
+  - Thêm `artifact/build_bundle.py` (bundle tất định, fail-closed) và `artifact/make_golden.py` + `artifact/tests/golden/`.
+  - Thêm `tests/test_artifact_bundle.py` (22 test).
+- Kiểm chứng: **151 test pass**; 2 test lỗi có sẵn từ trước (đường dẫn kiểu Windows trong `test_workflow_definition_rejects_unsafe_paths` khi chạy trên Linux), không liên quan thay đổi. Không gọi API; `skills/`, `flow/`, `web_runs/` không đổi; `runs/` không tồn tại.
+
 ## RULES, SKILL và P0 Modularization (2026-07-27–28)
 
 - Tạo `AGENTS.md` và `.agents/AGENTS.md`, áp dụng cho toàn repository.

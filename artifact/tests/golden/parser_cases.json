@@ -1,0 +1,231 @@
+{
+ "description": "parse_stage_response(strict=True), count_words, estimate_tokens, truncate_words, derive_artifact_file_contents",
+ "strict_parse": [
+  {
+   "name": "ok",
+   "input": "## Artifact\n\nNội dung bài.\n\n## Handoff\n\nTóm tắt.",
+   "ok": true,
+   "artifact": "Nội dung bài.",
+   "handoff": "Tóm tắt."
+  },
+  {
+   "name": "preamble_allowed",
+   "input": "Đây là kết quả:\n\n## Artifact\n\nBài viết.\n\n## Handoff\n\nHandoff.",
+   "ok": true,
+   "artifact": "Bài viết.",
+   "handoff": "Handoff."
+  },
+  {
+   "name": "case_and_trailing_space",
+   "input": "## artifact  \nA\n##\tHANDOFF\nH",
+   "ok": true,
+   "artifact": "A",
+   "handoff": "H"
+  },
+  {
+   "name": "wrong_order",
+   "input": "## Handoff\n\nH\n\n## Artifact\n\nA",
+   "ok": false,
+   "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
+  },
+  {
+   "name": "missing_handoff",
+   "input": "## Artifact\n\nChỉ có artifact.",
+   "ok": false,
+   "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
+  },
+  {
+   "name": "empty_artifact",
+   "input": "## Artifact\n\n\n## Handoff\n\nH",
+   "ok": false,
+   "error": "Stage response có Artifact/Handoff rỗng."
+  },
+  {
+   "name": "duplicate_artifact",
+   "input": "## Artifact\nA\n## Artifact\nB\n## Handoff\nH",
+   "ok": false,
+   "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
+  },
+  {
+   "name": "heading_level_three_ignored",
+   "input": "## Artifact\n\n### Handoff\n\nvẫn là artifact\n\n## Handoff\n\nH",
+   "ok": true,
+   "artifact": "### Handoff\n\nvẫn là artifact",
+   "handoff": "H"
+  },
+  {
+   "name": "crlf",
+   "input": "## Artifact\r\n\r\nA\r\n\r\n## Handoff\r\n\r\nH",
+   "ok": false,
+   "error": "Stage response strict phải có đúng hai section contract theo thứ tự: ## Artifact, ## Handoff."
+  }
+ ],
+ "words": [
+  {
+   "text": "Mình đi Tà Xùa lần thứ 5",
+   "count_words": 7,
+   "estimate_tokens": 9
+  },
+  {
+   "text": "🌥️🌥️🌥️ biển mây",
+   "count_words": 2,
+   "estimate_tokens": 2
+  },
+  {
+   "text": "snake_case và số 2026, dấu-gạch",
+   "count_words": 6,
+   "estimate_tokens": 8
+  },
+  {
+   "text": "Emoji ghép 👩‍👩‍👧 và ZWJ",
+   "count_words": 4,
+   "estimate_tokens": 5
+  },
+  {
+   "text": "  \n\t ",
+   "count_words": 0,
+   "estimate_tokens": 0
+  },
+  {
+   "text": "Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi ",
+   "count_words": 88,
+   "estimate_tokens": 118
+  }
+ ],
+ "truncate_words": [
+  {
+   "text": "Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. ",
+   "max_words": 30,
+   "result": "Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy lòng dịu lại 🌧️. Mình ngồi bên cửa sổ, nghe mưa rơi trên mái tôn và thấy\n\n[Fallback handoff truncated locally.]"
+  },
+  {
+   "text": "ngắn thôi",
+   "max_words": 30,
+   "result": "ngắn thôi"
+  },
+  {
+   "text": "  một hai ba bốn  ",
+   "max_words": 3,
+   "result": "một hai ba\n\n[Fallback handoff truncated locally.]"
+  }
+ ],
+ "artifact_split": [
+  {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "edited_blog_and_log",
+   "artifact": "## Edited Blog\n\nBài đã sửa.\n\n## Edit Log\n\n- Sửa 1",
+   "files": {
+    "edited_blog.md": "Bài đã sửa.",
+    "edit_log.md": "- Sửa 1"
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "snake_case_headings",
+   "artifact": "### edited_blog\n\nBài đã sửa.\n\n### edit_log\n\n- Sửa 1",
+   "files": {
+    "edited_blog.md": "Bài đã sửa.",
+    "edit_log.md": "- Sửa 1"
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "edited_draft_heading",
+   "artifact": "## Edited Draft\nBài.\n## Edit Log\nLog.",
+   "files": {
+    "edited_blog.md": "Bài.",
+    "edit_log.md": "Log."
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/editor_agent",
+   "artifact_case": "no_headings",
+   "artifact": "Chỉ có bài, không có tiêu đề nào.",
+   "files": {
+    "edited_blog.md": "Chỉ có bài, không có tiêu đề nào.",
+    "edit_log.md": "Edit log section was not found in the artifact."
+   },
+   "warned": true
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "edited_blog_and_log",
+   "artifact": "## Edited Blog\n\nBài đã sửa.\n\n## Edit Log\n\n- Sửa 1",
+   "files": {
+    "moment_edited.md": "Bài đã sửa.",
+    "edit_log.md": "- Sửa 1"
+   },
+   "warned": false
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "snake_case_headings",
+   "artifact": "### edited_blog\n\nBài đã sửa.\n\n### edit_log\n\n- Sửa 1",
+   "files": {
+    "moment_edited.md": "Bài đã sửa.",
+    "edit_log.md": "- Sửa 1"
+   },
+   "warned": false
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "edited_draft_heading",
+   "artifact": "## Edited Draft\nBài.\n## Edit Log\nLog.",
+   "files": {
+    "moment_edited.md": "Bài.",
+    "edit_log.md": "Log."
+   },
+   "warned": false
+  },
+  {
+   "skill": "moment/va-natural/breath_editor",
+   "artifact_case": "no_headings",
+   "artifact": "Chỉ có bài, không có tiêu đề nào.",
+   "files": {
+    "moment_edited.md": "Chỉ có bài, không có tiêu đề nào.",
+    "edit_log.md": "Edit log section was not found in the artifact."
+   },
+   "warned": true
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "edited_blog_and_log",
+   "artifact": "## Edited Blog\n\nBài đã sửa.\n\n## Edit Log\n\n- Sửa 1",
+   "files": {
+    "story_map.md": "## Edited Blog\n\nBài đã sửa.\n\n## Edit Log\n\n- Sửa 1"
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "snake_case_headings",
+   "artifact": "### edited_blog\n\nBài đã sửa.\n\n### edit_log\n\n- Sửa 1",
+   "files": {
+    "story_map.md": "### edited_blog\n\nBài đã sửa.\n\n### edit_log\n\n- Sửa 1"
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "edited_draft_heading",
+   "artifact": "## Edited Draft\nBài.\n## Edit Log\nLog.",
+   "files": {
+    "story_map.md": "## Edited Draft\nBài.\n## Edit Log\nLog."
+   },
+   "warned": false
+  },
+  {
+   "skill": "deep/reflective/story_architect",
+   "artifact_case": "no_headings",
+   "artifact": "Chỉ có bài, không có tiêu đề nào.",
+   "files": {
+    "story_map.md": "Chỉ có bài, không có tiêu đề nào."
+   },
+   "warned": false
+  }
+ ],
+ "note": "artifact_split dùng skill data trong bundle: styles[mode][style].files[<file>].data"
+}

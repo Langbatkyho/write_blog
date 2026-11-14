@@ -18,6 +18,39 @@ deepseek:
     enabled: true
     reasoning_effort: high
 
+claude:
+  # Bảng model Claude theo stage cho Claude Artifact (thư mục artifact/).
+  # Nguồn chân lý duy nhất: artifact/build_bundle.py đọc và kiểm tra khối này.
+  # Engine Python chưa dùng khối này (chưa có claude_client.py).
+  # - model: chỉ dùng model ID đã kiểm chứng trong artifact/claude_config.py.
+  #   Model sai tên sẽ bị Artifact tự hạ hạng mà không báo lỗi, nên build từ chối.
+  # - effort: low | medium | high (giá trị mà capability `sample` chấp nhận).
+  # Mọi stage của hai flow, hai stage learning và bốn stage Voice Lab đều phải có mục riêng.
+  stages:
+    # Deep mode
+    story_architect: {model: claude-sonnet-5-5, effort: medium}
+    reflection_engine: {model: claude-opus-5-5, effort: high}
+    writing_agent: {model: claude-opus-5-5, effort: high}
+    reader_experience: {model: claude-sonnet-5-5, effort: low}
+    editor_agent: {model: claude-opus-5-5, effort: high}
+    coach_agent: {model: claude-opus-5-5, effort: medium}
+    future_self: {model: claude-sonnet-5-5, effort: high}
+    # Moment mode
+    sensory_capture: {model: claude-sonnet-5-5, effort: low}
+    inner_weather: {model: claude-sonnet-5-5, effort: medium}
+    cosmic_signal_reader: {model: claude-opus-5-5, effort: medium}
+    moment_writer: {model: claude-opus-5-5, effort: high}
+    breath_editor: {model: claude-opus-5-5, effort: medium}
+    gentle_witness: {model: claude-sonnet-5-5, effort: low}
+  learning:
+    editorial_learning: {model: claude-opus-5-5, effort: high}
+    workflow_tuning: {model: claude-sonnet-5-5, effort: medium}
+  voice_lab:
+    vl_analysis: {model: claude-opus-5-5, effort: high}
+    vl_synthesis: {model: claude-opus-5-5, effort: medium}
+    vl_interview_patch: {model: claude-sonnet-5-5, effort: medium}
+    vl_calibration: {model: claude-opus-5-5, effort: medium}
+
 openai:
   # Keep the real key outside the repo. Set this environment variable before running.
   api_key_env: OPENAI_API_KEY

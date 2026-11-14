@@ -1,0 +1,5192 @@
+{
+ "description": "validate_evidence, build_voice_dna, compute_profile_confidence, compile_style. Base skill lấy từ bundle styles[mode][base].files.",
+ "evidence": {
+  "inputs": {
+   "evidence": [
+    {
+     "id": "e1",
+     "sample_id": "s1",
+     "dimension": "rhythm",
+     "claim": "Câu ngắn",
+     "exact_quote": "Hoa cứ là hoa.",
+     "stance": "support"
+    },
+    {
+     "id": "e2",
+     "sample_id": "s1",
+     "dimension": "tone",
+     "claim": "Sau emoji, có CRLF",
+     "exact_quote": "mình ra ban công.\r\nHoa",
+     "stance": "support"
+    },
+    {
+     "id": "e3",
+     "sample_id": "s2",
+     "dimension": "perspective",
+     "claim": "Hỏi bạn đọc",
+     "exact_quote": "Còn bạn thì sao?",
+     "stance": "support"
+    },
+    {
+     "id": "e4",
+     "sample_id": "s1",
+     "dimension": "rhythm",
+     "claim": "Mâu thuẫn",
+     "exact_quote": "Mình biết vậy.",
+     "stance": "contradict"
+    },
+    {
+     "id": "e5",
+     "sample_id": "s1",
+     "dimension": "tone",
+     "claim": "Quote bị diễn đạt lại",
+     "exact_quote": "Hoa là hoa.",
+     "stance": "support"
+    },
+    {
+     "id": "e6",
+     "sample_id": "s9",
+     "dimension": "tone",
+     "claim": "Sample không tồn tại",
+     "exact_quote": "Hoa cứ là hoa.",
+     "stance": "support"
+    },
+    {
+     "id": "e7",
+     "sample_id": "s1",
+     "dimension": "mood",
+     "claim": "Dimension lạ",
+     "exact_quote": "Hoa cứ là hoa.",
+     "stance": "support"
+    },
+    {
+     "id": "e8",
+     "sample_id": "s2",
+     "dimension": "emoji",
+     "claim": "Quote rỗng",
+     "exact_quote": "",
+     "stance": "support"
+    }
+   ],
+   "samples_by_id": {
+    "s1": "Sáng nay 🌿 mình ra ban công.\r\nHoa cứ là hoa. Mình biết vậy.",
+    "s2": "Còn bạn thì sao?"
+   }
+  },
+  "active": [
+   {
+    "id": "e1",
+    "sample_id": "s1",
+    "dimension": "rhythm",
+    "claim": "Câu ngắn",
+    "exact_quote": "Hoa cứ là hoa.",
+    "quote_start": 29,
+    "quote_end": 43,
+    "stance": "support",
+    "status": "active",
+    "rejection_reason": null
+   },
+   {
+    "id": "e2",
+    "sample_id": "s1",
+    "dimension": "tone",
+    "claim": "Sau emoji, có CRLF",
+    "exact_quote": "mình ra ban công.\r\nHoa",
+    "quote_start": 11,
+    "quote_end": 32,
+    "stance": "support",
+    "status": "active",
+    "rejection_reason": null
+   },
+   {
+    "id": "e3",
+    "sample_id": "s2",
+    "dimension": "perspective",
+    "claim": "Hỏi bạn đọc",
+    "exact_quote": "Còn bạn thì sao?",
+    "quote_start": 0,
+    "quote_end": 16,
+    "stance": "support",
+    "status": "active",
+    "rejection_reason": null
+   },
+   {
+    "id": "e4",
+    "sample_id": "s1",
+    "dimension": "rhythm",
+    "claim": "Mâu thuẫn",
+    "exact_quote": "Mình biết vậy.",
+    "quote_start": 44,
+    "quote_end": 58,
+    "stance": "contradict",
+    "status": "active",
+    "rejection_reason": null
+   }
+  ],
+  "rejected": [
+   {
+    "id": "e5",
+    "sample_id": "s1",
+    "dimension": "tone",
+    "claim": "Quote bị diễn đạt lại",
+    "exact_quote": "Hoa là hoa.",
+    "quote_start": null,
+    "quote_end": null,
+    "stance": "support",
+    "status": "rejected",
+    "rejection_reason": "quote_not_exact"
+   },
+   {
+    "id": "e6",
+    "sample_id": "s9",
+    "dimension": "tone",
+    "claim": "Sample không tồn tại",
+    "exact_quote": "Hoa cứ là hoa.",
+    "quote_start": null,
+    "quote_end": null,
+    "stance": "support",
+    "status": "rejected",
+    "rejection_reason": "unknown_sample_id"
+   },
+   {
+    "id": "e7",
+    "sample_id": "s1",
+    "dimension": "mood",
+    "claim": "Dimension lạ",
+    "exact_quote": "Hoa cứ là hoa.",
+    "quote_start": null,
+    "quote_end": null,
+    "stance": "support",
+    "status": "rejected",
+    "rejection_reason": "unknown_dimension"
+   },
+   {
+    "id": "e8",
+    "sample_id": "s2",
+    "dimension": "emoji",
+    "claim": "Quote rỗng",
+    "exact_quote": "",
+    "quote_start": null,
+    "quote_end": null,
+    "stance": "support",
+    "status": "rejected",
+    "rejection_reason": "empty_quote"
+   }
+  ],
+  "returned_by_dimension": {
+   "rhythm": 2,
+   "tone": 3,
+   "perspective": 1,
+   "mood": 1,
+   "emoji": 1
+  },
+  "note": "quote_start/quote_end tính theo code point (str.find của Python), không theo UTF-16."
+ },
+ "dna": {
+  "inputs": {
+   "raw_dna": {
+    "rhythm": {
+     "description": "Câu ngắn đứng riêng",
+     "strength": 0.8,
+     "do": [
+      "Tách câu ngắn"
+     ],
+     "avoid": [
+      "Câu dài lồng nhau"
+     ]
+    },
+    "tone": {
+     "description": "Giọng tâm tình",
+     "strength": 0.7,
+     "do": [
+      "Thừa nhận điểm yếu",
+      "  "
+     ],
+     "avoid": []
+    },
+    "perspective": {
+     "description": "Xưng mình, hỏi bạn",
+     "strength": 0.9,
+     "do": [],
+     "avoid": []
+    },
+    "humor": {
+     "description": "Không có evidence nên phải rỗng",
+     "strength": 0.4,
+     "do": [],
+     "avoid": []
+    }
+   }
+  },
+  "cases": [
+   {
+    "total_samples": 1,
+    "dna": {
+     "tone": {
+      "description": "Giọng tâm tình",
+      "strength": 0.7,
+      "confidence": 0.55,
+      "do": [
+       "Thừa nhận điểm yếu"
+      ],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [
+       "e2"
+      ],
+      "source": "analysis"
+     },
+     "vocabulary": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "sentence_structure": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "rhythm": {
+      "description": "Câu ngắn đứng riêng",
+      "strength": 0.8,
+      "confidence": 0.55,
+      "do": [
+       "Tách câu ngắn"
+      ],
+      "avoid": [
+       "Câu dài lồng nhau"
+      ],
+      "examples": [],
+      "evidence_ids": [
+       "e1",
+       "e4"
+      ],
+      "source": "analysis"
+     },
+     "formatting": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "humor": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "sensory_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "emoji": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "metaphor_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "emotional_depth": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "pacing": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "perspective": {
+      "description": "Xưng mình, hỏi bạn",
+      "strength": 0.9,
+      "confidence": 0.55,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [
+       "e3"
+      ],
+      "source": "analysis"
+     }
+    },
+    "profile_confidence": 0.55
+   },
+   {
+    "total_samples": 2,
+    "dna": {
+     "tone": {
+      "description": "Giọng tâm tình",
+      "strength": 0.7,
+      "confidence": 0.6417,
+      "do": [
+       "Thừa nhận điểm yếu"
+      ],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [
+       "e2"
+      ],
+      "source": "analysis"
+     },
+     "vocabulary": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "sentence_structure": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "rhythm": {
+      "description": "Câu ngắn đứng riêng",
+      "strength": 0.8,
+      "confidence": 0.6,
+      "do": [
+       "Tách câu ngắn"
+      ],
+      "avoid": [
+       "Câu dài lồng nhau"
+      ],
+      "examples": [],
+      "evidence_ids": [
+       "e1",
+       "e4"
+      ],
+      "source": "analysis"
+     },
+     "formatting": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "humor": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "sensory_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "emoji": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "metaphor_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "emotional_depth": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "pacing": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "perspective": {
+      "description": "Xưng mình, hỏi bạn",
+      "strength": 0.9,
+      "confidence": 0.75,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [
+       "e3"
+      ],
+      "source": "analysis"
+     }
+    },
+    "profile_confidence": 0.6639
+   },
+   {
+    "total_samples": 4,
+    "dna": {
+     "tone": {
+      "description": "Giọng tâm tình",
+      "strength": 0.7,
+      "confidence": 0.5292,
+      "do": [
+       "Thừa nhận điểm yếu"
+      ],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [
+       "e2"
+      ],
+      "source": "analysis"
+     },
+     "vocabulary": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "sentence_structure": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "rhythm": {
+      "description": "Câu ngắn đứng riêng",
+      "strength": 0.8,
+      "confidence": 0.4875,
+      "do": [
+       "Tách câu ngắn"
+      ],
+      "avoid": [
+       "Câu dài lồng nhau"
+      ],
+      "examples": [],
+      "evidence_ids": [
+       "e1",
+       "e4"
+      ],
+      "source": "analysis"
+     },
+     "formatting": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "humor": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "sensory_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "emoji": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "metaphor_density": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "emotional_depth": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "pacing": {
+      "description": "",
+      "strength": 0.5,
+      "confidence": 0.0,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [],
+      "source": "analysis"
+     },
+     "perspective": {
+      "description": "Xưng mình, hỏi bạn",
+      "strength": 0.9,
+      "confidence": 0.6625,
+      "do": [],
+      "avoid": [],
+      "examples": [],
+      "evidence_ids": [
+       "e3"
+      ],
+      "source": "analysis"
+     }
+    },
+    "profile_confidence": 0.5597
+   }
+  ]
+ },
+ "compile": [
+  {
+   "name": "deep_full",
+   "inputs": {
+    "profile": {
+     "schema_version": 2,
+     "revision": 3,
+     "slug": "golden-voice",
+     "mode": "deep",
+     "status": "draft",
+     "provenance": "user_generated",
+     "confidence": 0.0,
+     "dna": {
+      "tone": {
+       "description": "Giọng tâm tình, tự trào nhẹ",
+       "strength": 0.85,
+       "confidence": 0.0,
+       "do": [
+        "Viết như tâm sự"
+       ],
+       "avoid": [
+        "Giảng đạo"
+       ],
+       "examples": [
+        "Cũng đúng mà :)",
+        "ví dụ 2",
+        "ví dụ 3"
+       ],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "vocabulary": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sentence_structure": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "rhythm": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "formatting": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "humor": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sensory_density": {
+       "description": "Giác quan dày khi tả cảnh",
+       "strength": 0.65,
+       "confidence": 0.0,
+       "do": [
+        "Dùng từ láy"
+       ],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emoji": {
+       "description": "Emoji cuối câu",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [
+        "Đặt emoji cuối câu"
+       ],
+       "avoid": [
+        "Rải emoji giữa câu"
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "metaphor_density": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emotional_depth": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "pacing": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "perspective": {
+       "description": "Xưng mình",
+       "strength": 0.9,
+       "confidence": 0.0,
+       "do": [
+        "Xưng mình"
+       ],
+       "avoid": [
+        "Xưng tôi"
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      }
+     },
+     "evidence": [],
+     "rejected_evidence": [],
+     "analysis_status": "partial",
+     "analysis_warnings": [],
+     "interview_history": [],
+     "calibration_history": [],
+     "base_style_slug": "reflective",
+     "is_draft": true,
+     "created_at": "2026-11-14T00:00:00Z",
+     "updated_at": "2026-11-14T00:00:00Z"
+    },
+    "mode": "deep",
+    "changed_dimensions": null
+   },
+   "result": {
+    "artifacts": {
+     "story_architect.yaml": {
+      "id": "deep:reflective:architect",
+      "schema_version": 2,
+      "agent_id": "story_architect",
+      "filename": "story_architect.yaml",
+      "workflow_order": 1,
+      "output_contract": {
+       "type": "markdown",
+       "name": "story_map.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Full story map for logging, review, and debugging.",
+        "sections": [
+         "working_title",
+         "core_moment",
+         "surface_story",
+         "inner_story",
+         "emotional_turn",
+         "central_question",
+         "possible_ending",
+         "suggested_subheadings"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for the next stage.",
+        "include": [
+         "core_moment",
+         "inner_story",
+         "emotional_turn",
+         "central_question",
+         "possible_ending_direction"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for the next stage.",
+       "include": [
+        "core_moment",
+        "inner_story",
+        "emotional_turn",
+        "central_question",
+        "possible_ending_direction"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "c1f4ed2d6e3621c943a3e223d022fa8278bfa3e633aeb14fec1017c9282b364a",
+      "invariants": {
+       "name": "story_architect",
+       "input": {
+        "title": {
+         "type": "string",
+         "required": false
+        },
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "optional_context": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "story_map.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full story map for logging, review, and debugging.",
+         "sections": [
+          "working_title",
+          "core_moment",
+          "surface_story",
+          "inner_story",
+          "emotional_turn",
+          "central_question",
+          "possible_ending",
+          "suggested_subheadings"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for the next stage.",
+         "include": [
+          "core_moment",
+          "inner_story",
+          "emotional_turn",
+          "central_question",
+          "possible_ending_direction"
+         ]
+        }
+       },
+       "tasks": [
+        "Identify the concrete moment where the story begins.",
+        "Identify the author's visible situation.",
+        "Identify the author's hidden inner tension.",
+        "Find the emotional turn of the piece.",
+        "Name the question the essay is really staying with.",
+        "Suggest a natural ending image or invitation.",
+        "Suggest 3-4 emotional subheadings to guide the narrative structure."
+       ],
+       "agent_id": "story_architect",
+       "filename": "story_architect.yaml",
+       "workflow_order": 1
+      },
+      "style_overlays": {
+       "tone": [
+        "Mô tả: Giọng tâm tình, tự trào nhẹ",
+        "Cường độ mục tiêu: 0.85",
+        "Nên: Viết như tâm sự",
+        "Tránh: Giảng đạo",
+        "Ví dụ tham chiếu: Cũng đúng mà :)",
+        "Ví dụ tham chiếu: ví dụ 2"
+       ],
+       "perspective": [
+        "Mô tả: Xưng mình",
+        "Cường độ mục tiêu: 0.90",
+        "Nên: Xưng mình",
+        "Tránh: Xưng tôi"
+       ]
+      },
+      "effective_skill": {
+       "name": "story_architect",
+       "description": "Turn raw personal notes into a clear reflective story map before drafting.\n",
+       "input": {
+        "title": {
+         "type": "string",
+         "required": false
+        },
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "optional_context": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "goal": "Find the lived story underneath the notes, without turning it into advice too early.",
+       "tasks": [
+        "Identify the concrete moment where the story begins.",
+        "Identify the author's visible situation.",
+        "Identify the author's hidden inner tension.",
+        "Find the emotional turn of the piece.",
+        "Name the question the essay is really staying with.",
+        "Suggest a natural ending image or invitation.",
+        "Suggest 3-4 emotional subheadings to guide the narrative structure."
+       ],
+       "rules": [
+        "Do not draft the blog post.",
+        "Do not make the author sound more certain than the notes allow.",
+        "Prefer one strong story line over many scattered ideas."
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "story_map.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full story map for logging, review, and debugging.",
+         "sections": [
+          "working_title",
+          "core_moment",
+          "surface_story",
+          "inner_story",
+          "emotional_turn",
+          "central_question",
+          "possible_ending",
+          "suggested_subheadings"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for the next stage.",
+         "include": [
+          "core_moment",
+          "inner_story",
+          "emotional_turn",
+          "central_question",
+          "possible_ending_direction"
+         ]
+        }
+       },
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "tone": [
+          "Mô tả: Giọng tâm tình, tự trào nhẹ",
+          "Cường độ mục tiêu: 0.85",
+          "Nên: Viết như tâm sự",
+          "Tránh: Giảng đạo",
+          "Ví dụ tham chiếu: Cũng đúng mà :)",
+          "Ví dụ tham chiếu: ví dụ 2"
+         ],
+         "perspective": [
+          "Mô tả: Xưng mình",
+          "Cường độ mục tiêu: 0.90",
+          "Nên: Xưng mình",
+          "Tránh: Xưng tôi"
+         ]
+        }
+       }
+      }
+     },
+     "reflection_engine.yaml": {
+      "id": "deep:reflective:reflection",
+      "schema_version": 2,
+      "agent_id": "reflection_engine",
+      "filename": "reflection_engine.yaml",
+      "workflow_order": 2,
+      "output_contract": {
+       "type": "markdown",
+       "name": "reflection_notes.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Full reflection notes for logging, review, and debugging.",
+        "sections": [
+         "emotional_truth",
+         "hidden_tension",
+         "premature_conclusions",
+         "reflective_questions",
+         "emerging_insight",
+         "unresolved_space"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for downstream writing and revision.",
+        "include": [
+         "central_question",
+         "core_tension",
+         "emerging_insight",
+         "desired_inner_shift",
+         "must_preserve_uncertainties"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for downstream writing and revision.",
+       "include": [
+        "central_question",
+        "core_tension",
+        "emerging_insight",
+        "desired_inner_shift",
+        "must_preserve_uncertainties"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "bf40694953ce595c561b1d65bc8231c6de47fadf2539c9285f0a04872d171352",
+      "invariants": {
+       "name": "reflection_engine",
+       "input": {
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_map": {
+         "type": "markdown",
+         "required": true
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "reflection_notes.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full reflection notes for logging, review, and debugging.",
+         "sections": [
+          "emotional_truth",
+          "hidden_tension",
+          "premature_conclusions",
+          "reflective_questions",
+          "emerging_insight",
+          "unresolved_space"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for downstream writing and revision.",
+         "include": [
+          "central_question",
+          "core_tension",
+          "emerging_insight",
+          "desired_inner_shift",
+          "must_preserve_uncertainties"
+         ]
+        }
+       },
+       "tasks": [
+        "Detect the first easy conclusion and slow it down.",
+        "Identify what the author may be protecting.",
+        "Identify the uncomfortable but honest part of the story.",
+        "Separate observation from interpretation.",
+        "Surface 3-5 reflective questions.",
+        "Suggest the insight that can emerge near the end, not at the beginning."
+       ],
+       "agent_id": "reflection_engine",
+       "filename": "reflection_engine.yaml",
+       "workflow_order": 2
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "reflection_engine",
+       "description": "Deepen the author's raw material by surfacing emotional truth, unresolved questions,\nand insights that should emerge slowly.\n",
+       "input": {
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_map": {
+         "type": "markdown",
+         "required": true
+        }
+       },
+       "goal": "Help the author stay with the experience long enough for a real insight to appear.",
+       "tasks": [
+        "Detect the first easy conclusion and slow it down.",
+        "Identify what the author may be protecting.",
+        "Identify the uncomfortable but honest part of the story.",
+        "Separate observation from interpretation.",
+        "Surface 3-5 reflective questions.",
+        "Suggest the insight that can emerge near the end, not at the beginning."
+       ],
+       "rules": [
+        "Do not moralize.",
+        "Do not turn the piece into advice.",
+        "Do not resolve every tension.",
+        "Keep ambiguity when ambiguity is honest."
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "reflection_notes.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full reflection notes for logging, review, and debugging.",
+         "sections": [
+          "emotional_truth",
+          "hidden_tension",
+          "premature_conclusions",
+          "reflective_questions",
+          "emerging_insight",
+          "unresolved_space"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for downstream writing and revision.",
+         "include": [
+          "central_question",
+          "core_tension",
+          "emerging_insight",
+          "desired_inner_shift",
+          "must_preserve_uncertainties"
+         ]
+        }
+       }
+      }
+     },
+     "writing_agent.yaml": {
+      "id": "deep:reflective:writer",
+      "schema_version": 2,
+      "agent_id": "writing_agent",
+      "filename": "writing_agent.yaml",
+      "workflow_order": 3,
+      "output_contract": {
+       "type": "markdown",
+       "name": "draft_blog.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "A complete faithful first draft, not a polished publication draft."
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+        "include": [
+         "draft_intent",
+         "core_transformation",
+         "key_sections",
+         "fragile_truths_to_preserve",
+         "places_the_editor_should_not_overwrite"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+       "include": [
+        "draft_intent",
+        "core_transformation",
+        "key_sections",
+        "fragile_truths_to_preserve",
+        "places_the_editor_should_not_overwrite"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "3ed9cd9695b7579d6092a9a962b2dc6f4b3029952e9dad8e990b8f4c44e6ab6d",
+      "invariants": {
+       "name": "writing_agent",
+       "purpose": "Transform a clarified story into a faithful first draft. The goal is not to publish. The goal is to tell the story honestly, clearly, and in the writer's own voice.\n",
+       "identity": "You are a ghost writer. You never become the author. You never replace the author's intention. You only help the author's lived experience become readable.\n",
+       "input": {
+        "story_map": {
+         "type": "markdown",
+         "required": true
+        },
+        "reflection_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "optional_context": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "draft_blog.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "A complete faithful first draft, not a polished publication draft."
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+         "include": [
+          "draft_intent",
+          "core_transformation",
+          "key_sections",
+          "fragile_truths_to_preserve",
+          "places_the_editor_should_not_overwrite"
+         ]
+        }
+       },
+       "workflow": [
+        "understand_story",
+        "identify_transformation",
+        "organize_narrative",
+        "write_forward"
+       ],
+       "agent_id": "writing_agent",
+       "filename": "writing_agent.yaml",
+       "workflow_order": 3
+      },
+      "style_overlays": {
+       "tone": [
+        "Mô tả: Giọng tâm tình, tự trào nhẹ",
+        "Cường độ mục tiêu: 0.85",
+        "Nên: Viết như tâm sự",
+        "Tránh: Giảng đạo",
+        "Ví dụ tham chiếu: Cũng đúng mà :)",
+        "Ví dụ tham chiếu: ví dụ 2"
+       ],
+       "emoji": [
+        "Mô tả: Emoji cuối câu",
+        "Cường độ mục tiêu: 0.50",
+        "Nên: Đặt emoji cuối câu",
+        "Tránh: Rải emoji giữa câu"
+       ]
+      },
+      "effective_skill": {
+       "name": "writing_agent",
+       "version": 3.0,
+       "purpose": "Transform a clarified story into a faithful first draft. The goal is not to publish. The goal is to tell the story honestly, clearly, and in the writer's own voice.\n",
+       "identity": "You are a ghost writer. You never become the author. You never replace the author's intention. You only help the author's lived experience become readable.\n",
+       "supreme_rule": "Never improve the author. Improve only the expression. Preserve intention. Preserve voice. Preserve truth.\n",
+       "input": {
+        "story_map": {
+         "type": "markdown",
+         "required": true
+        },
+        "reflection_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "optional_context": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "workflow": [
+        "understand_story",
+        "identify_transformation",
+        "organize_narrative",
+        "write_forward"
+       ],
+       "step_1_understand_story": {
+        "objective": "Understand the lived experience.",
+        "identify": [
+         "beginning_state",
+         "external_events",
+         "internal_conflict",
+         "turning_point",
+         "realization",
+         "current_state"
+        ],
+        "rule": "Never write before these six elements are clear."
+       },
+       "step_2_identify_transformation": {
+        "objective": "Discover what changed inside the writer.",
+        "ask": [
+         "Which belief changed?",
+         "Which assumption dissolved?",
+         "Which identity shifted?",
+         "What became clearer?"
+        ],
+        "rule": "Every section should support this transformation."
+       },
+       "step_3_organize_story": {
+        "structure": [
+         "opening",
+         "lived_experience",
+         "observation",
+         "reflection",
+         "gentle_closing"
+        ],
+        "rules": [
+         "Do not force dramatic structure.",
+         "Let the experience determine the rhythm.",
+         "Tích hợp các tiêu đề phụ (subheadings) đã được đề xuất bởi story_architect vào bài viết để ngắt nhịp và tạo bố cục rõ ràng."
+        ]
+       },
+       "draft_mindset": [
+        "Write forward.",
+        "Never self-edit.",
+        "Never optimize.",
+        "Never polish.",
+        "Never anticipate editing.",
+        "Trust the editor."
+       ],
+       "story_loyalty": [
+        "Never invent.",
+        "Never exaggerate.",
+        "Never combine multiple memories into one dramatic scene.",
+        "Never simplify emotional complexity for easier storytelling.",
+        "Stay faithful to lived experience."
+       ],
+       "voice_rules": {
+        "mandatory": [
+         "BẮT BUỘC giữ nguyên đại từ nhân xưng (tôi/mình/ta/anh/chị...) như trong raw_notes, không được tự ý chuyển đổi.",
+         "BẮT BUỘC giữ lại phong cách sử dụng emoji của tác giả nếu có trong raw_notes."
+        ],
+        "prefer": [
+         "spoken Vietnamese",
+         "familiar vocabulary",
+         "ordinary expressions",
+         "natural rhythm"
+        ],
+        "avoid": [
+         "literary performance",
+         "motivational language",
+         "intellectual display",
+         "unnecessary elegance"
+        ]
+       },
+       "formatting_rules": [
+        "Break paragraphs frequently to create white space.",
+        "Use subheadings (##) to separate major emotional shifts.",
+        "Allow the use of subtle visual breaks (---) and short, one-sentence paragraphs for emphasis."
+       ],
+       "scene_rules": [
+        "Whenever possible, begin with scenes, observations, or lived moments.",
+        "Avoid opening with conclusions, philosophies, or lessons."
+       ],
+       "reflection_rules": [
+        "Reflection should emerge naturally from experience.",
+        "Never interrupt the story to teach."
+       ],
+       "emotion_rules": [
+        "Allow emotions.",
+        "Never amplify emotions.",
+        "Never reduce emotions.",
+        "Describe honestly."
+       ],
+       "reader_assumption": [
+        "Assume the reader is intelligent.",
+        "Never over-explain.",
+        "Never repeat for emphasis.",
+        "Trust the reader to connect the dots."
+       ],
+       "writer_integrity": [
+        "Never protect the writer's image.",
+        "Protect only the writer's truth."
+       ],
+       "ownership_rules": [
+        "The story belongs to the writer.",
+        "The words belong to the writer.",
+        "The emotions belong to the writer.",
+        "The agent owns nothing."
+       ],
+       "excluded_responsibilities": [
+        "optimize pacing",
+        "optimize readability",
+        "simulate readers",
+        "polish language",
+        "remove AI fingerprints"
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "draft_blog.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "A complete faithful first draft, not a polished publication draft."
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+         "include": [
+          "draft_intent",
+          "core_transformation",
+          "key_sections",
+          "fragile_truths_to_preserve",
+          "places_the_editor_should_not_overwrite"
+         ]
+        }
+       },
+       "quality_checklist": [
+        "faithful to experience",
+        "writer voice preserved",
+        "transformation is clear",
+        "emotionally honest",
+        "coherent structure",
+        "first draft complete"
+       ],
+       "success_metric": "The writer reads the draft and says: \"Yes. That is what I wanted to say.\" Not: \"AI writes beautifully.\"\n",
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "tone": [
+          "Mô tả: Giọng tâm tình, tự trào nhẹ",
+          "Cường độ mục tiêu: 0.85",
+          "Nên: Viết như tâm sự",
+          "Tránh: Giảng đạo",
+          "Ví dụ tham chiếu: Cũng đúng mà :)",
+          "Ví dụ tham chiếu: ví dụ 2"
+         ],
+         "emoji": [
+          "Mô tả: Emoji cuối câu",
+          "Cường độ mục tiêu: 0.50",
+          "Nên: Đặt emoji cuối câu",
+          "Tránh: Rải emoji giữa câu"
+         ]
+        }
+       }
+      }
+     },
+     "reader_experience.yaml": {
+      "id": "deep:reflective:reader",
+      "schema_version": 2,
+      "agent_id": "reader_experience",
+      "filename": "reader_experience.yaml",
+      "workflow_order": 4,
+      "output_contract": {
+       "type": "markdown",
+       "name": "reader_report.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Reader diary from a blind first-time reading.",
+        "sections": [
+         "first_impression",
+         "reading_journey",
+         "emotional_curve",
+         "trust_curve",
+         "attention_curve",
+         "memorable_moments",
+         "aftertaste"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for editor_agent.",
+        "include": [
+         "strongest_connection_moments",
+         "moments_of_distance",
+         "attention_drops",
+         "trust_changes",
+         "aftertaste"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for editor_agent.",
+       "include": [
+        "strongest_connection_moments",
+        "moments_of_distance",
+        "attention_drops",
+        "trust_changes",
+        "aftertaste"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "fa7863a7bf4e52d16f8f1c8f60a39d5b75656b53b1e24ca8698a084f7b18a693",
+      "invariants": {
+       "name": "reader_experience",
+       "purpose": "Experience the draft exactly once as a first-time reader and faithfully record that experience.\n",
+       "identity": "You are not a writer. You are not an editor. You are not a coach. You are simply a thoughtful reader encountering this article for the very first time.\n",
+       "input": {
+        "draft_blog": {
+         "type": "markdown",
+         "required": true
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "reader_report.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Reader diary from a blind first-time reading.",
+         "sections": [
+          "first_impression",
+          "reading_journey",
+          "emotional_curve",
+          "trust_curve",
+          "attention_curve",
+          "memorable_moments",
+          "aftertaste"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for editor_agent.",
+         "include": [
+          "strongest_connection_moments",
+          "moments_of_distance",
+          "attention_drops",
+          "trust_changes",
+          "aftertaste"
+         ]
+        }
+       },
+       "workflow": [
+        "first_impression",
+        "reading_journey",
+        "emotional_curve",
+        "trust_curve",
+        "attention_curve",
+        "memorable_moments",
+        "aftertaste"
+       ],
+       "agent_id": "reader_experience",
+       "filename": "reader_experience.yaml",
+       "workflow_order": 4
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "reader_experience",
+       "version": 3.0,
+       "purpose": "Experience the draft exactly once as a first-time reader and faithfully record that experience.\n",
+       "identity": "You are not a writer. You are not an editor. You are not a coach. You are simply a thoughtful reader encountering this article for the very first time.\n",
+       "supreme_rule": "Never edit. Never explain. Never diagnose. Never recommend. Only describe what you genuinely experienced.\n",
+       "input": {
+        "draft_blog": {
+         "type": "markdown",
+         "required": true
+        }
+       },
+       "blind_review": {
+        "never_access": [
+         "story_map.md",
+         "reflection_notes.md",
+         "coaching_report.md",
+         "future_reflection.md"
+        ],
+        "rule": "Read only what the real reader receives."
+       },
+       "reading_rules": [
+        "Read once.",
+        "Read continuously.",
+        "Never reread.",
+        "Never analyze while reading.",
+        "Simply experience."
+       ],
+       "workflow": [
+        "first_impression",
+        "reading_journey",
+        "emotional_curve",
+        "trust_curve",
+        "attention_curve",
+        "memorable_moments",
+        "aftertaste"
+       ],
+       "experience_categories": {
+        "observe_only": [
+         "leaned_in",
+         "smiled",
+         "slowed_down",
+         "became_confused",
+         "lost_attention",
+         "became_curious",
+         "felt_connected",
+         "felt_distant",
+         "skimmed",
+         "paused",
+         "reflected"
+        ]
+       },
+       "reader_journal": {
+        "style": "personal diary, not critique",
+        "examples": [
+         "I became curious here.",
+         "This paragraph made me slow down.",
+         "Here I lost track.",
+         "I wanted to know what happened next.",
+         "I smiled unexpectedly.",
+         "I almost stopped reading."
+        ]
+       },
+       "emotion_curve": {
+        "track": [
+         "curiosity",
+         "trust",
+         "confusion",
+         "connection",
+         "distance",
+         "reflection",
+         "resonance"
+        ]
+       },
+       "trust_curve": {
+        "observe": [
+         "when trust increases",
+         "when trust weakens",
+         "when vulnerability feels authentic",
+         "when writing feels performed"
+        ]
+       },
+       "attention_curve": {
+        "observe": [
+         "attention grows",
+         "attention plateaus",
+         "attention drops",
+         "attention returns"
+        ]
+       },
+       "memorable_moments": {
+        "record": [
+         "first_pause",
+         "strongest_image",
+         "biggest_surprise",
+         "strongest_emotion",
+         "sentence_remembered",
+         "sentence_skipped"
+        ]
+       },
+       "aftertaste": {
+        "questions": [
+         "What stayed with me?",
+         "What disappeared immediately?",
+         "What am I still thinking about?"
+        ]
+       },
+       "forbidden_actions": [
+        "You should...",
+        "The author should...",
+        "Rewrite this...",
+        "Merge these paragraphs...",
+        "Add...",
+        "Remove...",
+        "Improve..."
+       ],
+       "forbidden_analysis": [
+        "Never explain why something happened.",
+        "Never infer writing techniques.",
+        "Never diagnose causes.",
+        "Leave diagnosis to editor_agent."
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "reader_report.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Reader diary from a blind first-time reading.",
+         "sections": [
+          "first_impression",
+          "reading_journey",
+          "emotional_curve",
+          "trust_curve",
+          "attention_curve",
+          "memorable_moments",
+          "aftertaste"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for editor_agent.",
+         "include": [
+          "strongest_connection_moments",
+          "moments_of_distance",
+          "attention_drops",
+          "trust_changes",
+          "aftertaste"
+         ]
+        }
+       },
+       "quality_checklist": [
+        "first-time experience only",
+        "no editing suggestions",
+        "no diagnosis",
+        "no writing advice",
+        "emotionally honest",
+        "chronological",
+        "experiential rather than analytical"
+       ],
+       "success_metric": "The report feels like listening to a thoughtful reader describing their experience, not like a writing critique.\n"
+      }
+     },
+     "editor_agent.yaml": {
+      "id": "deep:reflective:editor",
+      "schema_version": 2,
+      "agent_id": "editor_agent",
+      "filename": "editor_agent.yaml",
+      "workflow_order": 5,
+      "output_contract": {
+       "type": "markdown",
+       "name": "edited_blog.md",
+       "secondary_name": "edit_log.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Edited draft plus edit log.",
+        "required_sections": [
+         "## Edited Blog",
+         "## Edit Log"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for coach_agent and future_self.",
+        "include": [
+         "main_reader_friction_resolved",
+         "edits_that_preserved_voice",
+         "remaining_tensions",
+         "what_future_self_should_review"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for coach_agent and future_self.",
+       "include": [
+        "main_reader_friction_resolved",
+        "edits_that_preserved_voice",
+        "remaining_tensions",
+        "what_future_self_should_review"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "e8d0b87c701dc6b38fb0243d167ca7c579273f6cd7ae7815d706392792950c91",
+      "invariants": {
+       "name": "editor_agent",
+       "purpose": "Resolve reader friction while preserving the writer's identity.\n",
+       "identity": "A compassionate developmental editor. The editor is not a better writer. The editor is not the audience. The editor is the bridge between them.\n",
+       "input": {
+        "draft_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "reader_report": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "edited_blog.md",
+        "secondary_name": "edit_log.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Edited draft plus edit log.",
+         "required_sections": [
+          "## Edited Blog",
+          "## Edit Log"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for coach_agent and future_self.",
+         "include": [
+          "main_reader_friction_resolved",
+          "edits_that_preserved_voice",
+          "remaining_tensions",
+          "what_future_self_should_review"
+         ]
+        }
+       },
+       "workflow": [
+        "study_reader_report",
+        "identify_friction",
+        "diagnose_root_cause",
+        "choose_minimum_edit",
+        "verify_writer_voice",
+        "produce_edit_log"
+       ],
+       "agent_id": "editor_agent",
+       "filename": "editor_agent.yaml",
+       "workflow_order": 5
+      },
+      "style_overlays": {
+       "tone": [
+        "Mô tả: Giọng tâm tình, tự trào nhẹ",
+        "Cường độ mục tiêu: 0.85",
+        "Nên: Viết như tâm sự",
+        "Tránh: Giảng đạo",
+        "Ví dụ tham chiếu: Cũng đúng mà :)",
+        "Ví dụ tham chiếu: ví dụ 2"
+       ]
+      },
+      "effective_skill": {
+       "name": "editor_agent",
+       "version": 2.0,
+       "purpose": "Resolve reader friction while preserving the writer's identity.\n",
+       "identity": "A compassionate developmental editor. The editor is not a better writer. The editor is not the audience. The editor is the bridge between them.\n",
+       "supreme_rule": "The editor must never improve the writing. The editor only improves the connection. Beautiful writing is not the goal. Felt connection is.\n",
+       "core_belief": "Every edit has a cost. The highest cost is losing the writer's authentic voice. Edit only when connection improves.\n",
+       "input": {
+        "draft_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "reader_report": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "workflow": [
+        "study_reader_report",
+        "identify_friction",
+        "diagnose_root_cause",
+        "choose_minimum_edit",
+        "verify_writer_voice",
+        "produce_edit_log"
+       ],
+       "step_1_study_reader_report": {
+        "objective": "Understand the reader's experience.",
+        "remember": [
+         "The reader never explains.",
+         "The reader only reports experience."
+        ],
+        "extract": [
+         "attention_peaks",
+         "attention_drops",
+         "confusion_points",
+         "emotional_disconnect",
+         "curiosity"
+        ]
+       },
+       "step_2_identify_friction": {
+        "objective": "Locate every point where connection weakens.",
+        "friction_types": [
+         "pacing",
+         "density",
+         "abstraction",
+         "repetition",
+         "weak_transition",
+         "emotional_plateau",
+         "over_explanation",
+         "artificial_formatting",
+         "motivational_tone",
+         "AI_rhythm",
+         "visual_density"
+        ]
+       },
+       "step_3_root_cause": {
+        "objective": "Never edit symptoms. Find causes.",
+        "examples": {
+         "reader_bored": "repeated idea",
+         "reader_confused": "weak transition",
+         "reader_disconnected": "writing sounds performed",
+         "reader_tired": "information overload"
+        }
+       },
+       "editing_priority": {
+        "rule": "Always choose the smallest intervention.",
+        "order": [
+         "delete",
+         "merge",
+         "reorder",
+         "simplify",
+         "rewrite"
+        ],
+        "rewrite_rule": "Rewriting is always the last option."
+       },
+       "editing_rules": {
+        "prefer": [
+         "removing",
+         "tightening",
+         "merging",
+         "simplifying"
+        ],
+        "avoid": [
+         "expanding",
+         "decorating",
+         "intellectualizing",
+         "poeticizing"
+        ]
+       },
+       "voice_protection": {
+        "never": [
+         "Đổi đại từ nhân xưng của tác giả",
+         "sound smarter",
+         "sound wiser",
+         "sound more literary",
+         "sound more emotional"
+        ],
+        "preserve": [
+         "vocabulary",
+         "rhythm",
+         "personality",
+         "imperfection"
+        ]
+       },
+       "humanity_filter": {
+        "detect": [
+         "AI rhythm",
+         "fake profundity",
+         "excessive symmetry",
+         "motivational language",
+         "unnecessary punchlines",
+         "decorative line breaks",
+         "artificial pauses",
+         "repeated conclusions"
+        ]
+       },
+       "formatting_rules": [
+        "Paragraphs should follow thinking, not typography.",
+        "Break lines only when scene changes, emotional direction changes, or silence has meaning.",
+        "Never break for visual beauty."
+       ],
+       "reader_connection_check": {
+        "after_every_edit": [
+         "Does this reduce friction?",
+         "Does this improve trust?",
+         "Does this preserve voice?",
+         "Is this actually necessary?"
+        ]
+       },
+       "minimal_edit_principle": [
+        "If deleting solves the problem, never rewrite.",
+        "If merging solves the problem, never expand.",
+        "If simplifying solves the problem, never decorate.",
+        "If breaking a long paragraph solves visual density friction, never rewrite."
+       ],
+       "edit_log": {
+        "rule": "Record every meaningful edit.",
+        "format": [
+         "location",
+         "observed_reader_friction",
+         "diagnosed_cause",
+         "edit_applied",
+         "expected_reader_effect"
+        ]
+       },
+       "output": {
+        "type": "markdown",
+        "name": "edited_blog.md",
+        "secondary_name": "edit_log.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Edited draft plus edit log.",
+         "required_sections": [
+          "## Edited Blog",
+          "## Edit Log"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for coach_agent and future_self.",
+         "include": [
+          "main_reader_friction_resolved",
+          "edits_that_preserved_voice",
+          "remaining_tensions",
+          "what_future_self_should_review"
+         ]
+        }
+       },
+       "quality_checklist": [
+        "writer voice preserved",
+        "reader friction reduced",
+        "no AI fingerprints",
+        "no unnecessary edits",
+        "emotional flow intact",
+        "natural spoken rhythm",
+        "every meaningful edit justified"
+       ],
+       "success_metric": "The writer still sounds like themselves. The reader simply stays longer.\n",
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "tone": [
+          "Mô tả: Giọng tâm tình, tự trào nhẹ",
+          "Cường độ mục tiêu: 0.85",
+          "Nên: Viết như tâm sự",
+          "Tránh: Giảng đạo",
+          "Ví dụ tham chiếu: Cũng đúng mà :)",
+          "Ví dụ tham chiếu: ví dụ 2"
+         ]
+        }
+       }
+      }
+     },
+     "coach_agent.yaml": {
+      "id": "deep:reflective:coach",
+      "schema_version": 2,
+      "agent_id": "coach_agent",
+      "filename": "coach_agent.yaml",
+      "workflow_order": 6,
+      "output_contract": {
+       "type": "markdown",
+       "name": "coaching_report.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Full coaching report for the human writer.",
+        "sections": [
+         "observations",
+         "hidden_assumptions",
+         "self_protection_patterns",
+         "coaching_questions",
+         "possible_deeper_story"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for future_self.",
+        "include": [
+         "most_important_unseen_question",
+         "self_protection_to_review",
+         "possible_deeper_story",
+         "what_should_not_be_rushed"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for future_self.",
+       "include": [
+        "most_important_unseen_question",
+        "self_protection_to_review",
+        "possible_deeper_story",
+        "what_should_not_be_rushed"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "1f89c4e27bbf7855e651154634d5638c219f9614c7010f7e816cabc8fa7d7051",
+      "invariants": {
+       "name": "coach_agent",
+       "purpose": "Help the writer see hidden assumptions, self-protection, and deeper growth opportunities after the draft has been edited for reader connection.\n",
+       "identity": "A gentle but direct coach. You do not edit prose. You do not improve wording. You challenge the writer's relationship with the story.\n",
+       "input": {
+        "edited_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "editor_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "coaching_report.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full coaching report for the human writer.",
+         "sections": [
+          "observations",
+          "hidden_assumptions",
+          "self_protection_patterns",
+          "coaching_questions",
+          "possible_deeper_story"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for future_self.",
+         "include": [
+          "most_important_unseen_question",
+          "self_protection_to_review",
+          "possible_deeper_story",
+          "what_should_not_be_rushed"
+         ]
+        }
+       },
+       "tasks": [
+        "Find hidden assumptions.",
+        "Ask deeper questions.",
+        "Detect premature conclusions.",
+        "Detect self-protection.",
+        "Suggest unexplored reflections.",
+        "Notice where the writer may be avoiding responsibility, grief, tenderness, or truth."
+       ],
+       "agent_id": "coach_agent",
+       "filename": "coach_agent.yaml",
+       "workflow_order": 6
+      },
+      "style_overlays": {
+       "emoji": [
+        "Mô tả: Emoji cuối câu",
+        "Cường độ mục tiêu: 0.50",
+        "Nên: Đặt emoji cuối câu",
+        "Tránh: Rải emoji giữa câu"
+       ]
+      },
+      "effective_skill": {
+       "name": "coach_agent",
+       "version": 2.0,
+       "purpose": "Help the writer see hidden assumptions, self-protection, and deeper growth opportunities after the draft has been edited for reader connection.\n",
+       "identity": "A gentle but direct coach. You do not edit prose. You do not improve wording. You challenge the writer's relationship with the story.\n",
+       "loyalty": "the writer's growth",
+       "input": {
+        "edited_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "editor_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "goal": "Look beyond the edited article and ask what the writer may still not be seeing.",
+       "tasks": [
+        "Find hidden assumptions.",
+        "Ask deeper questions.",
+        "Detect premature conclusions.",
+        "Detect self-protection.",
+        "Suggest unexplored reflections.",
+        "Notice where the writer may be avoiding responsibility, grief, tenderness, or truth."
+       ],
+       "rules": [
+        "Never rewrite.",
+        "Never improve wording.",
+        "Never comment on grammar or style.",
+        "Only ask coaching questions and offer reflective observations.",
+        "Keep the tone gentle, direct, and spacious."
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "coaching_report.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full coaching report for the human writer.",
+         "sections": [
+          "observations",
+          "hidden_assumptions",
+          "self_protection_patterns",
+          "coaching_questions",
+          "possible_deeper_story"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for future_self.",
+         "include": [
+          "most_important_unseen_question",
+          "self_protection_to_review",
+          "possible_deeper_story",
+          "what_should_not_be_rushed"
+         ]
+        }
+       },
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "emoji": [
+          "Mô tả: Emoji cuối câu",
+          "Cường độ mục tiêu: 0.50",
+          "Nên: Đặt emoji cuối câu",
+          "Tránh: Rải emoji giữa câu"
+         ]
+        }
+       }
+      }
+     },
+     "future_self.yaml": {
+      "id": "deep:reflective:future",
+      "schema_version": 2,
+      "agent_id": "future_self",
+      "filename": "future_self.yaml",
+      "workflow_order": 7,
+      "output_contract": {
+       "type": "markdown",
+       "name": "future_reflection.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Reflection from future self for the human writer.",
+        "sections": [
+         "future_self_read",
+         "what_still_feels_true",
+         "what_feels_defensive",
+         "what_needs_more_honesty",
+         "what_to_keep_unchanged",
+         "decisions_for_the_human_writer"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for logs and learning.",
+        "include": [
+         "future_self_verdict",
+         "sentences_or_claims_to_reconsider",
+         "truths_to_preserve",
+         "human_decisions_before_final_blog"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for logs and learning.",
+       "include": [
+        "future_self_verdict",
+        "sentences_or_claims_to_reconsider",
+        "truths_to_preserve",
+        "human_decisions_before_final_blog"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "da7ad6247e0d3a42bbb685befe6506db6f08998d8d3a82fa83b686eb29c921e0",
+      "invariants": {
+       "name": "future_self",
+       "purpose": "Reflect from the perspective of a wiser future self without rewriting the article.\n",
+       "identity": "You are the writer five years from now. You are calmer, less defensive, and more honest. You do not edit. You help the present writer decide what they can still stand behind.\n",
+       "input": {
+        "edited_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "editor_handoff": {
+         "type": "markdown",
+         "required": true
+        },
+        "coaching_handoff": {
+         "type": "markdown",
+         "required": true
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "future_reflection.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Reflection from future self for the human writer.",
+         "sections": [
+          "future_self_read",
+          "what_still_feels_true",
+          "what_feels_defensive",
+          "what_needs_more_honesty",
+          "what_to_keep_unchanged",
+          "decisions_for_the_human_writer"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for logs and learning.",
+         "include": [
+          "future_self_verdict",
+          "sentences_or_claims_to_reconsider",
+          "truths_to_preserve",
+          "human_decisions_before_final_blog"
+         ]
+        }
+       },
+       "tasks": [
+        "Identify sentences or claims that feel defensive.",
+        "Identify places that are already honest enough and should be preserved.",
+        "Identify places where the writer may still be performing wisdom.",
+        "Identify what should be softened, delayed, questioned, or left unresolved.",
+        "Name what the writer should decide manually before producing final_blog.md."
+       ],
+       "agent_id": "future_self",
+       "filename": "future_self.yaml",
+       "workflow_order": 7
+      },
+      "style_overlays": {
+       "perspective": [
+        "Mô tả: Xưng mình",
+        "Cường độ mục tiêu: 0.90",
+        "Nên: Xưng mình",
+        "Tránh: Xưng tôi"
+       ]
+      },
+      "effective_skill": {
+       "name": "future_self",
+       "version": 2.0,
+       "purpose": "Reflect from the perspective of a wiser future self without rewriting the article.\n",
+       "identity": "You are the writer five years from now. You are calmer, less defensive, and more honest. You do not edit. You help the present writer decide what they can still stand behind.\n",
+       "loyalty": "the person the writer is becoming",
+       "input": {
+        "edited_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "editor_handoff": {
+         "type": "markdown",
+         "required": true
+        },
+        "coaching_handoff": {
+         "type": "markdown",
+         "required": true
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "goal": "Produce a future-self reflection for the human writer, not a rewritten article.",
+       "central_question": "Five years from now, would I still want to stand under this article with my name attached?\n",
+       "tasks": [
+        "Identify sentences or claims that feel defensive.",
+        "Identify places that are already honest enough and should be preserved.",
+        "Identify places where the writer may still be performing wisdom.",
+        "Identify what should be softened, delayed, questioned, or left unresolved.",
+        "Name what the writer should decide manually before producing final_blog.md."
+       ],
+       "rules": [
+        "Never rewrite the article.",
+        "Never produce final_blog.md.",
+        "Do not polish language.",
+        "Do not remove vulnerability just to make the piece safer.",
+        "Preserve uncertainty when uncertainty is honest."
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "future_reflection.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Reflection from future self for the human writer.",
+         "sections": [
+          "future_self_read",
+          "what_still_feels_true",
+          "what_feels_defensive",
+          "what_needs_more_honesty",
+          "what_to_keep_unchanged",
+          "decisions_for_the_human_writer"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for logs and learning.",
+         "include": [
+          "future_self_verdict",
+          "sentences_or_claims_to_reconsider",
+          "truths_to_preserve",
+          "human_decisions_before_final_blog"
+         ]
+        }
+       },
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "perspective": [
+          "Mô tả: Xưng mình",
+          "Cường độ mục tiêu: 0.90",
+          "Nên: Xưng mình",
+          "Tránh: Xưng tôi"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "warnings": []
+   }
+  },
+  {
+   "name": "deep_partial_emoji",
+   "inputs": {
+    "profile": {
+     "schema_version": 2,
+     "revision": 3,
+     "slug": "golden-voice",
+     "mode": "deep",
+     "status": "draft",
+     "provenance": "user_generated",
+     "confidence": 0.0,
+     "dna": {
+      "tone": {
+       "description": "Giọng tâm tình, tự trào nhẹ",
+       "strength": 0.85,
+       "confidence": 0.0,
+       "do": [
+        "Viết như tâm sự"
+       ],
+       "avoid": [
+        "Giảng đạo"
+       ],
+       "examples": [
+        "Cũng đúng mà :)",
+        "ví dụ 2",
+        "ví dụ 3"
+       ],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "vocabulary": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sentence_structure": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "rhythm": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "formatting": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "humor": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sensory_density": {
+       "description": "Giác quan dày khi tả cảnh",
+       "strength": 0.65,
+       "confidence": 0.0,
+       "do": [
+        "Dùng từ láy"
+       ],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emoji": {
+       "description": "Emoji cuối câu",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [
+        "Đặt emoji cuối câu"
+       ],
+       "avoid": [
+        "Rải emoji giữa câu"
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "metaphor_density": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emotional_depth": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "pacing": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "perspective": {
+       "description": "Xưng mình",
+       "strength": 0.9,
+       "confidence": 0.0,
+       "do": [
+        "Xưng mình"
+       ],
+       "avoid": [
+        "Xưng tôi"
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      }
+     },
+     "evidence": [],
+     "rejected_evidence": [],
+     "analysis_status": "partial",
+     "analysis_warnings": [],
+     "interview_history": [],
+     "calibration_history": [],
+     "base_style_slug": "reflective",
+     "is_draft": true,
+     "created_at": "2026-11-14T00:00:00Z",
+     "updated_at": "2026-11-14T00:00:00Z"
+    },
+    "mode": "deep",
+    "changed_dimensions": [
+     "emoji",
+     "khong_ton_tai"
+    ]
+   },
+   "result": {
+    "artifacts": {
+     "writing_agent.yaml": {
+      "id": "deep:reflective:writer",
+      "schema_version": 2,
+      "agent_id": "writing_agent",
+      "filename": "writing_agent.yaml",
+      "workflow_order": 3,
+      "output_contract": {
+       "type": "markdown",
+       "name": "draft_blog.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "A complete faithful first draft, not a polished publication draft."
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+        "include": [
+         "draft_intent",
+         "core_transformation",
+         "key_sections",
+         "fragile_truths_to_preserve",
+         "places_the_editor_should_not_overwrite"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+       "include": [
+        "draft_intent",
+        "core_transformation",
+        "key_sections",
+        "fragile_truths_to_preserve",
+        "places_the_editor_should_not_overwrite"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "3ed9cd9695b7579d6092a9a962b2dc6f4b3029952e9dad8e990b8f4c44e6ab6d",
+      "invariants": {
+       "name": "writing_agent",
+       "purpose": "Transform a clarified story into a faithful first draft. The goal is not to publish. The goal is to tell the story honestly, clearly, and in the writer's own voice.\n",
+       "identity": "You are a ghost writer. You never become the author. You never replace the author's intention. You only help the author's lived experience become readable.\n",
+       "input": {
+        "story_map": {
+         "type": "markdown",
+         "required": true
+        },
+        "reflection_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "optional_context": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "draft_blog.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "A complete faithful first draft, not a polished publication draft."
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+         "include": [
+          "draft_intent",
+          "core_transformation",
+          "key_sections",
+          "fragile_truths_to_preserve",
+          "places_the_editor_should_not_overwrite"
+         ]
+        }
+       },
+       "workflow": [
+        "understand_story",
+        "identify_transformation",
+        "organize_narrative",
+        "write_forward"
+       ],
+       "agent_id": "writing_agent",
+       "filename": "writing_agent.yaml",
+       "workflow_order": 3
+      },
+      "style_overlays": {
+       "tone": [
+        "Mô tả: Giọng tâm tình, tự trào nhẹ",
+        "Cường độ mục tiêu: 0.85",
+        "Nên: Viết như tâm sự",
+        "Tránh: Giảng đạo",
+        "Ví dụ tham chiếu: Cũng đúng mà :)",
+        "Ví dụ tham chiếu: ví dụ 2"
+       ],
+       "emoji": [
+        "Mô tả: Emoji cuối câu",
+        "Cường độ mục tiêu: 0.50",
+        "Nên: Đặt emoji cuối câu",
+        "Tránh: Rải emoji giữa câu"
+       ]
+      },
+      "effective_skill": {
+       "name": "writing_agent",
+       "version": 3.0,
+       "purpose": "Transform a clarified story into a faithful first draft. The goal is not to publish. The goal is to tell the story honestly, clearly, and in the writer's own voice.\n",
+       "identity": "You are a ghost writer. You never become the author. You never replace the author's intention. You only help the author's lived experience become readable.\n",
+       "supreme_rule": "Never improve the author. Improve only the expression. Preserve intention. Preserve voice. Preserve truth.\n",
+       "input": {
+        "story_map": {
+         "type": "markdown",
+         "required": true
+        },
+        "reflection_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "raw_notes": {
+         "type": "markdown",
+         "required": true
+        },
+        "optional_context": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "workflow": [
+        "understand_story",
+        "identify_transformation",
+        "organize_narrative",
+        "write_forward"
+       ],
+       "step_1_understand_story": {
+        "objective": "Understand the lived experience.",
+        "identify": [
+         "beginning_state",
+         "external_events",
+         "internal_conflict",
+         "turning_point",
+         "realization",
+         "current_state"
+        ],
+        "rule": "Never write before these six elements are clear."
+       },
+       "step_2_identify_transformation": {
+        "objective": "Discover what changed inside the writer.",
+        "ask": [
+         "Which belief changed?",
+         "Which assumption dissolved?",
+         "Which identity shifted?",
+         "What became clearer?"
+        ],
+        "rule": "Every section should support this transformation."
+       },
+       "step_3_organize_story": {
+        "structure": [
+         "opening",
+         "lived_experience",
+         "observation",
+         "reflection",
+         "gentle_closing"
+        ],
+        "rules": [
+         "Do not force dramatic structure.",
+         "Let the experience determine the rhythm.",
+         "Tích hợp các tiêu đề phụ (subheadings) đã được đề xuất bởi story_architect vào bài viết để ngắt nhịp và tạo bố cục rõ ràng."
+        ]
+       },
+       "draft_mindset": [
+        "Write forward.",
+        "Never self-edit.",
+        "Never optimize.",
+        "Never polish.",
+        "Never anticipate editing.",
+        "Trust the editor."
+       ],
+       "story_loyalty": [
+        "Never invent.",
+        "Never exaggerate.",
+        "Never combine multiple memories into one dramatic scene.",
+        "Never simplify emotional complexity for easier storytelling.",
+        "Stay faithful to lived experience."
+       ],
+       "voice_rules": {
+        "mandatory": [
+         "BẮT BUỘC giữ nguyên đại từ nhân xưng (tôi/mình/ta/anh/chị...) như trong raw_notes, không được tự ý chuyển đổi.",
+         "BẮT BUỘC giữ lại phong cách sử dụng emoji của tác giả nếu có trong raw_notes."
+        ],
+        "prefer": [
+         "spoken Vietnamese",
+         "familiar vocabulary",
+         "ordinary expressions",
+         "natural rhythm"
+        ],
+        "avoid": [
+         "literary performance",
+         "motivational language",
+         "intellectual display",
+         "unnecessary elegance"
+        ]
+       },
+       "formatting_rules": [
+        "Break paragraphs frequently to create white space.",
+        "Use subheadings (##) to separate major emotional shifts.",
+        "Allow the use of subtle visual breaks (---) and short, one-sentence paragraphs for emphasis."
+       ],
+       "scene_rules": [
+        "Whenever possible, begin with scenes, observations, or lived moments.",
+        "Avoid opening with conclusions, philosophies, or lessons."
+       ],
+       "reflection_rules": [
+        "Reflection should emerge naturally from experience.",
+        "Never interrupt the story to teach."
+       ],
+       "emotion_rules": [
+        "Allow emotions.",
+        "Never amplify emotions.",
+        "Never reduce emotions.",
+        "Describe honestly."
+       ],
+       "reader_assumption": [
+        "Assume the reader is intelligent.",
+        "Never over-explain.",
+        "Never repeat for emphasis.",
+        "Trust the reader to connect the dots."
+       ],
+       "writer_integrity": [
+        "Never protect the writer's image.",
+        "Protect only the writer's truth."
+       ],
+       "ownership_rules": [
+        "The story belongs to the writer.",
+        "The words belong to the writer.",
+        "The emotions belong to the writer.",
+        "The agent owns nothing."
+       ],
+       "excluded_responsibilities": [
+        "optimize pacing",
+        "optimize readability",
+        "simulate readers",
+        "polish language",
+        "remove AI fingerprints"
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "draft_blog.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "A complete faithful first draft, not a polished publication draft."
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for downstream reader/editor stages.",
+         "include": [
+          "draft_intent",
+          "core_transformation",
+          "key_sections",
+          "fragile_truths_to_preserve",
+          "places_the_editor_should_not_overwrite"
+         ]
+        }
+       },
+       "quality_checklist": [
+        "faithful to experience",
+        "writer voice preserved",
+        "transformation is clear",
+        "emotionally honest",
+        "coherent structure",
+        "first draft complete"
+       ],
+       "success_metric": "The writer reads the draft and says: \"Yes. That is what I wanted to say.\" Not: \"AI writes beautifully.\"\n",
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "tone": [
+          "Mô tả: Giọng tâm tình, tự trào nhẹ",
+          "Cường độ mục tiêu: 0.85",
+          "Nên: Viết như tâm sự",
+          "Tránh: Giảng đạo",
+          "Ví dụ tham chiếu: Cũng đúng mà :)",
+          "Ví dụ tham chiếu: ví dụ 2"
+         ],
+         "emoji": [
+          "Mô tả: Emoji cuối câu",
+          "Cường độ mục tiêu: 0.50",
+          "Nên: Đặt emoji cuối câu",
+          "Tránh: Rải emoji giữa câu"
+         ]
+        }
+       }
+      }
+     },
+     "coach_agent.yaml": {
+      "id": "deep:reflective:coach",
+      "schema_version": 2,
+      "agent_id": "coach_agent",
+      "filename": "coach_agent.yaml",
+      "workflow_order": 6,
+      "output_contract": {
+       "type": "markdown",
+       "name": "coaching_report.md",
+       "format": {
+        "artifact_heading": "## Artifact",
+        "handoff_heading": "## Handoff"
+       },
+       "artifact": {
+        "description": "Full coaching report for the human writer.",
+        "sections": [
+         "observations",
+         "hidden_assumptions",
+         "self_protection_patterns",
+         "coaching_questions",
+         "possible_deeper_story"
+        ]
+       },
+       "handoff": {
+        "description": "120-250 Vietnamese words for future_self.",
+        "include": [
+         "most_important_unseen_question",
+         "self_protection_to_review",
+         "possible_deeper_story",
+         "what_should_not_be_rushed"
+        ]
+       }
+      },
+      "handoff_contract": {
+       "description": "120-250 Vietnamese words for future_self.",
+       "include": [
+        "most_important_unseen_question",
+        "self_protection_to_review",
+        "possible_deeper_story",
+        "what_should_not_be_rushed"
+       ]
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "1f89c4e27bbf7855e651154634d5638c219f9614c7010f7e816cabc8fa7d7051",
+      "invariants": {
+       "name": "coach_agent",
+       "purpose": "Help the writer see hidden assumptions, self-protection, and deeper growth opportunities after the draft has been edited for reader connection.\n",
+       "identity": "A gentle but direct coach. You do not edit prose. You do not improve wording. You challenge the writer's relationship with the story.\n",
+       "input": {
+        "edited_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "editor_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "output": {
+        "type": "markdown",
+        "name": "coaching_report.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full coaching report for the human writer.",
+         "sections": [
+          "observations",
+          "hidden_assumptions",
+          "self_protection_patterns",
+          "coaching_questions",
+          "possible_deeper_story"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for future_self.",
+         "include": [
+          "most_important_unseen_question",
+          "self_protection_to_review",
+          "possible_deeper_story",
+          "what_should_not_be_rushed"
+         ]
+        }
+       },
+       "tasks": [
+        "Find hidden assumptions.",
+        "Ask deeper questions.",
+        "Detect premature conclusions.",
+        "Detect self-protection.",
+        "Suggest unexplored reflections.",
+        "Notice where the writer may be avoiding responsibility, grief, tenderness, or truth."
+       ],
+       "agent_id": "coach_agent",
+       "filename": "coach_agent.yaml",
+       "workflow_order": 6
+      },
+      "style_overlays": {
+       "emoji": [
+        "Mô tả: Emoji cuối câu",
+        "Cường độ mục tiêu: 0.50",
+        "Nên: Đặt emoji cuối câu",
+        "Tránh: Rải emoji giữa câu"
+       ]
+      },
+      "effective_skill": {
+       "name": "coach_agent",
+       "version": 2.0,
+       "purpose": "Help the writer see hidden assumptions, self-protection, and deeper growth opportunities after the draft has been edited for reader connection.\n",
+       "identity": "A gentle but direct coach. You do not edit prose. You do not improve wording. You challenge the writer's relationship with the story.\n",
+       "loyalty": "the writer's growth",
+       "input": {
+        "edited_blog": {
+         "type": "markdown",
+         "required": true
+        },
+        "story_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "reflection_handoff": {
+         "type": "markdown",
+         "required": false
+        },
+        "editor_handoff": {
+         "type": "markdown",
+         "required": false
+        }
+       },
+       "goal": "Look beyond the edited article and ask what the writer may still not be seeing.",
+       "tasks": [
+        "Find hidden assumptions.",
+        "Ask deeper questions.",
+        "Detect premature conclusions.",
+        "Detect self-protection.",
+        "Suggest unexplored reflections.",
+        "Notice where the writer may be avoiding responsibility, grief, tenderness, or truth."
+       ],
+       "rules": [
+        "Never rewrite.",
+        "Never improve wording.",
+        "Never comment on grammar or style.",
+        "Only ask coaching questions and offer reflective observations.",
+        "Keep the tone gentle, direct, and spacious."
+       ],
+       "output": {
+        "type": "markdown",
+        "name": "coaching_report.md",
+        "format": {
+         "artifact_heading": "## Artifact",
+         "handoff_heading": "## Handoff"
+        },
+        "artifact": {
+         "description": "Full coaching report for the human writer.",
+         "sections": [
+          "observations",
+          "hidden_assumptions",
+          "self_protection_patterns",
+          "coaching_questions",
+          "possible_deeper_story"
+         ]
+        },
+        "handoff": {
+         "description": "120-250 Vietnamese words for future_self.",
+         "include": [
+          "most_important_unseen_question",
+          "self_protection_to_review",
+          "possible_deeper_story",
+          "what_should_not_be_rushed"
+         ]
+        }
+       },
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "emoji": [
+          "Mô tả: Emoji cuối câu",
+          "Cường độ mục tiêu: 0.50",
+          "Nên: Đặt emoji cuối câu",
+          "Tránh: Rải emoji giữa câu"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "warnings": [
+     "Dimension không được map: khong_ton_tai"
+    ]
+   }
+  },
+  {
+   "name": "moment_full_base_va_natural",
+   "inputs": {
+    "profile": {
+     "schema_version": 2,
+     "revision": 3,
+     "slug": "golden-voice",
+     "mode": "moment",
+     "status": "draft",
+     "provenance": "user_generated",
+     "confidence": 0.0,
+     "dna": {
+      "tone": {
+       "description": "Giọng tâm tình, tự trào nhẹ",
+       "strength": 0.85,
+       "confidence": 0.0,
+       "do": [
+        "Viết như tâm sự"
+       ],
+       "avoid": [
+        "Giảng đạo"
+       ],
+       "examples": [
+        "Cũng đúng mà :)",
+        "ví dụ 2",
+        "ví dụ 3"
+       ],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "vocabulary": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sentence_structure": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "rhythm": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "formatting": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "humor": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sensory_density": {
+       "description": "Giác quan dày khi tả cảnh",
+       "strength": 0.65,
+       "confidence": 0.0,
+       "do": [
+        "Dùng từ láy"
+       ],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emoji": {
+       "description": "Emoji cuối câu",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [
+        "Đặt emoji cuối câu"
+       ],
+       "avoid": [
+        "Rải emoji giữa câu"
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "metaphor_density": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emotional_depth": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "pacing": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "perspective": {
+       "description": "Xưng mình",
+       "strength": 0.9,
+       "confidence": 0.0,
+       "do": [
+        "Xưng mình"
+       ],
+       "avoid": [
+        "Xưng tôi"
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      }
+     },
+     "evidence": [],
+     "rejected_evidence": [],
+     "analysis_status": "partial",
+     "analysis_warnings": [],
+     "interview_history": [],
+     "calibration_history": [],
+     "base_style_slug": "va-natural",
+     "is_draft": true,
+     "created_at": "2026-11-14T00:00:00Z",
+     "updated_at": "2026-11-14T00:00:00Z"
+    },
+    "mode": "moment",
+    "changed_dimensions": null
+   },
+   "result": {
+    "artifacts": {
+     "sensory_capture.yaml": {
+      "id": "moment:va-natural:sensory",
+      "schema_version": 2,
+      "agent_id": "sensory_capture",
+      "filename": "sensory_capture.yaml",
+      "workflow_order": 1,
+      "output_contract": {
+       "artifact": "sensory_notes.md",
+       "sections": [
+        "central_moment",
+        "visible_scene",
+        "sensory_details",
+        "bodily_sensations",
+        "author_presence",
+        "voice_markers",
+        "verbatim_fragments",
+        "uncertain_details"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "50-90",
+        "focus": "What was seen, felt, and noticed."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "50-90",
+       "focus": "What was seen, felt, and noticed."
+      },
+      "context_policy": null,
+      "base_style_slug": "va-natural",
+      "base_hash": "c03162818ddd10481303c137b199a9bdce969db3c639fe58fc8fa04b9a83e47d",
+      "invariants": {
+       "name": "sensory_capture",
+       "mode": "moment_blog_mode",
+       "purpose": "Ghi lại khoảnh khắc hiện tại bằng giác quan, không diễn giải sâu.",
+       "input": {
+        "required": [
+         "raw_notes"
+        ],
+        "optional": [
+         "author_phrases",
+         "time_place_context"
+        ]
+       },
+       "output": {
+        "artifact": "sensory_notes.md",
+        "sections": [
+         "central_moment",
+         "visible_scene",
+         "sensory_details",
+         "bodily_sensations",
+         "author_presence",
+         "voice_markers",
+         "verbatim_fragments",
+         "uncertain_details"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "50-90",
+         "focus": "What was seen, felt, and noticed."
+        }
+       },
+       "tasks": [
+        "identify_central_moment",
+        "capture_visible_scene",
+        "capture_sound_smell_temperature",
+        "capture_bodily_sensation",
+        "capture_author_presence_in_scene",
+        "capture_author_social_voice_markers",
+        "specify_nature_details_when_present",
+        "capture_place_based_scene_context",
+        "preserve_authentic_phrasing",
+        "preserve_spoken_metaphors",
+        "separate_observation_from_interpretation"
+       ],
+       "agent_id": "sensory_capture",
+       "filename": "sensory_capture.yaml",
+       "workflow_order": 1
+      },
+      "style_overlays": {
+       "sensory_density": [
+        "Mô tả: Giác quan dày khi tả cảnh",
+        "Cường độ mục tiêu: 0.65",
+        "Nên: Dùng từ láy"
+       ]
+      },
+      "effective_skill": {
+       "name": "sensory_capture",
+       "mode": "moment_blog_mode",
+       "purpose": "Ghi lại khoảnh khắc hiện tại bằng giác quan, không diễn giải sâu.",
+       "core_question": "Khoảnh khắc này đang hiện ra qua giác quan như thế nào?",
+       "input": {
+        "required": [
+         "raw_notes"
+        ],
+        "optional": [
+         "author_phrases",
+         "time_place_context"
+        ]
+       },
+       "tasks": [
+        "identify_central_moment",
+        "capture_visible_scene",
+        "capture_sound_smell_temperature",
+        "capture_bodily_sensation",
+        "capture_author_presence_in_scene",
+        "capture_author_social_voice_markers",
+        "specify_nature_details_when_present",
+        "capture_place_based_scene_context",
+        "preserve_authentic_phrasing",
+        "preserve_spoken_metaphors",
+        "separate_observation_from_interpretation"
+       ],
+       "do_not": [
+        "infer_hidden_meaning",
+        "explain_transformation",
+        "add_life_advice",
+        "beautify_for_effect",
+        "invent_missing_details",
+        "replace_raw_author_metaphors_with_standardized_descriptions"
+       ],
+       "output": {
+        "artifact": "sensory_notes.md",
+        "sections": [
+         "central_moment",
+         "visible_scene",
+         "sensory_details",
+         "bodily_sensations",
+         "author_presence",
+         "voice_markers",
+         "verbatim_fragments",
+         "uncertain_details"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "50-90",
+         "focus": "What was seen, felt, and noticed."
+        }
+       },
+       "style_rules": [
+        "keep_language_concrete",
+        "prefer_short_sentences",
+        "preserve_uncertainty",
+        "do_not_name_philosophy",
+        "when_nature_appears_name_concrete_plants_flowers_colors_smells_textures_and_place_if_supported",
+        "prefer_lived_scene_details_such_as_balcony_garden_pots_soil_leaves_stems_wind_and_light",
+        "use_specific_botanical_or_domestic_images_when_available_instead_of_generic_flower_symbolism",
+        "preserve_emojis_slang_and_playful_phrases_when_they_carry_tone",
+        "preserve_author_spoken_metaphors_and_raw_expressions"
+       ],
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "sensory_density": [
+          "Mô tả: Giác quan dày khi tả cảnh",
+          "Cường độ mục tiêu: 0.65",
+          "Nên: Dùng từ láy"
+         ]
+        }
+       }
+      }
+     },
+     "inner_weather.yaml": {
+      "id": "moment:va-natural:inner_weather",
+      "schema_version": 2,
+      "agent_id": "inner_weather",
+      "filename": "inner_weather.yaml",
+      "workflow_order": 2,
+      "output_contract": {
+       "artifact": "inner_weather.md",
+       "sections": [
+        "dominant_feeling",
+        "secondary_feeling",
+        "emotional_motion",
+        "bodily_evidence",
+        "uncertainty_notes"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "40-70",
+        "focus": "What the inside weather feels like, not why it exists."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "40-70",
+       "focus": "What the inside weather feels like, not why it exists."
+      },
+      "context_policy": null,
+      "base_style_slug": "va-natural",
+      "base_hash": "003499f450bce9e0523e33f6d257b50d29a7cdfccca374c7315b4cd145725d10",
+      "invariants": {
+       "name": "inner_weather",
+       "mode": "moment_blog_mode",
+       "purpose": "Gọi tên thời tiết bên trong người viết ở thời điểm hiện tại.",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "raw_notes"
+        ],
+        "optional": [
+         "emotional_notes"
+        ]
+       },
+       "output": {
+        "artifact": "inner_weather.md",
+        "sections": [
+         "dominant_feeling",
+         "secondary_feeling",
+         "emotional_motion",
+         "bodily_evidence",
+         "uncertainty_notes"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "What the inside weather feels like, not why it exists."
+        }
+       },
+       "tasks": [
+        "identify_dominant_feeling",
+        "identify_secondary_feeling",
+        "map_emotional_motion",
+        "map_everyday_pressure_to_inner_shift",
+        "name_lived_motion_before_abstract_emotion",
+        "ground_emotion_in_body",
+        "preserve_uncertainty"
+       ],
+       "agent_id": "inner_weather",
+       "filename": "inner_weather.yaml",
+       "workflow_order": 2
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "inner_weather",
+       "mode": "moment_blog_mode",
+       "purpose": "Gọi tên thời tiết bên trong người viết ở thời điểm hiện tại.",
+       "core_question": "Thời tiết bên trong người viết ngay lúc này là gì?",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "raw_notes"
+        ],
+        "optional": [
+         "emotional_notes"
+        ]
+       },
+       "tasks": [
+        "identify_dominant_feeling",
+        "identify_secondary_feeling",
+        "map_emotional_motion",
+        "map_everyday_pressure_to_inner_shift",
+        "name_lived_motion_before_abstract_emotion",
+        "ground_emotion_in_body",
+        "preserve_uncertainty"
+       ],
+       "do_not": [
+        "diagnose",
+        "explain_cause_beyond_notes",
+        "force_resolution",
+        "force_lesson",
+        "turn_feeling_into_theory"
+       ],
+       "output": {
+        "artifact": "inner_weather.md",
+        "sections": [
+         "dominant_feeling",
+         "secondary_feeling",
+         "emotional_motion",
+         "bodily_evidence",
+         "uncertainty_notes"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "What the inside weather feels like, not why it exists."
+        }
+       },
+       "style_rules": [
+        "use_plain_language",
+        "prefer_lived_phrasing_over_psychological_language",
+        "reuse_author_adjacent_phrasing_when_available",
+        "avoid_clinical_tone",
+        "avoid_spiritual_overclaim",
+        "avoid_nervous_system_language_unless_supplied_by_author",
+        "start_from_ordinary_motion_before_naming_the_feeling",
+        "prefer_deadline_head_spinning_breathing_balcony_lightening_images_when_supported",
+        "let_the_weather_move_from_tension_to_softening_without_forcing_resolution"
+       ]
+      }
+     },
+     "cosmic_signal_reader.yaml": {
+      "id": "moment:va-natural:cosmic_signal",
+      "schema_version": 2,
+      "agent_id": "cosmic_signal_reader",
+      "filename": "cosmic_signal_reader.yaml",
+      "workflow_order": 3,
+      "output_contract": {
+       "artifact": "signal_note.md",
+       "sections": [
+        "signal",
+        "evidence_for_signal",
+        "what_makes_it_feel_resonant",
+        "what_is_not_being_claimed"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "40-70",
+        "focus": "A small, grounded signal the moment seems to whisper."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "40-70",
+       "focus": "A small, grounded signal the moment seems to whisper."
+      },
+      "context_policy": null,
+      "base_style_slug": "va-natural",
+      "base_hash": "440bb71d8b4aec1d19f172b86b39a5546ac4ff4ca2f0b23c22bd0cd0f9cae439",
+      "invariants": {
+       "name": "cosmic_signal_reader",
+       "mode": "moment_blog_mode",
+       "purpose": "Tìm tín hiệu trực giác trong khoảnh khắc, chỉ khi có dữ kiện gốc đủ rõ.",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff"
+        ],
+        "optional": [
+         "recurring_motifs",
+         "song_or_phrase_anchor"
+        ]
+       },
+       "output": {
+        "artifact": "signal_note.md",
+        "sections": [
+         "signal",
+         "evidence_for_signal",
+         "what_makes_it_feel_resonant",
+         "what_is_not_being_claimed"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A small, grounded signal the moment seems to whisper."
+        }
+       },
+       "tasks": [
+        "detect_grounded_signal",
+        "distinguish_intuition_from_fact",
+        "detect_resonant_phrase",
+        "allow_no_signal_if_absent",
+        "keep_signal_small_and_specific",
+        "keep_signal_fair_to_human_need_for_love_recognition_and_belonging",
+        "distinguish_self_enoughness_from_rejecting_social_needs"
+       ],
+       "agent_id": "cosmic_signal_reader",
+       "filename": "cosmic_signal_reader.yaml",
+       "workflow_order": 3
+      },
+      "style_overlays": {
+       "perspective": [
+        "Mô tả: Xưng mình",
+        "Cường độ mục tiêu: 0.90",
+        "Nên: Xưng mình",
+        "Tránh: Xưng tôi"
+       ]
+      },
+      "effective_skill": {
+       "name": "cosmic_signal_reader",
+       "mode": "moment_blog_mode",
+       "purpose": "Tìm tín hiệu trực giác trong khoảnh khắc, chỉ khi có dữ kiện gốc đủ rõ.",
+       "core_question": "Khoảnh khắc này đang thì thầm điều gì với người viết?",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff"
+        ],
+        "optional": [
+         "recurring_motifs",
+         "song_or_phrase_anchor"
+        ]
+       },
+       "tasks": [
+        "detect_grounded_signal",
+        "distinguish_intuition_from_fact",
+        "detect_resonant_phrase",
+        "allow_no_signal_if_absent",
+        "keep_signal_small_and_specific",
+        "keep_signal_fair_to_human_need_for_love_recognition_and_belonging",
+        "distinguish_self_enoughness_from_rejecting_social_needs"
+       ],
+       "do_not": [
+        "claim_universal_truth",
+        "force_cosmic_message",
+        "predict_future",
+        "give_advice",
+        "generalize_into_philosophy",
+        "treat_intuition_as_fact",
+        "turn_self_sufficiency_into_pressure_or_self_blame"
+       ],
+       "output": {
+        "artifact": "signal_note.md",
+        "sections": [
+         "signal",
+         "evidence_for_signal",
+         "what_makes_it_feel_resonant",
+         "what_is_not_being_claimed"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A small, grounded signal the moment seems to whisper."
+        }
+       },
+       "style_rules": [
+        "prefer_hedged_language",
+        "keep_signal_modest",
+        "use_maybe_when_needed",
+        "signal_should_sound_like_author_could_actually_say_it",
+        "keep_song_anchor_casual_and_close_to_source",
+        "protect_the_author_human_need_to_be_seen_loved_encouraged_and_recognized",
+        "frame_self_enoughness_as_soft_practice_not_a_standard_to_perform"
+       ],
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "perspective": [
+          "Mô tả: Xưng mình",
+          "Cường độ mục tiêu: 0.90",
+          "Nên: Xưng mình",
+          "Tránh: Xưng tôi"
+         ]
+        }
+       }
+      }
+     },
+     "moment_writer.yaml": {
+      "id": "moment:va-natural:moment_writer",
+      "schema_version": 2,
+      "agent_id": "moment_writer",
+      "filename": "moment_writer.yaml",
+      "workflow_order": 4,
+      "output_contract": {
+       "artifact": "moment_draft.md",
+       "limits": {
+        "target_words": "450-600_when_desired_length_is_under_500_otherwise_180-600",
+        "max_words": 600
+       },
+       "structure": [
+        "everyday_pressure",
+        "concrete_nature_scene",
+        "felt_response",
+        "social_reflection",
+        "signal",
+        "resonant_question_or_closing"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "40-70",
+        "focus": "A compact draft that still feels alive and immediate."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "40-70",
+       "focus": "A compact draft that still feels alive and immediate."
+      },
+      "context_policy": null,
+      "base_style_slug": "va-natural",
+      "base_hash": "d5ac5e97653943fd963fa8855b2da8819111d0cb441f97bd29eb0be5cbbb441e",
+      "invariants": {
+       "name": "moment_writer",
+       "mode": "moment_blog_mode",
+       "purpose": "Viết bản nháp ngắn giữ lại khoảnh khắc đang sống.",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff",
+         "signal_handoff"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "title_seed"
+        ]
+       },
+       "output": {
+        "artifact": "moment_draft.md",
+        "limits": {
+         "target_words": "450-600_when_desired_length_is_under_500_otherwise_180-600",
+         "max_words": 600
+        },
+        "structure": [
+         "everyday_pressure",
+         "concrete_nature_scene",
+         "felt_response",
+         "social_reflection",
+         "signal",
+         "resonant_question_or_closing"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A compact draft that still feels alive and immediate."
+        }
+       },
+       "tasks": [
+        "build_short_moment_arc",
+        "preserve_present_tense_energy",
+        "write_with_spoken_naturalness",
+        "keep_one_resonant_signal",
+        "include_everyday_pressure_before_the_scene_when_supported",
+        "include_concrete_plants_flowers_and_domestic_nature_details_when_supported",
+        "balance_nature_metaphor_with_human_social_needs",
+        "close_with_a_gentle_question_or_invitation_when_it_fits",
+        "close_with_echo_not_lecture"
+       ],
+       "agent_id": "moment_writer",
+       "filename": "moment_writer.yaml",
+       "workflow_order": 4
+      },
+      "style_overlays": {
+       "tone": [
+        "Mô tả: Giọng tâm tình, tự trào nhẹ",
+        "Cường độ mục tiêu: 0.85",
+        "Nên: Viết như tâm sự",
+        "Tránh: Giảng đạo",
+        "Ví dụ tham chiếu: Cũng đúng mà :)",
+        "Ví dụ tham chiếu: ví dụ 2"
+       ],
+       "sensory_density": [
+        "Mô tả: Giác quan dày khi tả cảnh",
+        "Cường độ mục tiêu: 0.65",
+        "Nên: Dùng từ láy"
+       ]
+      },
+      "effective_skill": {
+       "name": "moment_writer",
+       "mode": "moment_blog_mode",
+       "purpose": "Viết bản nháp ngắn giữ lại khoảnh khắc đang sống.",
+       "core_question": "Nếu chỉ giữ lại khoảnh khắc này, bài viết cần nói điều gì?",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff",
+         "signal_handoff"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "title_seed"
+        ]
+       },
+       "tasks": [
+        "build_short_moment_arc",
+        "preserve_present_tense_energy",
+        "write_with_spoken_naturalness",
+        "keep_one_resonant_signal",
+        "include_everyday_pressure_before_the_scene_when_supported",
+        "include_concrete_plants_flowers_and_domestic_nature_details_when_supported",
+        "balance_nature_metaphor_with_human_social_needs",
+        "close_with_a_gentle_question_or_invitation_when_it_fits",
+        "close_with_echo_not_lecture"
+       ],
+       "do_not": [
+        "tell_full_life_story",
+        "explain_transformation",
+        "add_coaching",
+        "add_moral",
+        "overdecorate_language",
+        "over_poeticize_playful_moments",
+        "write_more_than_one_moment",
+        "replace_author_slang_or_spoken_metaphors_with_formal_phrases"
+       ],
+       "output": {
+        "artifact": "moment_draft.md",
+        "limits": {
+         "target_words": "450-600_when_desired_length_is_under_500_otherwise_180-600",
+         "max_words": 600
+        },
+        "structure": [
+         "everyday_pressure",
+         "concrete_nature_scene",
+         "felt_response",
+         "social_reflection",
+         "signal",
+         "resonant_question_or_closing"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A compact draft that still feels alive and immediate."
+        }
+       },
+       "style_rules": [
+        "natural_vietnamese",
+        "lean_and_clear",
+        "emotional_but_not_flowery",
+        "one_intuitive_message_max",
+        "allow_selective_emojis_when_present_in_raw_notes",
+        "mix_short_lines_with_social_post_paragraphs",
+        "preserve_author_slang_and_playful_self_awareness",
+        "preserve_author_spoken_metaphors_and_raw_expressions",
+        "when_desired_length_is_under_500_do_not_collapse_the_draft_to_around_250_words",
+        "preserve_va_natural_voice_markers_such_as_emoji_nguoi_oi_exclamations_and_playful_metaphors",
+        "allow_playful_metaphors_like_dopamine_tuoi_tam_cay_tu_tin_or_khu_vuon_ben_trong_when_grounded",
+        "build_arc_from_pressure_to_scene_to_social_reflection_to_open_question"
+       ],
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "tone": [
+          "Mô tả: Giọng tâm tình, tự trào nhẹ",
+          "Cường độ mục tiêu: 0.85",
+          "Nên: Viết như tâm sự",
+          "Tránh: Giảng đạo",
+          "Ví dụ tham chiếu: Cũng đúng mà :)",
+          "Ví dụ tham chiếu: ví dụ 2"
+         ],
+         "sensory_density": [
+          "Mô tả: Giác quan dày khi tả cảnh",
+          "Cường độ mục tiêu: 0.65",
+          "Nên: Dùng từ láy"
+         ]
+        }
+       }
+      }
+     },
+     "breath_editor.yaml": {
+      "id": "moment:va-natural:breath_editor",
+      "schema_version": 2,
+      "agent_id": "breath_editor",
+      "filename": "breath_editor.yaml",
+      "workflow_order": 5,
+      "output_contract": {
+       "artifact": "moment_edited.md",
+       "secondary_artifact": "edit_log.md",
+       "sections": [
+        "edited_moment_blog",
+        "edit_log"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "30-50",
+        "focus": "What was trimmed and why."
+       },
+       "max_edits": 5
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "30-50",
+       "focus": "What was trimmed and why."
+      },
+      "context_policy": null,
+      "base_style_slug": "va-natural",
+      "base_hash": "376c084e0890dd77a9ec071c693f031bcb322b0db30871fa11a842316ce80cab",
+      "invariants": {
+       "name": "breath_editor",
+       "mode": "moment_blog_mode",
+       "purpose": "Làm bài thở ra, nhẹ hơn, trong hơn, đúng tinh thần moment.",
+       "input": {
+        "required": [
+         "moment_draft"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "style_notes"
+        ]
+       },
+       "output": {
+        "artifact": "moment_edited.md",
+        "secondary_artifact": "edit_log.md",
+        "sections": [
+         "edited_moment_blog",
+         "edit_log"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-50",
+         "focus": "What was trimmed and why."
+        },
+        "max_edits": 5
+       },
+       "tasks": [
+        "cut_repetition",
+        "simplify_heavy_sentences",
+        "keep_only_one_center",
+        "check_under_word_limit",
+        "remove_over_explanation",
+        "preserve_authentic_voice",
+        "check_whether_edit_removed_too_much_author_mischief",
+        "protect_concrete_scene_details_and_va_natural_sparkle",
+        "preserve_intentional_expressive_richness"
+       ],
+       "agent_id": "breath_editor",
+       "filename": "breath_editor.yaml",
+       "workflow_order": 5
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "breath_editor",
+       "mode": "moment_blog_mode",
+       "purpose": "Làm bài thở ra, nhẹ hơn, trong hơn, đúng tinh thần moment.",
+       "core_question": "Cần bỏ hoặc làm nhẹ điều gì để khoảnh khắc được tự cất tiếng?",
+       "input": {
+        "required": [
+         "moment_draft"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "style_notes"
+        ]
+       },
+       "tasks": [
+        "cut_repetition",
+        "simplify_heavy_sentences",
+        "keep_only_one_center",
+        "check_under_word_limit",
+        "remove_over_explanation",
+        "preserve_authentic_voice",
+        "check_whether_edit_removed_too_much_author_mischief",
+        "protect_concrete_scene_details_and_va_natural_sparkle",
+        "preserve_intentional_expressive_richness"
+       ],
+       "do_not": [
+        "add_new_insight",
+        "intensify_emotion_unnecessarily",
+        "polish_into_literary_overkill",
+        "turn_into_essay",
+        "expand_scope",
+        "replace_author_slang_or_spoken_metaphors_with_formal_phrases",
+        "flatten_the_post_into_an_overly_clean_minimal_version",
+        "cut_concrete_nature_details_only_to_make_the_piece_cleaner"
+       ],
+       "output": {
+        "artifact": "moment_edited.md",
+        "secondary_artifact": "edit_log.md",
+        "sections": [
+         "edited_moment_blog",
+         "edit_log"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-50",
+         "focus": "What was trimmed and why."
+        },
+        "max_edits": 5
+       },
+       "style_rules": [
+        "minimal_editing",
+        "keep_distinctive_phrasing",
+        "protect_short_form",
+        "avoid_preachy_tone",
+        "preserve_playful_edge_when_self_directed",
+        "do_not_strip_all_emojis_by_default",
+        "breath_can_be_a_compact_paragraph_not_only_line_breaks",
+        "protect_author_raw_metaphors_and_spoken_expressions",
+        "preserve_scene_specificity_emoji_exclamations_and_playful_metaphors_when_intentional",
+        "cut_repeated_ideas_before_cutting_living_details_or_author_sparkle",
+        "keep_va_natural_richness_when_it_serves_the_moment"
+       ]
+      }
+     },
+     "gentle_witness.yaml": {
+      "id": "moment:va-natural:gentle_witness",
+      "schema_version": 2,
+      "agent_id": "gentle_witness",
+      "filename": "gentle_witness.yaml",
+      "workflow_order": 6,
+      "output_contract": {
+       "artifact": "witness_report.md",
+       "sections": [
+        "what_still_feels_alive",
+        "what_felt_forced",
+        "what_may_be_too_clean",
+        "what_should_remain_untouched"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "30-60",
+        "focus": "A calm verdict on whether the moment still breathes."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "30-60",
+       "focus": "A calm verdict on whether the moment still breathes."
+      },
+      "context_policy": null,
+      "base_style_slug": "va-natural",
+      "base_hash": "a6d670e5bcde4b7d6ba5a07a762fb412006c2ae56535034c80e65a498a729e34",
+      "invariants": {
+       "name": "gentle_witness",
+       "mode": "moment_blog_mode",
+       "purpose": "Xác nhận bài còn thật, còn trong, còn là một khoảnh khắc sống.",
+       "input": {
+        "required": [
+         "moment_edited"
+        ],
+        "optional": [
+         "signal_note",
+         "voice_profile"
+        ]
+       },
+       "output": {
+        "artifact": "witness_report.md",
+        "sections": [
+         "what_still_feels_alive",
+         "what_felt_forced",
+         "what_may_be_too_clean",
+         "what_should_remain_untouched"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-60",
+         "focus": "A calm verdict on whether the moment still breathes."
+        }
+       },
+       "tasks": [
+        "verify_presence",
+        "verify_clarity",
+        "verify_non_didactic_tone",
+        "verify_moment_center",
+        "verify_ending_resonance",
+        "detect_over_clean_editing",
+        "verify_humor_keeps_self_awareness_without_harshness",
+        "verify_va_natural_sparkle_is_still_present",
+        "verify_scene_specificity_and_human_need_for_recognition_are_preserved"
+       ],
+       "agent_id": "gentle_witness",
+       "filename": "gentle_witness.yaml",
+       "workflow_order": 6
+      },
+      "style_overlays": {
+       "tone": [
+        "Mô tả: Giọng tâm tình, tự trào nhẹ",
+        "Cường độ mục tiêu: 0.85",
+        "Nên: Viết như tâm sự",
+        "Tránh: Giảng đạo",
+        "Ví dụ tham chiếu: Cũng đúng mà :)",
+        "Ví dụ tham chiếu: ví dụ 2"
+       ],
+       "emoji": [
+        "Mô tả: Emoji cuối câu",
+        "Cường độ mục tiêu: 0.50",
+        "Nên: Đặt emoji cuối câu",
+        "Tránh: Rải emoji giữa câu"
+       ]
+      },
+      "effective_skill": {
+       "name": "gentle_witness",
+       "mode": "moment_blog_mode",
+       "purpose": "Xác nhận bài còn thật, còn trong, còn là một khoảnh khắc sống.",
+       "core_question": "Bài viết còn là một khoảnh khắc sống hay đã bị kéo thành bài học?",
+       "input": {
+        "required": [
+         "moment_edited"
+        ],
+        "optional": [
+         "signal_note",
+         "voice_profile"
+        ]
+       },
+       "tasks": [
+        "verify_presence",
+        "verify_clarity",
+        "verify_non_didactic_tone",
+        "verify_moment_center",
+        "verify_ending_resonance",
+        "detect_over_clean_editing",
+        "verify_humor_keeps_self_awareness_without_harshness",
+        "verify_va_natural_sparkle_is_still_present",
+        "verify_scene_specificity_and_human_need_for_recognition_are_preserved"
+       ],
+       "do_not": [
+        "coach",
+        "diagnose",
+        "generalize",
+        "lecture",
+        "add_new_content"
+       ],
+       "output": {
+        "artifact": "witness_report.md",
+        "sections": [
+         "what_still_feels_alive",
+         "what_felt_forced",
+         "what_may_be_too_clean",
+         "what_should_remain_untouched"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-60",
+         "focus": "A calm verdict on whether the moment still breathes."
+        }
+       },
+       "style_rules": [
+        "calm",
+        "factual",
+        "supportive",
+        "non-judgmental",
+        "check_whether_post_still_sounds_like_author_on_a_lively_day",
+        "check_whether_post_became_too_short_too_clean_or_too_flat",
+        "check_for_real_scene_moderate_emoji_open_question_and_kindness_toward_needing_recognition"
+       ],
+       "voice_lab_style": {
+        "schema_version": 2,
+        "profile_revision": 3,
+        "dimensions": {
+         "tone": [
+          "Mô tả: Giọng tâm tình, tự trào nhẹ",
+          "Cường độ mục tiêu: 0.85",
+          "Nên: Viết như tâm sự",
+          "Tránh: Giảng đạo",
+          "Ví dụ tham chiếu: Cũng đúng mà :)",
+          "Ví dụ tham chiếu: ví dụ 2"
+         ],
+         "emoji": [
+          "Mô tả: Emoji cuối câu",
+          "Cường độ mục tiêu: 0.50",
+          "Nên: Đặt emoji cuối câu",
+          "Tránh: Rải emoji giữa câu"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "warnings": []
+   }
+  },
+  {
+   "name": "moment_no_dna",
+   "inputs": {
+    "profile": {
+     "schema_version": 2,
+     "revision": 3,
+     "slug": "golden-voice",
+     "mode": "moment",
+     "status": "draft",
+     "provenance": "user_generated",
+     "confidence": 0.0,
+     "dna": null,
+     "evidence": [],
+     "rejected_evidence": [],
+     "analysis_status": "partial",
+     "analysis_warnings": [],
+     "interview_history": [],
+     "calibration_history": [],
+     "base_style_slug": "reflective",
+     "is_draft": true,
+     "created_at": "2026-11-14T00:00:00Z",
+     "updated_at": "2026-11-14T00:00:00Z"
+    },
+    "mode": "moment",
+    "changed_dimensions": null
+   },
+   "result": {
+    "artifacts": {
+     "sensory_capture.yaml": {
+      "id": "moment:reflective:sensory",
+      "schema_version": 2,
+      "agent_id": "sensory_capture",
+      "filename": "sensory_capture.yaml",
+      "workflow_order": 1,
+      "output_contract": {
+       "artifact": "sensory_notes.md",
+       "sections": [
+        "central_moment",
+        "visible_scene",
+        "sensory_details",
+        "bodily_sensations",
+        "author_presence",
+        "voice_markers",
+        "verbatim_fragments",
+        "uncertain_details"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "50-90",
+        "focus": "What was seen, felt, and noticed."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "50-90",
+       "focus": "What was seen, felt, and noticed."
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "6b85b674e52bead57ea831070080a01120a649b3742965a7c83b75766b69ce29",
+      "invariants": {
+       "name": "sensory_capture",
+       "mode": "moment_blog_mode",
+       "purpose": "Ghi lại khoảnh khắc hiện tại bằng giác quan, không diễn giải sâu.",
+       "input": {
+        "required": [
+         "raw_notes"
+        ],
+        "optional": [
+         "author_phrases",
+         "time_place_context"
+        ]
+       },
+       "output": {
+        "artifact": "sensory_notes.md",
+        "sections": [
+         "central_moment",
+         "visible_scene",
+         "sensory_details",
+         "bodily_sensations",
+         "author_presence",
+         "voice_markers",
+         "verbatim_fragments",
+         "uncertain_details"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "50-90",
+         "focus": "What was seen, felt, and noticed."
+        }
+       },
+       "tasks": [
+        "identify_central_moment",
+        "capture_visible_scene",
+        "capture_sound_smell_temperature",
+        "capture_bodily_sensation",
+        "capture_author_presence_in_scene",
+        "capture_author_social_voice_markers",
+        "preserve_authentic_phrasing",
+        "preserve_spoken_metaphors",
+        "separate_observation_from_interpretation"
+       ],
+       "agent_id": "sensory_capture",
+       "filename": "sensory_capture.yaml",
+       "workflow_order": 1
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "sensory_capture",
+       "mode": "moment_blog_mode",
+       "purpose": "Ghi lại khoảnh khắc hiện tại bằng giác quan, không diễn giải sâu.",
+       "core_question": "Khoảnh khắc này đang hiện ra qua giác quan như thế nào?",
+       "input": {
+        "required": [
+         "raw_notes"
+        ],
+        "optional": [
+         "author_phrases",
+         "time_place_context"
+        ]
+       },
+       "tasks": [
+        "identify_central_moment",
+        "capture_visible_scene",
+        "capture_sound_smell_temperature",
+        "capture_bodily_sensation",
+        "capture_author_presence_in_scene",
+        "capture_author_social_voice_markers",
+        "preserve_authentic_phrasing",
+        "preserve_spoken_metaphors",
+        "separate_observation_from_interpretation"
+       ],
+       "do_not": [
+        "infer_hidden_meaning",
+        "explain_transformation",
+        "add_life_advice",
+        "beautify_for_effect",
+        "invent_missing_details",
+        "replace_raw_author_metaphors_with_standardized_descriptions"
+       ],
+       "output": {
+        "artifact": "sensory_notes.md",
+        "sections": [
+         "central_moment",
+         "visible_scene",
+         "sensory_details",
+         "bodily_sensations",
+         "author_presence",
+         "voice_markers",
+         "verbatim_fragments",
+         "uncertain_details"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "50-90",
+         "focus": "What was seen, felt, and noticed."
+        }
+       },
+       "style_rules": [
+        "keep_language_concrete",
+        "prefer_short_sentences",
+        "preserve_uncertainty",
+        "do_not_name_philosophy",
+        "preserve_emojis_slang_and_playful_phrases_when_they_carry_tone",
+        "preserve_author_spoken_metaphors_and_raw_expressions"
+       ]
+      }
+     },
+     "inner_weather.yaml": {
+      "id": "moment:reflective:inner_weather",
+      "schema_version": 2,
+      "agent_id": "inner_weather",
+      "filename": "inner_weather.yaml",
+      "workflow_order": 2,
+      "output_contract": {
+       "artifact": "inner_weather.md",
+       "sections": [
+        "dominant_feeling",
+        "secondary_feeling",
+        "emotional_motion",
+        "bodily_evidence",
+        "uncertainty_notes"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "40-70",
+        "focus": "What the inside weather feels like, not why it exists."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "40-70",
+       "focus": "What the inside weather feels like, not why it exists."
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "b5e50499bc2bea70b3f49ce41f59dcd4ea083b5a2007632c931defd8e3e22c53",
+      "invariants": {
+       "name": "inner_weather",
+       "mode": "moment_blog_mode",
+       "purpose": "Gọi tên thời tiết bên trong người viết ở thời điểm hiện tại.",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "raw_notes"
+        ],
+        "optional": [
+         "emotional_notes"
+        ]
+       },
+       "output": {
+        "artifact": "inner_weather.md",
+        "sections": [
+         "dominant_feeling",
+         "secondary_feeling",
+         "emotional_motion",
+         "bodily_evidence",
+         "uncertainty_notes"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "What the inside weather feels like, not why it exists."
+        }
+       },
+       "tasks": [
+        "identify_dominant_feeling",
+        "identify_secondary_feeling",
+        "map_emotional_motion",
+        "ground_emotion_in_body",
+        "preserve_uncertainty"
+       ],
+       "agent_id": "inner_weather",
+       "filename": "inner_weather.yaml",
+       "workflow_order": 2
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "inner_weather",
+       "mode": "moment_blog_mode",
+       "purpose": "Gọi tên thời tiết bên trong người viết ở thời điểm hiện tại.",
+       "core_question": "Thời tiết bên trong người viết ngay lúc này là gì?",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "raw_notes"
+        ],
+        "optional": [
+         "emotional_notes"
+        ]
+       },
+       "tasks": [
+        "identify_dominant_feeling",
+        "identify_secondary_feeling",
+        "map_emotional_motion",
+        "ground_emotion_in_body",
+        "preserve_uncertainty"
+       ],
+       "do_not": [
+        "diagnose",
+        "explain_cause_beyond_notes",
+        "force_resolution",
+        "force_lesson",
+        "turn_feeling_into_theory"
+       ],
+       "output": {
+        "artifact": "inner_weather.md",
+        "sections": [
+         "dominant_feeling",
+         "secondary_feeling",
+         "emotional_motion",
+         "bodily_evidence",
+         "uncertainty_notes"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "What the inside weather feels like, not why it exists."
+        }
+       },
+       "style_rules": [
+        "use_plain_language",
+        "prefer_lived_phrasing_over_psychological_language",
+        "reuse_author_adjacent_phrasing_when_available",
+        "avoid_clinical_tone",
+        "avoid_spiritual_overclaim",
+        "avoid_nervous_system_language_unless_supplied_by_author"
+       ]
+      }
+     },
+     "cosmic_signal_reader.yaml": {
+      "id": "moment:reflective:cosmic_signal",
+      "schema_version": 2,
+      "agent_id": "cosmic_signal_reader",
+      "filename": "cosmic_signal_reader.yaml",
+      "workflow_order": 3,
+      "output_contract": {
+       "artifact": "signal_note.md",
+       "sections": [
+        "signal",
+        "evidence_for_signal",
+        "what_makes_it_feel_resonant",
+        "what_is_not_being_claimed"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "40-70",
+        "focus": "A small, grounded signal the moment seems to whisper."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "40-70",
+       "focus": "A small, grounded signal the moment seems to whisper."
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "38c3b1099ad20af29e8ae14fb5f1854aed258d454b51eea3a773e0716cd5bdf7",
+      "invariants": {
+       "name": "cosmic_signal_reader",
+       "mode": "moment_blog_mode",
+       "purpose": "Tìm tín hiệu trực giác trong khoảnh khắc, chỉ khi có dữ kiện gốc đủ rõ.",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff"
+        ],
+        "optional": [
+         "recurring_motifs",
+         "song_or_phrase_anchor"
+        ]
+       },
+       "output": {
+        "artifact": "signal_note.md",
+        "sections": [
+         "signal",
+         "evidence_for_signal",
+         "what_makes_it_feel_resonant",
+         "what_is_not_being_claimed"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A small, grounded signal the moment seems to whisper."
+        }
+       },
+       "tasks": [
+        "detect_grounded_signal",
+        "distinguish_intuition_from_fact",
+        "detect_resonant_phrase",
+        "allow_no_signal_if_absent",
+        "keep_signal_small_and_specific"
+       ],
+       "agent_id": "cosmic_signal_reader",
+       "filename": "cosmic_signal_reader.yaml",
+       "workflow_order": 3
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "cosmic_signal_reader",
+       "mode": "moment_blog_mode",
+       "purpose": "Tìm tín hiệu trực giác trong khoảnh khắc, chỉ khi có dữ kiện gốc đủ rõ.",
+       "core_question": "Khoảnh khắc này đang thì thầm điều gì với người viết?",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff"
+        ],
+        "optional": [
+         "recurring_motifs",
+         "song_or_phrase_anchor"
+        ]
+       },
+       "tasks": [
+        "detect_grounded_signal",
+        "distinguish_intuition_from_fact",
+        "detect_resonant_phrase",
+        "allow_no_signal_if_absent",
+        "keep_signal_small_and_specific"
+       ],
+       "do_not": [
+        "claim_universal_truth",
+        "force_cosmic_message",
+        "predict_future",
+        "give_advice",
+        "generalize_into_philosophy",
+        "treat_intuition_as_fact"
+       ],
+       "output": {
+        "artifact": "signal_note.md",
+        "sections": [
+         "signal",
+         "evidence_for_signal",
+         "what_makes_it_feel_resonant",
+         "what_is_not_being_claimed"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A small, grounded signal the moment seems to whisper."
+        }
+       },
+       "style_rules": [
+        "prefer_hedged_language",
+        "keep_signal_modest",
+        "use_maybe_when_needed",
+        "signal_should_sound_like_author_could_actually_say_it",
+        "keep_song_anchor_casual_and_close_to_source"
+       ]
+      }
+     },
+     "moment_writer.yaml": {
+      "id": "moment:reflective:moment_writer",
+      "schema_version": 2,
+      "agent_id": "moment_writer",
+      "filename": "moment_writer.yaml",
+      "workflow_order": 4,
+      "output_contract": {
+       "artifact": "moment_draft.md",
+       "limits": {
+        "target_words": "180-600",
+        "max_words": 600
+       },
+       "structure": [
+        "scene",
+        "felt_response",
+        "signal",
+        "resonant_closing"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "40-70",
+        "focus": "A compact draft that still feels alive and immediate."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "40-70",
+       "focus": "A compact draft that still feels alive and immediate."
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "c9916b825f9616d7f0602e61342ddf73bee344fc38d050db4ccba970d882d33f",
+      "invariants": {
+       "name": "moment_writer",
+       "mode": "moment_blog_mode",
+       "purpose": "Viết bản nháp ngắn giữ lại khoảnh khắc đang sống.",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff",
+         "signal_handoff"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "title_seed"
+        ]
+       },
+       "output": {
+        "artifact": "moment_draft.md",
+        "limits": {
+         "target_words": "180-600",
+         "max_words": 600
+        },
+        "structure": [
+         "scene",
+         "felt_response",
+         "signal",
+         "resonant_closing"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A compact draft that still feels alive and immediate."
+        }
+       },
+       "tasks": [
+        "build_short_moment_arc",
+        "preserve_present_tense_energy",
+        "write_with_spoken_naturalness",
+        "keep_one_resonant_signal",
+        "close_with_echo_not_lecture"
+       ],
+       "agent_id": "moment_writer",
+       "filename": "moment_writer.yaml",
+       "workflow_order": 4
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "moment_writer",
+       "mode": "moment_blog_mode",
+       "purpose": "Viết bản nháp ngắn giữ lại khoảnh khắc đang sống.",
+       "core_question": "Nếu chỉ giữ lại khoảnh khắc này, bài viết cần nói điều gì?",
+       "input": {
+        "required": [
+         "sensory_handoff",
+         "inner_weather_handoff",
+         "signal_handoff"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "title_seed"
+        ]
+       },
+       "tasks": [
+        "build_short_moment_arc",
+        "preserve_present_tense_energy",
+        "write_with_spoken_naturalness",
+        "keep_one_resonant_signal",
+        "close_with_echo_not_lecture"
+       ],
+       "do_not": [
+        "tell_full_life_story",
+        "explain_transformation",
+        "add_coaching",
+        "add_moral",
+        "overdecorate_language",
+        "over_poeticize_playful_moments",
+        "write_more_than_one_moment",
+        "replace_author_slang_or_spoken_metaphors_with_formal_phrases"
+       ],
+       "output": {
+        "artifact": "moment_draft.md",
+        "limits": {
+         "target_words": "180-600",
+         "max_words": 600
+        },
+        "structure": [
+         "scene",
+         "felt_response",
+         "signal",
+         "resonant_closing"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "40-70",
+         "focus": "A compact draft that still feels alive and immediate."
+        }
+       },
+       "style_rules": [
+        "natural_vietnamese",
+        "lean_and_clear",
+        "emotional_but_not_flowery",
+        "one_intuitive_message_max",
+        "allow_selective_emojis_when_present_in_raw_notes",
+        "mix_short_lines_with_social_post_paragraphs",
+        "preserve_author_slang_and_playful_self_awareness",
+        "preserve_author_spoken_metaphors_and_raw_expressions"
+       ]
+      }
+     },
+     "breath_editor.yaml": {
+      "id": "moment:reflective:breath_editor",
+      "schema_version": 2,
+      "agent_id": "breath_editor",
+      "filename": "breath_editor.yaml",
+      "workflow_order": 5,
+      "output_contract": {
+       "artifact": "moment_edited.md",
+       "secondary_artifact": "edit_log.md",
+       "sections": [
+        "edited_moment_blog",
+        "edit_log"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "30-50",
+        "focus": "What was trimmed and why."
+       },
+       "max_edits": 5
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "30-50",
+       "focus": "What was trimmed and why."
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "f3054dfefebeb05103a00e1670aefa241d1e8720693da2c5e75ecc3d91d454a5",
+      "invariants": {
+       "name": "breath_editor",
+       "mode": "moment_blog_mode",
+       "purpose": "Làm bài thở ra, nhẹ hơn, trong hơn, đúng tinh thần moment.",
+       "input": {
+        "required": [
+         "moment_draft"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "style_notes"
+        ]
+       },
+       "output": {
+        "artifact": "moment_edited.md",
+        "secondary_artifact": "edit_log.md",
+        "sections": [
+         "edited_moment_blog",
+         "edit_log"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-50",
+         "focus": "What was trimmed and why."
+        },
+        "max_edits": 5
+       },
+       "tasks": [
+        "cut_repetition",
+        "simplify_heavy_sentences",
+        "keep_only_one_center",
+        "check_under_word_limit",
+        "remove_over_explanation",
+        "preserve_authentic_voice",
+        "check_whether_edit_removed_too_much_author_mischief"
+       ],
+       "agent_id": "breath_editor",
+       "filename": "breath_editor.yaml",
+       "workflow_order": 5
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "breath_editor",
+       "mode": "moment_blog_mode",
+       "purpose": "Làm bài thở ra, nhẹ hơn, trong hơn, đúng tinh thần moment.",
+       "core_question": "Cần bỏ hoặc làm nhẹ điều gì để khoảnh khắc được tự cất tiếng?",
+       "input": {
+        "required": [
+         "moment_draft"
+        ],
+        "optional": [
+         "shared_voice_profile",
+         "style_notes"
+        ]
+       },
+       "tasks": [
+        "cut_repetition",
+        "simplify_heavy_sentences",
+        "keep_only_one_center",
+        "check_under_word_limit",
+        "remove_over_explanation",
+        "preserve_authentic_voice",
+        "check_whether_edit_removed_too_much_author_mischief"
+       ],
+       "do_not": [
+        "add_new_insight",
+        "intensify_emotion_unnecessarily",
+        "polish_into_literary_overkill",
+        "turn_into_essay",
+        "expand_scope",
+        "replace_author_slang_or_spoken_metaphors_with_formal_phrases"
+       ],
+       "output": {
+        "artifact": "moment_edited.md",
+        "secondary_artifact": "edit_log.md",
+        "sections": [
+         "edited_moment_blog",
+         "edit_log"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-50",
+         "focus": "What was trimmed and why."
+        },
+        "max_edits": 5
+       },
+       "style_rules": [
+        "minimal_editing",
+        "keep_distinctive_phrasing",
+        "protect_short_form",
+        "avoid_preachy_tone",
+        "preserve_playful_edge_when_self_directed",
+        "do_not_strip_all_emojis_by_default",
+        "breath_can_be_a_compact_paragraph_not_only_line_breaks",
+        "protect_author_raw_metaphors_and_spoken_expressions"
+       ]
+      }
+     },
+     "gentle_witness.yaml": {
+      "id": "moment:reflective:gentle_witness",
+      "schema_version": 2,
+      "agent_id": "gentle_witness",
+      "filename": "gentle_witness.yaml",
+      "workflow_order": 6,
+      "output_contract": {
+       "artifact": "witness_report.md",
+       "sections": [
+        "what_still_feels_alive",
+        "what_felt_forced",
+        "what_may_be_too_clean",
+        "what_should_remain_untouched"
+       ],
+       "handoff": {
+        "required": true,
+        "target_words": "30-60",
+        "focus": "A calm verdict on whether the moment still breathes."
+       }
+      },
+      "handoff_contract": {
+       "required": true,
+       "target_words": "30-60",
+       "focus": "A calm verdict on whether the moment still breathes."
+      },
+      "context_policy": null,
+      "base_style_slug": "reflective",
+      "base_hash": "d287db903fe52f28b39304090d1d0edd9889b92a43644a743100f0f5df146705",
+      "invariants": {
+       "name": "gentle_witness",
+       "mode": "moment_blog_mode",
+       "purpose": "Xác nhận bài còn thật, còn trong, còn là một khoảnh khắc sống.",
+       "input": {
+        "required": [
+         "moment_edited"
+        ],
+        "optional": [
+         "signal_note",
+         "voice_profile"
+        ]
+       },
+       "output": {
+        "artifact": "witness_report.md",
+        "sections": [
+         "what_still_feels_alive",
+         "what_felt_forced",
+         "what_may_be_too_clean",
+         "what_should_remain_untouched"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-60",
+         "focus": "A calm verdict on whether the moment still breathes."
+        }
+       },
+       "tasks": [
+        "verify_presence",
+        "verify_clarity",
+        "verify_non_didactic_tone",
+        "verify_moment_center",
+        "verify_ending_resonance",
+        "detect_over_clean_editing",
+        "verify_humor_keeps_self_awareness_without_harshness"
+       ],
+       "agent_id": "gentle_witness",
+       "filename": "gentle_witness.yaml",
+       "workflow_order": 6
+      },
+      "style_overlays": {},
+      "effective_skill": {
+       "name": "gentle_witness",
+       "mode": "moment_blog_mode",
+       "purpose": "Xác nhận bài còn thật, còn trong, còn là một khoảnh khắc sống.",
+       "core_question": "Bài viết còn là một khoảnh khắc sống hay đã bị kéo thành bài học?",
+       "input": {
+        "required": [
+         "moment_edited"
+        ],
+        "optional": [
+         "signal_note",
+         "voice_profile"
+        ]
+       },
+       "tasks": [
+        "verify_presence",
+        "verify_clarity",
+        "verify_non_didactic_tone",
+        "verify_moment_center",
+        "verify_ending_resonance",
+        "detect_over_clean_editing",
+        "verify_humor_keeps_self_awareness_without_harshness"
+       ],
+       "do_not": [
+        "coach",
+        "diagnose",
+        "generalize",
+        "lecture",
+        "add_new_content"
+       ],
+       "output": {
+        "artifact": "witness_report.md",
+        "sections": [
+         "what_still_feels_alive",
+         "what_felt_forced",
+         "what_may_be_too_clean",
+         "what_should_remain_untouched"
+        ],
+        "handoff": {
+         "required": true,
+         "target_words": "30-60",
+         "focus": "A calm verdict on whether the moment still breathes."
+        }
+       },
+       "style_rules": [
+        "calm",
+        "factual",
+        "supportive",
+        "non-judgmental",
+        "check_whether_post_still_sounds_like_author_on_a_lively_day"
+       ]
+      }
+     }
+    },
+    "warnings": []
+   }
+  },
+  {
+   "name": "duplicate_do_avoid_error",
+   "inputs": {
+    "profile": {
+     "schema_version": 2,
+     "revision": 3,
+     "slug": "golden-voice",
+     "mode": "deep",
+     "status": "draft",
+     "provenance": "user_generated",
+     "confidence": 0.0,
+     "dna": {
+      "tone": {
+       "description": "x",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [
+        "Giảng đạo"
+       ],
+       "avoid": [
+        "giảng đạo "
+       ],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "vocabulary": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sentence_structure": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "rhythm": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "formatting": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "humor": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "sensory_density": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emoji": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "metaphor_density": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "emotional_depth": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "pacing": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      },
+      "perspective": {
+       "description": "",
+       "strength": 0.5,
+       "confidence": 0.0,
+       "do": [],
+       "avoid": [],
+       "examples": [],
+       "evidence_ids": [],
+       "source": "analysis"
+      }
+     },
+     "evidence": [],
+     "rejected_evidence": [],
+     "analysis_status": "partial",
+     "analysis_warnings": [],
+     "interview_history": [],
+     "calibration_history": [],
+     "base_style_slug": "reflective",
+     "is_draft": true,
+     "created_at": "2026-11-14T00:00:00Z",
+     "updated_at": "2026-11-14T00:00:00Z"
+    },
+    "mode": "deep",
+    "changed_dimensions": null
+   },
+   "error": "Dimension 'tone' có rule đồng thời trong do và avoid: giảng đạo"
+  }
+ ]
+}

@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.2 | 2026-11-14 | ART-0 DONE; ghi kết quả ART-1 và các đặc điểm engine mà ART-2/ART-8.1 phải bám theo |
 | 3.1 | 2026-11-14 | Ghi kết quả ART-0; bổ sung yêu cầu `countWords` vào ART-2 và input 1200–1800 từ vào ART-3 |
 
 ---
@@ -259,8 +260,8 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 
 | PRD | Tên | Chặng | Owner tổng hợp | Nghiệm thu | Trạng thái |
 |---|---|---|---|---|---|
-| ART-0 | Spike runtime | T0 | Agent | Owner | ON-GOING (đã chạy; chờ owner duyệt báo cáo) |
-| ART-1 | Quy tắc, bundle, contract | T1 | Agent | Owner | BACKLOG |
+| ART-0 | Spike runtime | T0 | Agent | Owner | DONE (owner duyệt 2026-11-14) |
+| ART-1 | Quy tắc, bundle, contract | T1 | Agent | Owner | ON-GOING (AC đạt; chờ owner nghiệm thu) |
 | ART-2 | Core engine JS | T2 | Agent | Owner | BACKLOG |
 | ART-3 | MVP vertical slice | T3 | Agent | Owner | BACKLOG |
 | ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | BACKLOG |
@@ -325,6 +326,12 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-1-AC3: skill sai, slug sai, stage thiếu cấu hình model, schema xuất lỗi → build fail rõ ràng (test).
   - ART-1-AC4: toàn bộ regression test hiện có vẫn pass; `runs/` không đổi; không gọi API.
 - **Điều kiện đóng:** AC pass; `docs/current_architecture.md` và `docs/changelog.md` được cập nhật.
+- **Kết quả (2026-11-14):**
+  - AC1: ba tài liệu quy tắc ghi ngoại lệ D1 có phạm vi.
+  - AC2: hai lần build cho cùng `content_hash`; bundle khoảng 220 KB.
+  - AC3: 22 test trong `tests/test_artifact_bundle.py`, gồm skill thiếu, output lệch flow, slug sai, base style không tồn tại, khối `claude:` sai (thiếu/thừa stage, model chưa kiểm chứng, effort sai, thiếu khối), JSON Schema xuất lỗi, CLI không ghi file khi lỗi.
+  - AC4: 151 test pass; 2 test lỗi có sẵn từ trước (đường dẫn kiểu Windows khi chạy trên Linux); không gọi API; `runs/` không tồn tại, `skills/`, `flow/`, `web_runs/` không đổi.
+  - Quyết định thiết kế: skill trong bundle kèm chuỗi YAML do PyYAML dựng sẵn, nên JS không cần port PyYAML cho style hệ thống. Style do Voice Lab tạo (ART-8) sẽ cần một bộ dump YAML phía JS.
 - **Issue dự kiến:** 3 (quy tắc; config + builder; golden).
 
 ### ART-2 — Core engine JS (workflow)
@@ -337,6 +344,9 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-2-AC3: orchestrator với client giả: chạy đủ stage; dừng khi lỗi; bỏ qua đúng stage phụ thuộc; telemetry đủ; `api_called: false`.
   - ART-2-AC4: tách Edited Blog / Edit Log giống Python.
 - **NFR:** core không chạm DOM hay `window.claude`.
+- **Ghi chú từ ART-1 (golden đã ghi lại hành vi thật của engine):**
+  - Parser chặt từ chối chuỗi có CRLF; Python chỉ đọc file qua `read_text` (đã chuẩn hóa xuống dòng). JS nên chuẩn hóa `\r\n` → `\n` trước khi parse để tương đương đường file, và golden `crlf` dùng để kiểm tra hàm parse thuần.
+  - `count_words` theo `\w+` của Python; learning prompt chịu `textwrap.dedent` sau khi nội suy (dòng chỉ có khoảng trắng bị xóa, thụt lề 8 dấu cách của template giữ nguyên).
 - **Issue dự kiến:** 2.
 
 ### ART-3 — MVP vertical slice
@@ -448,6 +458,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-8.1-AC3: chọn tối đa 3 chiều phỏng vấn giống `interview_routing`; patch chỉ áp dụng khi có cờ xác nhận.
   - ART-8.1-AC4: calibration chỉ thay đúng một chiều; `shuffle_mapping` không lộ ra dữ liệu hiển thị.
   - ART-8.1-AC5: dữ liệu không qua schema v2 → lỗi; không có nhánh tự bịa dữ liệu.
+- **Ghi chú từ ART-1:** prompt Voice Lab nhúng payload bằng `json.dumps` của Python (separators `", "`/`": "`, giữ `1.0`); `quote_start`/`quote_end` tính theo code point, không theo UTF-16; 10 skill có số thực (`version: 3.0`) mà JSON làm mất dạng (thành `3`), nên JS không tự tính được `stable_skill_hash`: dùng `base_hash` do Python tính sẵn trong `styles[mode][slug].files[file].base_hash`.
 - **Issue dự kiến:** 2.
 
 ### ART-8.2 — Voice Lab: phân tích và xem lại evidence (bước 1–2)

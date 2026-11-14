@@ -4,3 +4,4 @@ engine/config.local.yaml
 *.key
 __pycache__/
 *.pyc
+artifact/dist/

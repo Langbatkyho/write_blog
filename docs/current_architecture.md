@@ -5,7 +5,9 @@
 > - [docs/2026-07-26-guided-style-voice-lab-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-26-guided-style-voice-lab-plan-final.md)  
 > - [docs/2026-07-27-voice-lab-refactor-plan-final.md](file:///D:/Nghi%C3%AAn%20c%E1%BB%A9u%20AI/write_blog/docs/2026-07-27-voice-lab-refactor-plan-final.md)
 >
-> **Cập nhật ngày:** 2026-07-28
+> - [docs/2026-11-14-claude-artifact-plan.md](2026-11-14-claude-artifact-plan.md) — Claude Artifact (đang xây dựng)
+>
+> **Cập nhật ngày:** 2026-11-14
 
 Dự án `mindful_writing_os` đã được nâng cấp toàn diện lên **Kiến Trúc Quản Trị Phong Cách & Voice Lab V6.0 (Guided Style Voice Lab & Multi-Style Engine)** trên nền tảng **Hệ Hai Writing Modes**:
 
@@ -60,6 +62,12 @@ write_blog/
 │       ├── migration.py      # Reader v1 -> v2, legacy incomplete state
 │       ├── archive.py        # Archive v2 + checksum + safe import
 │       └── publisher.py      # Staging/validate/backup/atomic rollback service
+├── artifact/                 # [NEW 2026-11] Claude Artifact (kế hoạch 2026-11-14-claude-artifact-plan.md)
+│   ├── claude_config.py      # Contract khối `claude:`: model/effort theo stage, model ID đã kiểm chứng
+│   ├── build_bundle.py       # Build bundle.json từ flow/skill/config bằng validator của engine (fail-closed)
+│   ├── make_golden.py        # Sinh golden fixtures; `--check` báo golden cũ
+│   ├── tests/golden/         # Input/output thật của engine để test phần JS
+│   └── spike/                # Trang spike ART-0 (đo runtime `sample`/`db`)
 ├── ui/                       # [UPGRADED V6.0] Streamlit Local UI Experience
 │   ├── app.py                # Composition root và render 4 tab
 │   ├── state.py              # Session-state contract và reset theo mode
@@ -168,7 +176,7 @@ Hệ thống hỗ trợ chạy workflow hoàn toàn bằng **Local Model Quota**
 - `AGENTS.md` ở repository root bắt buộc mọi agent đọc `.agents/AGENTS.md`.
 - RULES phân loại `runs/` là dữ liệu nghiệp vụ: run cũ chỉ đọc; workflow thật được tạo run mới collision-safe; test/dry-run phải dùng vùng tạm.
 - `runs/temp_llm/` là ngoại lệ tương thích có giới hạn cho file bridge của chính lần chạy hiện tại.
-- Test mặc định dùng fake/mock, không gọi API thật; Voice Lab chỉ dùng Gemini API.
+- Test mặc định dùng fake/mock, không gọi API thật. Voice Lab Python chỉ dùng Gemini API; Voice Lab trong Claude Artifact (`artifact/`) dùng Claude qua `sample` (ngoại lệ D1, phê duyệt 2026-11-14).
 - Skill `agentic-workflow-architect` bắt buộc cho thay đổi workflow, engine, contract, provider, compiler, publisher và rollback.
 - Trình tự refactor chuẩn: contract → engine → prompt → integration → verification.
 
@@ -200,3 +208,14 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 ### 2.8. Hệ thống lưu trữ bền vững (Supabase Persistence)
 Do Render.com sử dụng ephemeral filesystem, mọi thay đổi trên đĩa sẽ bị mất khi deploy mới. Giải pháp được chọn là dùng **Supabase PostgreSQL** làm nơi lưu trữ bền vững cho các Style (Phong cách viết).
 Mỗi khi ứng dụng khởi động, hệ thống gọi `restore_all_styles()` (qua REST API bằng urllib) để kéo toàn bộ Style ghi đè vào filesystem. Mọi thay đổi (sửa/xóa) trong runtime sẽ ngay lập tức được upsert/delete trên Supabase (thông qua `engine/supabase_client.py`), đảm bảo tính nhất quán dữ liệu mà không cần phụ thuộc Git Sync.
+
+### 2.9. Claude Artifact (đang xây dựng — ART-0, ART-1 xong)
+
+Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy workflow deep/moment và Voice Lab trong một Artifact riêng trên claude.ai; mỗi stage là một lần gọi `sample` độc lập với model Claude gọi theo tên.
+
+- **Nguồn chân lý vẫn là repo.** `artifact/build_bundle.py` đọc `flow/`, mọi style trong `skills/{deep,moment}/`, `skills/editorial_learning.yaml` và khối `claude:` của `engine/config.example.yaml`, kiểm tra bằng chính resolver/validator của engine (`validate_style_contract`, `resolve_step_skill_path`, `validate_step_skill_contract`, `validate_workflow_artifact_set`) rồi ghi `artifact/dist/bundle.json` (không commit). Sai contract thì build dừng.
+- **Skill kèm chuỗi YAML dựng sẵn** bằng `yaml.safe_dump(..., allow_unicode=True, sort_keys=False)`, đúng cách engine nhúng skill vào prompt, để phần JS ghép prompt khớp từng byte mà không cần port PyYAML. Mỗi file skill còn kèm `base_hash` (`stable_skill_hash`) do Python tính, vì JSON làm mất dạng số thực như `version: 3.0`.
+- **Bảng model:** khối `claude:` quy định model/effort cho 13 stage workflow, 2 stage learning, 4 stage Voice Lab. `artifact/claude_config.py` chỉ chấp nhận model ID đã kiểm chứng trong spike ART-0, vì `sample` âm thầm hạ hạng khi model sai tên. Bundle ghi kèm `model_tier` tương ứng.
+- **Bundle Voice Lab:** hằng số `VOICE_DIMENSIONS`, `DIMENSION_AGENTS`, `AGENT_FILENAME_MAP`, `REQUIRED_AGENTS`, `SKILL_LEVEL_INVARIANTS`, tham số calibration và JSON Schema xuất từ Pydantic. Builder kiểm tra `AGENT_FILENAME_MAP` khớp đúng các file skill của flow.
+- **Golden fixtures** (`artifact/tests/golden/`): prompt workflow, learning, Voice Lab; parser chặt; đếm từ; tách Edited Blog/Edit Log; kiểm tra evidence; tính confidence; `compile_style`. `tests/test_artifact_bundle.py` báo lỗi khi golden lệch engine.
+- **Đặc điểm engine mà phần JS phải bám theo:** parser chặt từ chối chuỗi CRLF trong bộ nhớ (file thì được `read_text` chuẩn hóa); `count_words` dùng `\w+` của Python (không đếm ký tự biến thể emoji U+FE0F); `json.dumps` dùng separators `", "`/`": "` và giữ `1.0`; `quote_start` tính theo code point; learning prompt chịu ảnh hưởng của `textwrap.dedent` lên chuỗi đã nội suy.
