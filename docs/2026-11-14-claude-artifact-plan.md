@@ -1,7 +1,7 @@
 # Kế hoạch tổng thể: Mindful Blog Workflow trên Claude Artifact
 
-> **Trạng thái:** FINAL (bản 2) — quyết định D1–D7 đã được người dùng chốt ngày 2026-11-14.
-> Các PRD ở trạng thái BACKLOG, trừ ART-8.4 giữ DRAFT cho tới khi người dùng xác nhận cách làm rõ D3a (mục 1.7).
+> **Trạng thái:** FINAL (bản 3) — quyết định D1–D7 và D3a đã được người dùng chốt ngày 2026-11-14.
+> Toàn bộ PRD ở trạng thái BACKLOG; ART-0 bắt đầu thực hiện.
 > **Mã dự án:** ART
 > **Tài liệu đã đọc theo `.agents/AGENTS.md` §10:** `docs/current_architecture.md`, `docs/workflow_analysis.md`, `.agents/agentic-workflow-architect/SKILL.md` và các reference.
 
@@ -11,6 +11,7 @@
 |---|---|---|
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
+| 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
 
 ---
 
@@ -18,28 +19,28 @@
 
 ### 1.1. Mục tiêu sản phẩm
 
-Một Artifact trên claude.ai cho team cùng tổ chức Claude Team. Artifact này:
+Một Artifact trên claude.ai, **mỗi tác giả dùng một bản riêng**. Đồng đội trong tổ chức Claude Team tự clone bản build và dùng cho riêng họ. Artifact này:
 
 1. **Chạy hai workflow viết blog** (`deep`, `moment`) với mọi style.
    - Mỗi stage là một lần gọi `sample` độc lập, ngữ cảnh chỉ gồm những gì `context_policy` cho phép.
    - Mỗi stage dùng model Claude được gọi **theo tên**, kèm effort riêng.
 2. **Lưu lịch sử run**, cho sửa bản cuối, chạy learning loop, và gửi kết quả qua Gmail.
-3. **Có Voice Lab đủ 5 bước**, chạy bằng Claude, để mỗi người tạo style giọng văn của riêng mình.
+3. **Có Voice Lab đủ 5 bước**, chạy bằng Claude, để tác giả tạo style giọng văn của riêng mình.
 
 Repo vẫn là nguồn chân lý cho flow, skill hệ thống, bảng model và các hằng số Voice Lab. Artifact dùng một bundle được build và kiểm tra từ repo.
 
 ### 1.2. Người dùng (D2)
 
-| Vai trò | Ai | Mức chia sẻ trên Artifact | Ghi chú |
+| Vai trò | Ai | Quyền trên Artifact | Ghi chú |
 |---|---|---|---|
-| Owner | Chủ repo | Editor (owner) | Duy nhất có quyền publish lại trang |
-| Thành viên team | Đồng đội cùng tổ chức Claude Team, mỗi người có tài khoản riêng | **Contributor** (`interact`) | Bắt buộc Contributor mới ghi được dữ liệu, kể cả `data/users/<id>/` của chính họ. Viewer/Commenter không ghi được gì |
+| Tác giả (chủ Artifact) | Chủ repo; mỗi đồng đội là chủ của bản clone của họ | Owner | Người duy nhất dùng bản đó; không chia sẻ cho người khác |
 
 Hệ quả:
 
-- Mỗi người tiêu quota Claude Team của chính mình.
-- Mỗi người kết nối Gmail của chính mình.
-- Run và hồ sơ giọng văn đang soạn là dữ liệu riêng; owner cũng không đọc được.
+- **Không có dữ liệu dùng chung giữa người.** Mỗi bản clone bắt đầu với `db` trống.
+- Mỗi tác giả tiêu quota Claude Team và dùng Gmail của chính mình.
+- **Clone** = publish lại cùng file `dist/index.html` (build từ repo) thành một Artifact mới dưới tài khoản của đồng đội. Cách này không phụ thuộc việc claude.ai có nút "nhân bản" hay không.
+- Khi owner cập nhật bundle, mỗi đồng đội phải publish lại bản của mình lên **đúng URL cũ của họ** để giữ dữ liệu. Trang hiện tem phiên bản để dễ biết bản nào đã cũ.
 
 ### 1.3. Nền tảng và năng lực runtime
 
@@ -48,8 +49,8 @@ claude.ai Artifact, runtime contract `0.2.96`.
 | Capability | Dùng để |
 |---|---|
 | `sample` | Gọi Claude theo tên model cho workflow, learning, Voice Lab |
-| `db` | Run riêng, hồ sơ Voice Lab riêng, thư viện style của team |
-| `user` | Định danh người xem; tên tác giả trong thư viện style (scope `profile`) |
+| `db` | Run, hồ sơ Voice Lab, thư viện style riêng của tác giả |
+| `user` | Định danh tác giả để lưu vào `data/users/<id>/` (không xin scope `profile` hay `email`) |
 | `downloads` | Xuất `.md`/`.zip` |
 | `mcp` | Kết nối Gmail: `create_draft`, `send_message` |
 
@@ -63,13 +64,14 @@ claude.ai Artifact, runtime contract `0.2.96`.
 
 ### 1.5. Dữ liệu và quyền
 
-| Đường dẫn `db` | Nội dung | Đọc | Ghi |
-|---|---|---|---|
-| `data/users/<id>/runs/...` | Run, các stage, bản cuối, learning | Chính người đó | Chính người đó (Contributor+) |
-| `data/users/<id>/voicelab/...` | Mẫu văn, hồ sơ giọng văn đang soạn, phỏng vấn, A/B | Chính người đó | Chính người đó |
-| `data/users/<id>/settings` | Ghi đè model, người nhận email mặc định | Chính người đó | Chính người đó |
-| `library/<authorId>/styles/<slug>/...` | Style đã publish lên thư viện team | Mọi Contributor+ | Tác giả; owner (admin) được dọn dẹp |
+| Đường dẫn `db` | Nội dung |
+|---|---|
+| `data/users/<id>/runs/...` | Run, các stage, bản cuối, learning |
+| `data/users/<id>/voicelab/...` | Mẫu văn, hồ sơ giọng văn đang soạn, phỏng vấn, A/B |
+| `data/users/<id>/library/<slug>/...` | Style tác giả đã publish (D3a) |
+| `data/users/<id>/settings` | Ghi đè model, người nhận email mặc định |
 
+- Mọi dữ liệu nằm trong `data/users/<id>/`. Dùng quy tắc mặc định của `db`, **không khai báo quy tắc riêng**. Nếu lỡ chia sẻ Artifact, người khác vẫn không đọc được dữ liệu này.
 - Không lưu secret.
 - Không sao chép run cũ trong `runs/` hay `web_runs/` vào Artifact.
 - Artifact không ghi `runs/`.
@@ -85,19 +87,18 @@ claude.ai Artifact, runtime contract `0.2.96`.
 | Kết quả được lưu đệm 5 phút | `cache: false` cho mọi lần gọi stage, Voice Lab và learning |
 | Input tối đa 256 KiB mỗi lần gọi | Kiểm tra kích thước trước khi gọi; Voice Lab chia mẫu văn theo ngân sách byte |
 | Mỗi document `db` tối đa 256 KiB; **không có transaction** | Mỗi stage một document; publish style theo mô hình "phiên bản bất biến + con trỏ" (mục 2.4) |
-| Thành viên phải là Contributor mới ghi được | Kiểm tra `user.can("data.write")`; nếu thiếu quyền thì hiện hướng dẫn xin quyền |
 
 ### 1.7. Quyết định đã chốt
 
 | Mã | Quyết định | Hệ quả trong kế hoạch |
 |---|---|---|
 | D1 | **Có** đưa Voice Lab vào Artifact | Track ART-8.1 → 8.4. Voice Lab trong Artifact dùng **Claude**. ART-1 cập nhật quy tắc Gemini-only (xem bên dưới) |
-| D2 | Owner và đồng đội cùng tổ chức Claude Team | Chia sẻ Contributor; quy tắc truy cập `db` theo mục 1.5; kiểm tra quyền với tài khoản thứ hai |
+| D2 | Mỗi tác giả một Artifact riêng; đồng đội tự clone | Gói clone + tem phiên bản (ART-4); kiểm tra bằng tài khoản thứ hai |
 | D3 | Skill sửa trong repo rồi build lại; Artifact chỉ đọc | Style hệ thống trong bundle là read-only và được bảo vệ |
 | D4 | Bảng model phương án Cân bằng | Khối `claude:` (mục 2.3); chốt lại sau ART-6.2 |
 | D5 | Có Gmail, không có dictation | ART-7 (Gmail); bỏ dictation |
 | D6 | Mã nguồn ở `artifact/` trong repo | — |
-| D7 | Gọi model theo tên | `sample({ model, effort, modelTier })`; ART-0 xác nhận trên tài khoản của owner và một đồng đội |
+| D7 | Gọi model theo tên | `sample({ model, effort, modelTier })`; ART-0 xác nhận trên tài khoản của owner và tài khoản kiểm tra thứ hai |
 
 **Xung đột cần ghi nhận (AGENTS.md §1):**
 
@@ -107,13 +108,13 @@ claude.ai Artifact, runtime contract `0.2.96`.
   - Voice Lab Python/Streamlit giữ nguyên Gemini-only.
 - ART-1 phải sửa ba tài liệu này **trước khi** viết code Voice Lab.
 
-**D3a — làm rõ để D1 và D3 cùng đứng được.** Voice Lab sinh ra style mới, trong khi D3 nói Artifact chỉ đọc skill. Hướng xử lý:
+**D3a (đã chốt) — để D1 và D3 cùng đứng được:**
 
 - Style hệ thống (trong repo, bundle) chỉ đọc và được bảo vệ, giống `is_protected`.
-- Style do Voice Lab tạo nằm trong **thư viện team trên `db`**, chạy được ngay trong Artifact.
+- Style do Voice Lab tạo nằm trong **thư viện riêng của tác giả** (`data/users/<id>/library/`), chạy được ngay trong Artifact của họ.
 - Muốn đưa một style thành style hệ thống: xuất zip đúng định dạng `engine/voice_lab/archive.py`, commit vào repo, build lại bundle. Bản trong thư viện được đánh dấu "đã chuyển vào repo" và bị ẩn.
 - Mỗi style chỉ có **một nơi ở** tại một thời điểm, nên không có hai nguồn chân lý.
-- ART-8.4 giữ DRAFT tới khi người dùng xác nhận D3a.
+- Đồng đội nhận style hệ thống mới bằng cách publish lại bản clone từ bundle mới.
 
 ---
 
@@ -129,7 +130,7 @@ engine/voice_lab/{models,compiler,   ┤   xuất JSON Schema + hằng số Voic
   calibration,prompts}.py ───────────┘                                            │     │
 artifact/src/*.js (core thuần) ──────────────────────────────────────────────────┘     │
                                    sample (theo tên model) ◄───────────────────────────┤
-                                   db: data/users/<id>/… , library/<authorId>/… ◄──────┤
+                                   db: data/users/<id>/… (runs, voicelab, library) ◄───┤
                                    downloads (.md/.zip) ◄──────────────────────────────┤
                                    mcp Gmail: create_draft / send_message ◄────────────┘
 ```
@@ -194,10 +195,10 @@ artifact/src/*.js (core thuần) ───────────────�
 
 Ánh xạ quy trình `staging → validate → backup → replace` của `publisher.py`:
 
-1. **Staging:** ghi toàn bộ style (6 hoặc 7 skill đã compile, `style_meta`, hồ sơ v2) thành **một** document bất biến `library/<authorId>/styles/<slug>/versions/<versionId>`. Ước khoảng 50–80 KB, dưới giới hạn 256 KiB.
+1. **Staging:** ghi toàn bộ style (6 hoặc 7 skill đã compile, `style_meta`, hồ sơ v2) thành **một** document bất biến `data/users/<id>/library/<slug>/versions/<versionId>`. Ước khoảng 50–80 KB, dưới giới hạn 256 KiB.
 2. **Validate:** đọc lại document đó; kiểm tra schema, flow–skill contract, các trường bất biến, slug/alias duy nhất trong mode so với bundle và thư viện.
 3. **Backup:** phiên bản trước vẫn được giữ nguyên, không xóa.
-4. **Replace:** cập nhật **một** document con trỏ `library/<authorId>/styles/<slug>` → `currentVersion`. Ghi một document là nguyên tử.
+4. **Replace:** cập nhật **một** document con trỏ `data/users/<id>/library/<slug>` → `currentVersion`. Ghi một document là nguyên tử.
 5. **Rollback:** trỏ con trỏ về phiên bản trước.
 
 Style hệ thống trong bundle không bao giờ bị ghi đè. Slug trùng với style hệ thống thì bị từ chối.
@@ -208,7 +209,7 @@ Style hệ thống trong bundle không bao giờ bị ghi đè. Slug trùng vớ
 
 | Mã | Output | Bằng chứng | Phụ thuộc |
 |---|---|---|---|
-| O-01 | Báo cáo spike: model gọi theo tên có chạy cho owner và một đồng đội; độ trễ; bài dài có bị cắt; độ tin cậy của `sample.json`; giới hạn `db`; quyền Contributor | Số liệu đo trên claude.ai | — |
+| O-01 | Báo cáo spike: model gọi theo tên có chạy cho owner và tài khoản thứ hai; độ trễ; bài dài có bị cắt; độ tin cậy của `sample.json`; giới hạn `db` | Số liệu đo trên claude.ai | — |
 | O-02 | Quy tắc Voice Lab được cập nhật trong AGENTS.md §4, SKILL.md, architecture-invariants.md | Diff tài liệu | D1 |
 | O-03 | Khối `claude:` trong `engine/config.example.yaml` | Diff + test schema | O-01 |
 | O-04 | `artifact/build_bundle.py` → `bundle.json` (flow, skill, bảng model, JSON Schema Voice Lab, hằng số, base template) | pytest (tmp_path); hash tất định | O-02, O-03 |
@@ -216,7 +217,7 @@ Style hệ thống trong bundle không bao giờ bị ghi đè. Slug trùng vớ
 | O-06 | Core JS workflow + test `node --test` | Log test | O-04, O-05 |
 | O-07 | Artifact MVP đã publish (chạy workflow, streaming, Stop, chạy lại stage, tải `.md`) | URL; run thật | O-06 |
 | O-08 | Test render UI bằng Playwright, `window.claude` giả lập | Log + ảnh | O-07 |
-| O-09 | Lưu `db` riêng từng người, lịch sử, chạy tiếp stage lỗi; chia sẻ team ở mức Contributor | `ArtifactData`; kiểm tra bằng tài khoản thứ hai | O-07 |
+| O-09 | Lưu `db` của tác giả, lịch sử, chạy tiếp stage lỗi; gói clone (`artifact/CLONE.md`) và tem phiên bản | `ArtifactData`; tài khoản thứ hai clone và chạy được | O-07 |
 | O-10 | Zip tương thích `runs/` | pytest: `load_step_outputs_from_run` đọc được | O-09 |
 | O-11 | Sửa bản cuối + learning loop + diff offline | Golden + run thật | O-09, O-05 |
 | O-12 | Bảng chỉnh model/effort, 3 preset, A/B mù | Test render + phiên thử | O-09 |
@@ -225,7 +226,7 @@ Style hệ thống trong bundle không bao giờ bị ghi đè. Slug trùng vớ
 | O-15 | Core JS Voice Lab + test so khớp với Python | Log `node --test` | O-04, O-05 |
 | O-16 | Voice Lab bước 1–2 (phân tích có bằng chứng, xem lại evidence) | Hồ sơ nháp thật | O-15, O-09 |
 | O-17 | Voice Lab bước 3–4 (phỏng vấn, A/B calibration) | Phiên thật | O-16 |
-| O-18 | Voice Lab bước 5 (compile, publish vào thư viện team, rollback, dùng trong workflow, xuất zip lên repo) | Run thật bằng style mới; kiểm tra quyền | O-17, O-07 |
+| O-18 | Voice Lab bước 5 (compile, publish vào thư viện riêng, rollback, dùng trong workflow, xuất zip lên repo) | Run thật bằng style mới | O-17, O-07 |
 
 Không có vòng phụ thuộc. Đường găng: O-01 → O-03 → O-04 → O-05 → O-06 → O-07 → O-09 → O-11 → … → O-15 → O-16 → O-17 → O-18.
 
@@ -237,11 +238,11 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 
 | Chặng | PRD | Increment khi đóng | Loại |
 |---|---|---|---|
-| T0 | ART-0 | Bằng chứng runtime cho D2, D7 và Voice Lab | Spike |
+| T0 | ART-0 | Bằng chứng runtime cho D7 và Voice Lab, trên hai tài khoản | Spike |
 | T1 | ART-1 | Quy tắc cập nhật; bundle và golden fixtures từ repo | Contract (repo) |
 | T2 | ART-2 | Core JS workflow khớp Python | Build |
 | T3 | ART-3 | **MVP:** viết blog trên claude.ai | Vertical slice |
-| T4 | ART-4 | Lịch sử riêng từng người, chia sẻ team, xuất zip | Build |
+| T4 | ART-4 | Lịch sử run, xuất zip, gói clone cho đồng đội | Build |
 | T5 | ART-5 | Bản cuối và learning loop | Build |
 | T6a | ART-6.1 | Công cụ chỉnh model và A/B | Build |
 | T6b | ART-6.2 | Bảng model chốt bằng dữ liệu thật | **Owner chờ dữ liệu nhiều ngày**, chạy cùng lúc với T7–T8 |
@@ -249,7 +250,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | T8a | ART-8.1 | Core JS Voice Lab khớp Python | Build |
 | T8b | ART-8.2 | Voice Lab: phân tích và xem lại evidence | Build |
 | T8c | ART-8.3 | Voice Lab: phỏng vấn và A/B calibration | Build |
-| T8d | ART-8.4 | Voice Lab: compile, publish, dùng style mới để viết | Build (chờ xác nhận D3a) |
+| T8d | ART-8.4 | Voice Lab: compile, publish, dùng style mới để viết | Build |
 
 ---
 
@@ -257,11 +258,11 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 
 | PRD | Tên | Chặng | Owner tổng hợp | Nghiệm thu | Trạng thái |
 |---|---|---|---|---|---|
-| ART-0 | Spike runtime | T0 | Agent | Owner | BACKLOG |
+| ART-0 | Spike runtime | T0 | Agent | Owner | ON-GOING |
 | ART-1 | Quy tắc, bundle, contract | T1 | Agent | Owner | BACKLOG |
 | ART-2 | Core engine JS | T2 | Agent | Owner | BACKLOG |
 | ART-3 | MVP vertical slice | T3 | Agent | Owner | BACKLOG |
-| ART-4 | Lưu trữ, team, xuất file | T4 | Agent | Owner | BACKLOG |
+| ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | BACKLOG |
 | ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | BACKLOG |
 | ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | BACKLOG |
 | ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | BACKLOG |
@@ -269,7 +270,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | ART-8.1 | Core Voice Lab JS | T8a | Agent | Owner | BACKLOG |
 | ART-8.2 | Voice Lab: phân tích và evidence | T8b | Agent | Owner | BACKLOG |
 | ART-8.3 | Voice Lab: phỏng vấn và A/B calibration | T8c | Agent | Owner | BACKLOG |
-| ART-8.4 | Voice Lab: compile, publish, sử dụng | T8d | Agent | Owner | DRAFT (chờ D3a) |
+| ART-8.4 | Voice Lab: compile, publish, sử dụng | T8d | Agent | Owner | BACKLOG |
 
 ---
 
@@ -277,20 +278,26 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 
 ### ART-0 — Spike runtime
 
-- **Mục tiêu:** xác nhận D7 và D2 hoạt động đúng trên tổ chức Claude Team; đo các giới hạn mà Voice Lab và bài dài phụ thuộc vào.
-- **Phạm vi:** một Artifact nháp. Người dùng đồng ý tiêu quota cho khoảng 10–12 lần gọi thật (AGENTS §4).
-  - Gọi `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` theo tên, từ tài khoản owner và **một đồng đội**.
-  - Gọi `writing_agent` với prompt cỡ thật, bài khoảng 1800 từ.
-  - Gọi `sample.json` 3 lần với prompt phân tích Voice Lab cỡ thật.
-  - Ghi một document `db` khoảng 200 KB.
-  - Đồng đội ở mức Contributor ghi vào `data/users/<id>/`.
+- **Mục tiêu:** xác nhận D7 trên tổ chức Claude Team từ hai tài khoản; đo các giới hạn mà bài dài và Voice Lab phụ thuộc vào.
+- **Phạm vi:** một Artifact nháp (`artifact/spike/`), chia sẻ **tạm thời** ở mức Contributor cho tài khoản kiểm tra thứ hai do owner chỉ định. Người dùng đã đồng ý tiêu quota (AGENTS §4).
+  - **Owner (7 lần gọi):**
+    - 3 lần gọi ngắn `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` theo tên.
+    - 1 lần `writing_agent` (Opus 5.5, high) với prompt cỡ thật, bài 1200–1800 từ.
+    - 3 lần `sample.json` với prompt phân tích Voice Lab cỡ thật (Opus 5.5, high).
+    - Ghi và đọc lại một document `db` khoảng 200 KB (không gọi Claude).
+  - **Tài khoản thứ hai (3 lần gọi):** 3 lần gọi ngắn theo tên.
+  - Prompt dựng bằng chính hàm Python (`build_step_prompt`, `build_analysis_prompt`) từ fixture `examples/`; không gọi `run_workflow()`, không ghi `runs/`.
+  - Kết quả lưu vào `db` của spike để agent đọc bằng `ArtifactData`. JSON phân tích được kiểm lại bằng parser Pydantic của repo.
 - **Output:** O-01.
 - **AC:**
-  - ART-0-AC1: bảng `modelApplied` / `modelTierApplied` / thời gian / `truncated` cho từng model × tài khoản.
-  - ART-0-AC2: bài khoảng 1800 từ kèm handoff không bị `truncated`. Nếu bị cắt: đề xuất cách xử lý trước ART-2.
-  - ART-0-AC3: tỉ lệ `sample.json` qua được JSON Schema phân tích. Nếu dưới 3/3: đề xuất chiến lược sửa prompt hoặc chia nhỏ.
-  - ART-0-AC4: đồng đội Contributor ghi và đọc được dữ liệu riêng; owner không đọc được dữ liệu đó.
-- **Điều kiện đóng:** owner duyệt báo cáo. Nếu model nào không chạy theo tên, ghi rõ việc hạ xuống `modelTier` vào ART-1.
+  - ART-0-AC1: bảng `modelApplied` / `modelTierApplied` / thời gian tới chữ đầu / tổng thời gian / `truncated` cho từng model × tài khoản.
+  - ART-0-AC2: bài 1200–1800 từ kèm handoff không bị `truncated`, đủ hai section. Nếu bị cắt: đề xuất cách xử lý trước ART-2.
+  - ART-0-AC3: tỉ lệ `sample.json` qua được `parse_analysis_response` của repo. Nếu dưới 3/3: đề xuất cách sửa prompt hoặc chia nhỏ.
+  - ART-0-AC4: ghi và đọc lại document khoảng 200 KB thành công.
+- **Điều kiện đóng:**
+  - Owner duyệt báo cáo `docs/2026-11-xx-art0-spike-report.md`.
+  - Gỡ quyền chia sẻ tạm của spike.
+  - Nếu model nào không chạy theo tên, ghi rõ việc hạ xuống `modelTier` vào ART-1.
 - **Issue dự kiến:** 1.
 
 ### ART-1 — Quy tắc, bundle, contract
@@ -351,21 +358,22 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 - **NFR:** trang vẫn tải được khi không có `sample`; không cuộn ngang ở 390px.
 - **Issue dự kiến:** 2.
 
-### ART-4 — Lưu trữ, team, xuất file
+### ART-4 — Lưu trữ, xuất file, gói clone
 
 - **Phạm vi:**
   - `repository_db.js` lưu tại `data/users/<id>/runs/{runId}` và `.../stages/{stageId}`; checkpoint sau mỗi stage.
   - Lịch sử run; "Chạy tiếp từ stage lỗi".
   - Zip bố cục `runs/`.
-  - Khai báo quy tắc `db` cho team (mục 1.5, trừ `library` sẽ thêm ở ART-8.4).
-  - Màn kiểm tra quyền: thiếu Contributor thì hiện hướng dẫn xin quyền.
-  - Hướng dẫn owner chia sẻ Artifact ở mức Contributor cho thành viên tổ chức.
+  - **Gói clone cho đồng đội:**
+    - `artifact/CLONE.md` hướng dẫn publish `dist/index.html` thành Artifact riêng dưới tài khoản của họ, và cách cập nhật lên đúng URL cũ.
+    - Tem phiên bản (hash bundle, ngày build) hiện trên trang.
 - **Dependency:** O-07.
 - **AC:**
-  - ART-4-AC1: `ArtifactData list` thấy run của owner; đọc ở cấp quyền thấp hơn không thấy dữ liệu riêng.
-  - ART-4-AC2: một đồng đội chạy, lưu, mở lại run của họ; owner không thấy run đó.
-  - ART-4-AC3: pytest (tmp_path): `load_step_outputs_from_run` đọc đúng zip mẫu.
-  - ART-4-AC4: Run ID không trùng; không ghi đè run; hẹn giờ tải 10 giây; `db` rỗng hiển thị đúng.
+  - ART-4-AC1: `ArtifactData list` thấy run của owner; đọc ở cấp quyền thấp hơn không thấy dữ liệu trong `data/users/`.
+  - ART-4-AC2: tài khoản thứ hai làm theo `CLONE.md`, publish bản riêng, chạy và lưu một run; dữ liệu hai bản độc lập.
+  - ART-4-AC3: publish lại bản build mới lên cùng URL vẫn giữ lịch sử run.
+  - ART-4-AC4: pytest (tmp_path): `load_step_outputs_from_run` đọc đúng zip mẫu.
+  - ART-4-AC5: Run ID không trùng; không ghi đè run; hẹn giờ tải 10 giây; `db` rỗng hiển thị đúng.
 - **Issue dự kiến:** 2.
 
 ### ART-5 — Bản cuối và learning loop
@@ -424,7 +432,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 - **AC:**
   - ART-7-AC1: bản nháp có đủ file đính kèm xuất hiện trong Gmail của owner.
   - ART-7-AC2: "Gửi ngay" chỉ chạy sau xác nhận.
-  - ART-7-AC3: đồng đội dùng Gmail của chính họ.
+  - ART-7-AC3: trong bản clone của tài khoản thứ hai, email đi từ Gmail của chính người đó.
   - ART-7-AC4: lỗi `tool_error` hoặc thiếu quyền được hiển thị rõ, không tự thử lại.
 - **Issue dự kiến:** 1.
 
@@ -454,7 +462,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 - **AC:**
   - ART-8.2-AC1: một hồ sơ nháp thật được tạo từ mẫu văn thật.
   - ART-8.2-AC2: lỗi `invalid_json` hoặc sai schema → hiện lỗi, hồ sơ giữ nguyên trạng thái draft, không có DNA giả.
-  - ART-8.2-AC3: dữ liệu mẫu văn và hồ sơ nháp riêng tư (kiểm tra bằng tài khoản thứ hai).
+  - ART-8.2-AC3: mẫu văn và hồ sơ nháp nằm trong `data/users/<id>/voicelab/`; đọc ở cấp quyền thấp hơn không thấy.
 - **Issue dự kiến:** 2.
 
 ### ART-8.3 — Voice Lab: phỏng vấn và A/B calibration (bước 3–4)
@@ -469,21 +477,19 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-8.3-AC3: mapping A/B chỉ lộ sau khi chọn.
 - **Issue dự kiến:** 2.
 
-### ART-8.4 — Voice Lab: compile, publish và sử dụng (bước 5) — DRAFT, chờ D3a
+### ART-8.4 — Voice Lab: compile, publish và sử dụng (bước 5)
 
 - **Phạm vi:**
   - Compile lên base template của style hệ thống đã chọn.
-  - Publish theo mục 2.4 vào `library/<authorId>/styles/<slug>`, có rollback.
-  - Khai báo thêm quy tắc `library` (đọc: `interact`; ghi: tác giả ở `{self}`; prefix: `admin`). Nhắc lại đầy đủ các quy tắc cũ vì khai báo capability là thay toàn bộ.
-  - Style thư viện xuất hiện trong danh sách chọn style của workflow, có nhãn "Thư viện team · tác giả".
+  - Publish theo mục 2.4 vào `data/users/<id>/library/<slug>`, có rollback.
+  - Style thư viện xuất hiện trong danh sách chọn style của workflow, có nhãn "Style của tôi".
   - Xuất zip theo định dạng `archive.py` để đưa lên repo; đánh dấu "đã chuyển vào repo" khi bundle mới chứa style đó.
 - **Dependency:** O-17, O-07.
 - **AC:**
   - ART-8.4-AC1: một style mới được publish và dùng để chạy một workflow thật thành công.
   - ART-8.4-AC2: slug trùng style hệ thống hoặc style thư viện cùng mode → bị từ chối; style hệ thống không bị ghi đè.
   - ART-8.4-AC3: rollback đưa con trỏ về phiên bản trước; phiên bản cũ còn nguyên.
-  - ART-8.4-AC4: đồng đội đọc được style trong thư viện nhưng không sửa được style của người khác; owner xóa được (`ArtifactData` ở các cấp quyền).
-  - ART-8.4-AC5: zip xuất ra được `import_style` của Python đọc thành công (pytest, tmp_path).
+  - ART-8.4-AC4: zip xuất ra được `import_style` của Python đọc thành công (pytest, tmp_path).
 - **Issue dự kiến:** 2.
 
 ---
@@ -496,7 +502,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | T1 | pytest với `tmp_path`, không gọi API, chụp `runs/` trước và sau | Chạy `run_workflow()` với `log_dir: runs` |
 | T2, T8a | `node --test`, client giả, so khớp golden | Gọi `sample` thật |
 | T3 | Playwright với `window.claude` giả để kiểm tra UI; **run thật** để nghiệm thu | Dùng mock để tuyên bố runtime đạt |
-| T4, T8d | `ArtifactData` ở nhiều cấp quyền; tài khoản đồng đội thật; pytest tương thích zip | Ghi zip thử vào `runs/` hoặc `skills/` |
+| T4, T8d | `ArtifactData` ở nhiều cấp quyền; tài khoản thứ hai clone thật; pytest tương thích zip | Ghi zip thử vào `runs/` hoặc `skills/` |
 | T5–T8 | Golden + run thật do owner/đồng đội chạy | Tự động thử lại khi lỗi |
 
 Sau mỗi chặng có code, báo cáo theo AGENTS §9: test pass/fail, có gọi API không, artifact nằm ở đâu, `runs/` có đổi không.
@@ -515,16 +521,17 @@ Sau mỗi chặng có code, báo cáo theo AGENTS §9: test pass/fail, có gọi
 | R6 | Bài bị cắt | — | Đo ở ART-0; thiếu handoff → stage lỗi |
 | R7 | Lưu đệm trả lại kết quả cũ | — | `cache: false` |
 | R8 | Hết quota, `rate_limited`, người xem từ chối consent | 7 | Chạy từng bước; dừng khi lỗi; không tự thử lại |
-| R9 | Lộ dữ liệu cá nhân | 17 | `data/users/<id>/`; kiểm tra bằng tài khoản thứ hai. Editor có thể publish quy tắc lỏng hơn → chỉ owner giữ quyền Editor |
+| R9 | Lộ dữ liệu cá nhân khi lỡ chia sẻ Artifact | 17 | Mọi dữ liệu trong `data/users/<id>/`; không khai báo quy tắc mở rộng; kiểm tra ở cấp quyền thấp hơn |
 | R10 | Hai nguồn chân lý cho style | 11 | D3a: mỗi style chỉ ở một nơi; chuyển vào repo bằng zip |
 | R11 | Ngoại lệ Voice Lab bị hiểu rộng ra | Skill kiến trúc | O-02 ghi rõ phạm vi: chỉ Artifact; Python giữ Gemini |
 | R12 | Kiến thức giữa các mode nhiễm chéo | 13 | Gắn nhãn mode/style |
 | R13 | Prompt injection trong ghi chú hoặc mẫu văn | — | Giữ câu "dữ liệu không đáng tin" trong prompt; Gmail mặc định chỉ tạo nháp, gửi phải xác nhận |
 | R14 | Vá client ở tầng thấp | 6 | Client được inject |
 | R15 | Run test lẫn vào dữ liệu nghiệp vụ | 17 | Không ghi `runs/`; test dùng `tmp_path`; `run_source` phân biệt |
-| R16 | Hai người publish cùng slug cùng lúc (không có transaction) | 15 | Namespace theo `authorId`; kiểm tra trùng trước và sau khi ghi; xung đột → yêu cầu đổi slug |
+| R16 | Hai tab cùng publish một slug (không có transaction) | 15 | Kiểm tra trùng trước và sau khi ghi con trỏ; xung đột → báo và giữ phiên bản thắng |
 | R17 | `sample.json` trả JSON sai schema cho Voice Lab | 21 | Fail-closed; đo ở ART-0-AC3; chia nhỏ hơn hoặc siết prompt |
-| R18 | Đồng đội chỉ có quyền Viewer nên không ghi được | — | `user.can("data.write")`; hướng dẫn xin quyền Contributor |
+| R18 | Bản clone của đồng đội bị cũ so với bundle mới | — | Tem phiên bản trên trang; `CLONE.md` hướng dẫn publish lại lên đúng URL cũ |
+| R19 | Publish clone lên URL mới làm mất lịch sử | — | `CLONE.md` nhấn mạnh cập nhật đúng URL cũ; AC3 của ART-4 kiểm tra |
 
 ---
 
@@ -536,10 +543,9 @@ Sau mỗi chặng có code, báo cáo theo AGENTS §9: test pass/fail, có gọi
 - [x] Runtime thật chỉ được yêu cầu từ ART-3 trở đi; spike ART-0 có sự đồng ý của người dùng.
 - [x] Không ai làm hai việc chính cùng lúc: agent build T7–T8 trong khi owner đánh giá A/B ở T6b.
 - [x] Xung đột quy tắc Voice Lab được nêu rõ và xử lý trong ART-1 trước khi có code.
-- [ ] D3a chờ người dùng xác nhận → ART-8.4 giữ DRAFT.
+- [x] D3a đã được chốt.
 
 ## 10. Bước tiếp theo
 
-1. Người dùng xác nhận D3a.
-2. Người dùng đồng ý tiêu quota cho ART-0 và chỉ định một đồng đội tham gia kiểm tra.
-3. Bắt đầu ART-0, sau đó ART-1. Tạo Issue khi người dùng yêu cầu.
+1. Thực hiện ART-0: build và publish spike; owner và tài khoản thứ hai bấm chạy; agent đọc kết quả và viết báo cáo.
+2. Sau khi owner duyệt báo cáo: bắt đầu ART-1. Tạo Issue khi người dùng yêu cầu.
