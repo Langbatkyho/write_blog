@@ -7,6 +7,8 @@
 //   data/users/<uid>/blog/runs/<runId>/stages/<stageId>
 //   data/users/<uid>/blog/runs/<runId>/production/current     bản cuối của người viết
 //   data/users/<uid>/blog/runs/<runId>/learning/<learningId>  một vòng học
+//   data/users/<uid>/blog/ab/<abId>                           một phiên so sánh A/B
+//   data/users/<uid>/settings                                 cấu hình model riêng của người dùng
 // Vùng data/users/<uid>/ là riêng tư với từng người xem, kể cả với chủ Artifact.
 import { newRunId, serializeRunDoc, serializeStageDoc } from "./run_record.js";
 
@@ -31,7 +33,10 @@ function checkSize(what, doc) {
  */
 export function createRunRepository({ db, userId, randomHex, clock = () => new Date() }) {
   if (!db || !userId) throw new RepositoryError("Không có vùng lưu trữ riêng cho tài khoản này.");
-  const runs = db.doc(`data/users/${userId}/blog`).collection("runs");
+  const blog = db.doc(`data/users/${userId}/blog`);
+  const runs = blog.collection("runs");
+  const abSessions = blog.collection("ab");
+  const settingsDoc = db.doc(`data/users/${userId}/settings`);
   // Mọi lệnh ghi đi qua một hàng đợi: không bao giờ có hai lệnh ghi chồng nhau.
   let queue = Promise.resolve();
   const enqueue = (task) => {
@@ -116,6 +121,31 @@ export function createRunRepository({ db, userId, randomHex, clock = () => new D
         const { schema, ...session } = doc.data();
         return session;
       });
+    },
+
+    /** Cấu hình model riêng đã lưu, hoặc null. */
+    async loadSettings() {
+      const snapshot = await settingsDoc.get();
+      return snapshot.exists ? snapshot.data() : null;
+    },
+
+    /** Lưu cấu hình model riêng (ghi đè so với bảng trong repo). */
+    saveSettings(settings) {
+      return enqueue(() => settingsDoc.set({ ...settings, updated_at: clock().toISOString() }));
+    },
+
+    /** Lưu một phiên A/B (tạo mới hoặc cập nhật). */
+    saveAbSession(session) {
+      return enqueue(async () => {
+        checkSize("Phiên A/B", session);
+        await abSessions.doc(session.id).set(session);
+      });
+    },
+
+    /** Các phiên A/B gần nhất, mới nhất trước. */
+    async listAbSessions(limit = 20) {
+      const snapshot = await abSessions.orderBy("created_at", "desc").limit(limit).get();
+      return snapshot.docs.map((doc) => doc.data());
     },
 
     /** Các lần chạy gần nhất, mới nhất trước. */

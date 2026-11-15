@@ -120,7 +120,7 @@ function fakeClaude(config) {
     }
     const editor = id === "breath_editor" || id === "editor_agent";
     const artifact = editor
-      ? "## Edited Blog\n\n# Chiều mưa\n\nMưa rơi trên mái tôn, ly cà phê tan đá 🌧️. Mình ngồi yên, không vội.\n\n## Edit Log\n\n- Cắt một câu lặp."
+      ? `## Edited Blog\n\n# Chiều mưa\n\nMưa rơi trên mái tôn, ly cà phê tan đá 🌧️. Mình ngồi yên, không vội. ${options.effort === "high" ? "Nhịp chậm." : "Nhịp vừa."}\n\n## Edit Log\n\n- Cắt một câu lặp.`
       : id === "sensory_capture"
         ? 'Tiếng mưa <img src=x onerror="window.__xss=1"> và mùi cà phê.'
         : `Kết quả của ${id}.`;
@@ -576,3 +576,182 @@ for (const [name, config, message] of [
     await context.close();
   });
 }
+
+// --- ART-6.1: cấu hình model riêng và A/B mù ---------------------------------
+
+const dbDoc = (page, path) => page.evaluate((key) => new Map(JSON.parse(window.name || "{}").db || []).get(key) ?? null, path);
+
+test("cấu hình model: chọn preset, lưu vào vùng riêng, lần chạy dùng đúng model; tải lại vẫn còn; về mặc định", { skip }, async () => {
+  const { context, page, errors } = await openPage({}, { width: 390 });
+  await page.click("#settings summary");
+  assert.equal(await page.textContent("#settings-summary"), "Cân bằng (mặc định)");
+  assert.ok(await page.isDisabled("#settings-save"));
+  await page.selectOption("#preset", "fast");
+  assert.match(await page.textContent("#settings-note"), /chưa lưu/);
+  assert.equal(await page.textContent("#settings-summary"), "Cân bằng (mặc định)", "chưa lưu thì chưa áp dụng");
+  await page.click("#settings-save");
+  await page.waitForFunction(() => /Đã lưu vào tài khoản/.test(document.getElementById("settings-note").textContent));
+  assert.equal(await page.textContent("#settings-summary"), "Nhanh");
+  const saved = await dbDoc(page, "data/users/u_test_owner/settings");
+  assert.equal(saved.preset, "fast");
+  assert.equal(saved.overrides.stages.breath_editor, undefined, "chỉ lưu phần khác mặc định");
+  assert.deepEqual(saved.overrides.stages.sensory_capture, { model: "claude-sonnet-5-5", effort: "medium" });
+  assert.match(await page.textContent('[data-stage="sensory_capture"] .meta'), /Sonnet 5\.5 · medium/);
+
+  await fillAndRun(page);
+  await doneAll(page, 6);
+  const calls = await page.evaluate(() => window.__calls);
+  const fast = { sensory_capture: ["claude-sonnet-5-5", "medium"], inner_weather: ["claude-sonnet-5-5", "medium"], cosmic_signal_reader: ["claude-sonnet-5-5", "medium"], moment_writer: ["claude-opus-5-5", "medium"], breath_editor: ["claude-opus-5-5", "medium"], gentle_witness: ["claude-sonnet-5-5", "medium"] };
+  for (const call of calls) assert.deepEqual([call.model, call.effort], fast[call.id], call.id);
+  await page.waitForFunction(() => /Nhanh/.test(document.querySelector("#history button")?.textContent || ""));
+
+  await page.reload();
+  await ready(page);
+  await page.waitForFunction(() => document.getElementById("settings-summary").textContent === "Nhanh");
+  await page.click("#settings summary");
+  assert.equal(await page.inputValue("#preset"), "fast");
+  // Chỉnh riêng một bước: preset thành Tùy chỉnh, hiện model mặc định để đối chiếu.
+  await page.selectOption("#effort-stages-gentle_witness", "low");
+  assert.equal(await page.inputValue("#preset"), "custom");
+  assert.equal(await page.textContent("#s-default-stages-gentle_witness"), "", "trùng mặc định thì không đánh dấu");
+  await page.selectOption("#model-stages-gentle_witness", "claude-opus-5-5");
+  assert.equal(await page.textContent("#s-default-stages-gentle_witness"), "mặc định: Sonnet 5.5 · low");
+  await page.click("#settings-save");
+  await page.waitForFunction(() => document.getElementById("settings-summary").textContent === "Tùy chỉnh");
+  assert.deepEqual((await dbDoc(page, "data/users/u_test_owner/settings")).overrides.stages.gentle_witness, { model: "claude-opus-5-5", effort: "low" });
+
+  await page.click("#settings-reset");
+  await page.waitForFunction(() => document.getElementById("settings-summary").textContent === "Cân bằng (mặc định)");
+  assert.deepEqual((await dbDoc(page, "data/users/u_test_owner/settings")).overrides, {});
+  assert.equal(await page.inputValue("#preset"), "balanced");
+  assert.ok(await page.isDisabled("#settings-reset"));
+  await noHorizontalScroll(page);
+  await shot(page, "settings-390-light");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("cấu hình model khi không có quyền lưu trữ: lưu trong trình duyệt", { skip }, async () => {
+  const { context, page } = await openPage({ noDb: true });
+  await page.click("#settings summary");
+  await page.selectOption("#preset", "max");
+  await page.click("#settings-save");
+  await page.waitForFunction(() => /trong trình duyệt này/.test(document.getElementById("settings-note").textContent));
+  const local = await page.evaluate(() => JSON.parse(localStorage.getItem("mindful-blog-workflow:model-settings:v1")));
+  assert.equal(local.preset, "max");
+  await fillAndRun(page);
+  await doneAll(page, 6);
+  for (const call of await page.evaluate(() => window.__calls)) assert.deepEqual([call.model, call.effort], ["claude-opus-5-5", "high"]);
+  await context.close();
+});
+
+test("A/B mù: chạy hai cấu hình, giấu cấu hình tới khi chốt, lưu phiên và hiện trong lịch sử sau khi chốt", { skip }, async () => {
+  const { context, page, errors } = await openPage({}, { width: 1280 });
+  await page.fill("#title", "Chiều mưa");
+  await page.fill("#raw-notes", "- Mưa rào bất chợt");
+  await page.click("#ab-setup summary");
+  assert.match(await page.textContent("#ab-cost"), /12 lần/);
+  await page.selectOption("#ab-config-2", "preset:balanced");
+  await page.click("#ab-start");
+  assert.match(await page.textContent("#ab-note"), /giống hệt/);
+  assert.equal((await page.evaluate(() => window.__calls)).length, 0);
+
+  await page.selectOption("#ab-config-2", "preset:max");
+  await page.click("#ab-start");
+  await page.waitForFunction(() => !document.getElementById("ab-choose").hidden);
+  const calls = await page.evaluate(() => window.__calls);
+  assert.equal(calls.length, 12);
+  const byRun = [calls.slice(0, 6), calls.slice(6)];
+  const isMax = (list) => list.every((call) => call.model === "claude-opus-5-5" && call.effort === "high");
+  const isBalanced = (list) => list.every((call) => call.model === bundle.models.stages[call.id].model && call.effort === bundle.models.stages[call.id].effort);
+  assert.ok((isMax(byRun[0]) && isBalanced(byRun[1])) || (isMax(byRun[1]) && isBalanced(byRun[0])));
+
+  // Trước khi chốt: khung A/B không có tên cấu hình hay tên model.
+  const blindText = await page.textContent("#ab-view");
+  for (const secret of ["Cân bằng", "Chất lượng tối đa", "Opus", "Sonnet", "claude-", "high"]) assert.ok(!blindText.includes(secret), secret);
+  assert.equal(await page.locator("#ab-drafts article").count(), 2);
+  assert.ok(await page.isHidden("#ab-reveal"));
+  assert.equal(await page.textContent("#history-note"), "Chưa có lần chạy nào được lưu.", "bài A/B chưa chốt bị ẩn khỏi lịch sử");
+  const maxLetter = (await page.textContent('#ab-drafts article[data-letter="A"]')).includes("Nhịp chậm") ? "A" : "B";
+
+  await page.click("#ab-decide");
+  assert.match(await page.textContent("#ab-choose-note"), /Hãy chọn/);
+  await page.check(`#ab-choice-${maxLetter.toLowerCase()}`);
+  await page.fill("#ab-reason", "Nhịp chậm hợp giọng mình");
+  await page.click("#ab-decide");
+  await page.waitForFunction(() => !document.getElementById("ab-reveal").hidden);
+  const chosenRow = await page.textContent(`#ab-reveal li[data-letter="${maxLetter}"]`);
+  assert.match(chosenRow, /Chất lượng tối đa/);
+  assert.match(chosenRow, /bạn chọn/);
+  assert.match(await page.textContent("#ab-reveal"), /Cân bằng/);
+  assert.match(await page.textContent("#ab-reveal"), /Ghi chú: Nhịp chậm hợp giọng mình/);
+
+  await page.waitForFunction(() => document.querySelectorAll("#history li").length === 2);
+  assert.match(await page.textContent("#history"), new RegExp(`A/B · bài ${maxLetter} ✓`));
+  const sessionId = await page.getAttribute("#ab-list button", "data-ab");
+  const session = await dbDoc(page, `data/users/u_test_owner/blog/ab/${sessionId}`);
+  assert.equal(session.status, "decided");
+  assert.equal(session.choice, maxLetter);
+  assert.equal(session.configs[session.chosen_config].preset, "max");
+  assert.equal(session.note, "Nhịp chậm hợp giọng mình");
+  assert.equal(session.run_ids.length, 2);
+  for (const runId of session.run_ids) {
+    const runDoc = await dbDoc(page, `data/users/u_test_owner/blog/runs/${runId}`);
+    assert.equal(runDoc.ab_session.decided, true);
+    assert.equal(runDoc.status, "completed");
+  }
+  await noHorizontalScroll(page);
+  await shot(page, "ab-decided-1280");
+
+  await page.reload();
+  await ready(page);
+  await page.waitForFunction(() => document.querySelectorAll("#ab-list li").length === 1);
+  assert.match(await page.textContent("#ab-list"), /Chọn: Chất lượng tối đa/);
+  await page.click("#ab-setup summary");
+  await page.click("#ab-list button");
+  await page.waitForFunction(() => !document.getElementById("ab-reveal").hidden);
+  assert.equal(await page.locator("#ab-drafts article").count(), 2);
+  assert.equal((await page.evaluate(() => window.__calls)).length, 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("A/B bị gián đoạn: mở lại phiên và chạy tiếp; bấm Dừng rồi chạy tiếp", { skip }, async () => {
+  const { context, page, errors } = await openPage({ holdOn: "moment_writer" }, { width: 390 });
+  await page.fill("#raw-notes", "- Mưa rào bất chợt");
+  await page.click("#ab-setup summary");
+  await page.selectOption("#ab-config-2", "preset:fast");
+  await page.click("#ab-start");
+  await page.waitForFunction(() => /bài A · bước 4\/6/.test(document.getElementById("ab-status").textContent));
+  await page.waitForFunction(() => window.__flag("held") === true);
+  await page.reload();
+  await ready(page);
+  await page.waitForFunction(() => document.querySelectorAll("#ab-list li").length === 1);
+  assert.match(await page.textContent("#ab-list"), /Chưa chọn/);
+  await page.click("#ab-setup summary");
+  await page.click("#ab-list button");
+  await page.waitForFunction(() => !document.getElementById("ab-resume").hidden);
+  await page.click("#ab-resume");
+  await page.waitForFunction(() => !document.getElementById("ab-choose").hidden);
+  assert.equal((await page.evaluate(() => window.__calls)).length, 3 + 6, "chỉ chạy các bước còn thiếu");
+
+  // Dừng giữa chừng ở phiên mới rồi chạy tiếp: bước bị dừng được chạy lại.
+  await page.evaluate(() => {
+    window.__flag("held", false);
+    window.__calls = [];
+  });
+  await page.click("#ab-close");
+  await page.fill("#raw-notes", "- Mưa rào bất chợt");
+  await page.click("#ab-start");
+  await page.waitForFunction(() => window.__flag("held") === true);
+  await page.click("#ab-stop");
+  await page.waitForFunction(() => /đã dừng/.test(document.getElementById("ab-status").textContent));
+  assert.ok(await page.isVisible("#ab-resume"));
+  await page.click("#ab-resume");
+  await page.waitForFunction(() => !document.getElementById("ab-choose").hidden);
+  const ids = (await page.evaluate(() => window.__calls)).map((call) => call.id);
+  assert.equal(ids.filter((id) => id === "moment_writer").length, 3, "bài đầu: lần bị dừng + lần chạy lại; bài sau: một lần");
+  await noHorizontalScroll(page);
+  assert.deepEqual(errors, []);
+  await context.close();
+});

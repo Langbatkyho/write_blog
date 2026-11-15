@@ -125,6 +125,24 @@ ul.history button:disabled { cursor: not-allowed; opacity: 0.6; }
 ul.history .h-title { font-weight: 500; overflow-wrap: anywhere; }
 ul.history .h-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-family: var(--font-data); font-size: 0.72rem; color: var(--muted); }
 ul.history .h-meta .bad { color: var(--bad); } ul.history .h-meta .ok { color: var(--ok); } ul.history .h-meta .warn { color: var(--warn); }
+.settings-panel > details > summary, .ab-panel > details > summary { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.settings-body, .ab-body { display: grid; gap: 12px; margin-top: 12px; min-width: 0; }
+fieldset.settings-group { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 10px 0 0; display: grid; gap: 6px; min-width: 0; }
+fieldset.settings-group legend { font-size: 0.8rem; font-weight: 600; color: var(--muted); padding: 0 6px 0 0; }
+.settings-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 7.5rem) minmax(0, 5.5rem); gap: 6px; align-items: center; }
+.settings-row select { padding: 4px 6px; font-size: 0.82rem; }
+.settings-row .s-label { display: grid; font-size: 0.85rem; min-width: 0; overflow-wrap: anywhere; }
+.settings-row .s-default { font-family: var(--font-data); font-size: 0.68rem; color: var(--muted); }
+.settings-row.changed .s-label > span:first-child { color: var(--accent); font-weight: 500; }
+.ab-view { display: grid; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 16px; min-width: 0; }
+.ab-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1100px) { .ab-grid { grid-template-columns: minmax(0, 1fr); } }
+.ab-draft { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 0; align-content: start; }
+.ab-draft pre.text { max-height: 560px; }
+ul.ab-reveal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.ab-reveal-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+ul.ab-reveal-list li.chosen { border-color: var(--accent); background: var(--accent-soft); }
+ul.ab-reveal-list .ok { color: var(--ok); font-size: 0.82rem; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
@@ -201,9 +219,75 @@ ul.history .h-meta .bad { color: var(--bad); } ul.history .h-meta .ok { color: v
       <p class="hint" id="history-note" aria-live="polite">Đang tải…</p>
       <ul class="history" id="history"></ul>
     </section>
+    <section class="panel settings-panel" id="settings-panel">
+      <details id="settings">
+        <summary><span id="settings-title">Model cho từng bước</span> <span class="chip" id="settings-summary">Cân bằng (mặc định)</span></summary>
+        <div class="settings-body">
+          <div class="field">
+            <label for="preset">Bộ cấu hình có sẵn</label>
+            <select id="preset"></select>
+            <span class="hint" id="preset-hint"></span>
+          </div>
+          <div id="settings-table"></div>
+          <div class="row">
+            <button type="button" class="primary" id="settings-save" disabled>Lưu cấu hình</button>
+            <button type="button" class="ghost" id="settings-reset" disabled>Về mặc định</button>
+          </div>
+          <p class="hint" id="settings-note" aria-live="polite"></p>
+          <p class="hint">Cấu hình là riêng của bạn. Mỗi lần chạy giữ bảng model lúc bắt đầu, kể cả khi chạy lại một bước.</p>
+        </div>
+      </details>
+    </section>
+    <section class="panel ab-panel" id="ab-panel">
+      <details id="ab-setup">
+        <summary><span id="ab-title">So sánh A/B mù</span></summary>
+        <div class="ab-body">
+          <p class="hint">Viết cùng ghi chú ở trên bằng hai cấu hình model. Hai bài hiện ra dưới nhãn A và B theo thứ tự ngẫu nhiên; chỉ sau khi bạn chốt mới biết bài nào của cấu hình nào.</p>
+          <div class="field">
+            <label for="ab-config-1">Cấu hình 1</label>
+            <select id="ab-config-1"></select>
+          </div>
+          <div class="field">
+            <label for="ab-config-2">Cấu hình 2</label>
+            <select id="ab-config-2"></select>
+          </div>
+          <p class="hint warn-text" id="ab-cost"></p>
+          <div class="row"><button type="button" class="ghost" id="ab-start">Chạy A/B</button></div>
+          <p class="hint" id="ab-note" aria-live="polite"></p>
+          <h3>Các phiên gần đây</h3>
+          <p class="hint" id="ab-list-note"></p>
+          <ul class="history" id="ab-list"></ul>
+        </div>
+      </details>
+    </section>
     </div>
 
     <div class="panel" style="gap:18px">
+      <section class="ab-view" id="ab-view" aria-labelledby="ab-view-title" hidden>
+        <div class="row" style="justify-content:space-between">
+          <h2 id="ab-view-title">So sánh A/B</h2>
+          <div class="row">
+            <button type="button" class="small" id="ab-stop" hidden>Dừng</button>
+            <button type="button" class="small" id="ab-close">Đóng</button>
+          </div>
+        </div>
+        <p class="hint" id="ab-status" aria-live="polite"></p>
+        <div class="row"><button type="button" class="ghost" id="ab-resume" hidden>Chạy tiếp</button></div>
+        <div class="ab-grid" id="ab-drafts"></div>
+        <div class="field" id="ab-choose" hidden>
+          <span class="label" id="ab-choice-label">Bài nào hay hơn?</span>
+          <div class="radio" role="radiogroup" aria-labelledby="ab-choice-label">
+            <label><input type="radio" name="ab-choice" id="ab-choice-a" value="A"> Bài A</label>
+            <label><input type="radio" name="ab-choice" id="ab-choice-b" value="B"> Bài B</label>
+            <label><input type="radio" name="ab-choice" id="ab-choice-tie" value="tie"> Ngang nhau</label>
+          </div>
+          <label for="ab-reason">Vì sao (không bắt buộc)</label>
+          <textarea id="ab-reason" rows="2"></textarea>
+          <div class="row"><button type="button" class="primary" id="ab-decide">Chốt lựa chọn</button></div>
+          <p class="hint" id="ab-choose-note" aria-live="polite"></p>
+        </div>
+        <div id="ab-reveal" hidden></div>
+      </section>
       <section class="final" id="final" aria-labelledby="final-title" hidden>
         <div class="row" style="justify-content:space-between">
           <h2 id="final-title">Bản nháp</h2>

@@ -1,10 +1,21 @@
 // Giao diện (ART-3, ART-4). Chỉ lo hiển thị và tương tác; mọi logic workflow và
 // lưu trữ nằm trong ../core. Nội dung do model sinh luôn được gán qua textContent.
+import { blindDrafts, createAbSession, decideAb, revealAb } from "../core/ab.js";
 import { listStyles, validateBundle } from "../core/contracts.js";
 import { createSampleClient } from "../core/client_sample.js";
 import { exportRunFiles } from "../core/export.js";
 import { buildAuthorInput, slugify } from "../core/input.js";
 import { learningBlocker, runLearning } from "../core/learning.js";
+import {
+  cleanOverrides,
+  effectiveModels,
+  matchingPreset,
+  modelProfile,
+  overridesFrom,
+  PRESETS,
+  presetModels,
+  withModels,
+} from "../core/model_settings.js";
 import { createRun, nextStageIndex, retryStage, runStage, RUN_STATUS } from "../core/orchestrator.js";
 import { buildRunMarkdown, collectFinalOutputs } from "../core/outputs.js";
 import { countWords } from "../core/parser.js";
@@ -50,6 +61,7 @@ const DB_ERROR_TEXT = {
 };
 const HISTORY_STATUS = { completed: ["Xong", "ok"], failed: ["Lỗi", "bad"], cancelled: ["Đã dừng", "warn"], running: ["Đang dở", "warn"] };
 const DRAFT_KEY = "mindful-blog-workflow:draft:v1";
+const SETTINGS_KEY = "mindful-blog-workflow:model-settings:v1";
 const STORE_TIMEOUT_MS = 10000;
 
 const $ = (id) => document.getElementById(id);
@@ -80,6 +92,13 @@ const state = {
   learningSelected: null,
   learningLive: null,
   learningMessage: "",
+  settings: null,
+  settingsDraft: null,
+  settingsMessage: "",
+  ab: null,
+  abSessions: [],
+  abMessage: "",
+  abRenderedKey: null,
 };
 
 function withTimeout(promise, ms) {
@@ -199,7 +218,7 @@ function stageCard(stageId, index, total) {
   const result = run?.results[stageId];
   const status = result ? result.status : state.liveStage === stageId ? "running" : "pending";
   const [label, question] = AGENTS[stageId] || [stageId, ""];
-  const requested = state.bundle.models.stages[stageId];
+  const requested = result?.model ? { model: result.model, effort: result.effort } : (run?.models || activeModels()).stages[stageId];
   const meta = [h("span", { text: `${modelName(requested.model)} · ${requested.effort}` })];
   if (result && result.status === "completed") {
     meta.push(
@@ -356,6 +375,7 @@ function renderAll() {
   renderStages();
   renderFinal();
   updateControls();
+  renderAb();
 }
 
 // --- Chạy -------------------------------------------------------------------
@@ -365,7 +385,7 @@ async function go({ retryIndex = null, continuous = $("pace-all").checked } = {}
   state.busy = true;
   state.controller = new AbortController();
   const options = {
-    bundle: state.bundle,
+    bundle: runBundle(state.run),
     client: state.client,
     signal: state.controller.signal,
     onText: ({ stageId, text }) => {
@@ -405,9 +425,9 @@ async function go({ retryIndex = null, continuous = $("pace-all").checked } = {}
 
 // --- Lưu trữ và lịch sử -----------------------------------------------------
 
-function saveExtras() {
-  const { primary } = collectFinalOutputs(state.bundle.workflows[state.run.mode].definition, state.run);
-  return { title: state.run.title, buildId: state.buildInfo.build_id || null, primaryWords: primary ? primary.words : null };
+function saveExtras(run = state.run) {
+  const { primary } = collectFinalOutputs(state.bundle.workflows[run.mode].definition, run);
+  return { title: run.title, buildId: state.buildInfo.build_id || null, primaryWords: primary ? primary.words : null };
 }
 
 async function persistStage(stageId) {
@@ -434,8 +454,18 @@ function formatWhen(iso) {
   return date.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function historyTags(record) {
+  const tags = [];
+  const preset = record.model_profile?.preset;
+  if (preset && preset !== "balanced") tags.push(presetLabel(preset));
+  if (record.ab_session) tags.push(`A/B · bài ${record.ab_session.letter || "?"}${record.ab_session.chosen ? " ✓" : ""}`);
+  return tags;
+}
+
 function renderHistory() {
-  const items = state.history.map((record) => {
+  // Bài A/B chưa chốt bị ẩn: mở ra sẽ thấy model của từng bước, lộ cấu hình.
+  const visible = state.history.filter((record) => !record.ab_session || record.ab_session.decided);
+  const items = visible.map((record) => {
     const [label, tone] = HISTORY_STATUS[record.status] || [record.status, ""];
     const done = Object.values(record.stage_status || {}).filter((value) => value === "completed").length;
     const total = (record.stage_ids || []).length;
@@ -454,6 +484,7 @@ function renderHistory() {
           h("span", { text: `${record.mode} · ${record.style}` }),
           h("span", { class: tone, text: `${label} ${done}/${total}` }),
           record.primary_words ? h("span", { text: `${record.primary_words} từ` }) : null,
+          historyTags(record).map((text) => h("span", { text })),
         ),
       ),
     );
@@ -481,7 +512,7 @@ async function loadHistory() {
     const runs = await withTimeout(state.repo.listRuns(50), STORE_TIMEOUT_MS);
     if (token !== state.historyToken) return;
     state.history = runs;
-    note.textContent = runs.length ? "" : "Chưa có lần chạy nào được lưu.";
+    note.textContent = runs.some((record) => !record.ab_session || record.ab_session.decided) ? "" : "Chưa có lần chạy nào được lưu.";
   } catch (error) {
     if (token !== state.historyToken) return;
     note.textContent = `Chưa tải được lịch sử: ${dbErrorText(error)} Bấm "Tải lại" để thử lại.`;
@@ -571,6 +602,8 @@ function startRun(event) {
   state.run = createRun({ bundle: state.bundle, mode: state.mode, style: $("style").value, authorInput });
   state.run.title = $("title").value.trim();
   state.run.buildId = state.buildInfo.build_id || null;
+  state.run.models = activeModels();
+  state.run.modelProfile = modelProfile(state.bundle, state.settings);
   resetLearningState();
   state.live = {};
   state.open.clear();
@@ -737,7 +770,7 @@ async function learn(offline) {
   try {
     const saveProblem = state.repo && state.run.persisted && text !== state.productionSaved ? await persistProduction(text) : null;
     const session = await runLearning({
-      bundle: state.bundle,
+      bundle: withModels(state.bundle, activeModels()),
       run: state.run,
       productionBlog: text,
       client: state.client,
@@ -800,6 +833,502 @@ function downloadLearning() {
   });
 }
 
+// --- Cấu hình model theo từng bước (ART-6.1) ---------------------------------
+
+const VOICE_LAB_NAMES = {
+  vl_analysis: "Phân tích giọng",
+  vl_synthesis: "Tổng hợp style",
+  vl_interview_patch: "Vá theo phỏng vấn",
+  vl_calibration: "Hiệu chỉnh",
+};
+
+const presetLabel = (id) => (PRESETS.find((preset) => preset.id === id) || { label: "Tùy chỉnh" }).label;
+
+/** Bảng model đang áp dụng cho lần chạy mới: bảng trong repo + cấu hình đã lưu. */
+function activeModels() {
+  return effectiveModels(state.bundle, state.settings);
+}
+
+/** Bundle cho một run: run giữ bảng model lúc tạo, để chạy lại/chạy tiếp vẫn đúng cấu hình đó. */
+function runBundle(run) {
+  return withModels(state.bundle, run?.models || activeModels());
+}
+
+function settingsSections() {
+  const stageRows = (mode) => state.bundle.workflows[mode].stage_ids.map((id) => ({ group: "stages", id, label: (AGENTS[id] || [id])[0] }));
+  return [
+    { title: "Deep · bài dài", rows: stageRows("deep") },
+    { title: "Moment · bài ngắn", rows: stageRows("moment") },
+    { title: "Vòng học", rows: Object.keys(state.bundle.models.learning).map((id) => ({ group: "learning", id, label: LEARNING_LABEL[id] || id })) },
+    {
+      title: "Voice Lab (dùng từ ART-8)",
+      rows: Object.keys(state.bundle.models.voice_lab || {}).map((id) => ({ group: "voice_lab", id, label: VOICE_LAB_NAMES[id] || id })),
+    },
+  ];
+}
+
+function buildSettingsTable() {
+  const catalog = state.bundle.model_catalog;
+  $("preset").replaceChildren(
+    ...PRESETS.map((preset) => h("option", { value: preset.id, text: preset.label })),
+    h("option", { value: "custom", text: "Tùy chỉnh", disabled: true }),
+  );
+  const sections = settingsSections().map((section) =>
+    h(
+      "fieldset",
+      { class: "settings-group" },
+      h("legend", { text: section.title }),
+      section.rows.map((row) => {
+        const key = `${row.group}-${row.id}`;
+        return h(
+          "div",
+          { class: "settings-row", "data-setting": key },
+          h("span", { class: "s-label" }, h("span", { id: `s-label-${key}`, text: row.label }), h("span", { class: "s-default", id: `s-default-${key}` })),
+          h(
+            "select",
+            { id: `model-${key}`, "aria-labelledby": `s-label-${key}`, "aria-label": "Model", onchange: (event) => editSetting(row, { model: event.target.value }) },
+            Object.keys(catalog.models).map((id) => h("option", { value: id, text: modelName(id) })),
+          ),
+          h(
+            "select",
+            { id: `effort-${key}`, "aria-label": `Effort của ${row.label}`, onchange: (event) => editSetting(row, { effort: event.target.value }) },
+            catalog.efforts.map((effort) => h("option", { value: effort, text: effort })),
+          ),
+        );
+      }),
+    ),
+  );
+  $("settings-table").replaceChildren(...sections);
+}
+
+function editSetting(row, change) {
+  const current = state.settingsDraft[row.group][row.id];
+  const next = { ...current, ...change };
+  next.model_tier = state.bundle.model_catalog.models[next.model];
+  state.settingsDraft[row.group][row.id] = next;
+  state.settingsMessage = "";
+  renderSettings();
+}
+
+function draftDirty() {
+  return JSON.stringify(state.settingsDraft) !== JSON.stringify(activeModels());
+}
+
+function renderSettings() {
+  if (!state.settingsDraft) state.settingsDraft = activeModels();
+  const draftPreset = matchingPreset(state.bundle, { overrides: overridesFrom(state.bundle, state.settingsDraft) });
+  $("preset").value = draftPreset;
+  $("preset-hint").textContent = draftPreset === "custom" ? "Bạn đã chỉnh riêng từng bước." : PRESETS.find((p) => p.id === draftPreset).description;
+  for (const section of settingsSections()) {
+    for (const row of section.rows) {
+      const key = `${row.group}-${row.id}`;
+      const value = state.settingsDraft[row.group][row.id];
+      const base = state.bundle.models[row.group][row.id];
+      $(`model-${key}`).value = value.model;
+      $(`effort-${key}`).value = value.effort;
+      const changed = value.model !== base.model || value.effort !== base.effort;
+      $(`s-default-${key}`).textContent = changed ? `mặc định: ${modelName(base.model)} · ${base.effort}` : "";
+      document.querySelector(`[data-setting="${key}"]`).classList.toggle("changed", changed);
+    }
+  }
+  const savedPreset = matchingPreset(state.bundle, state.settings);
+  $("settings-summary").textContent = presetLabel(savedPreset);
+  const dirty = draftDirty();
+  $("settings-save").disabled = !dirty;
+  $("settings-reset").disabled = savedPreset === "balanced" && !dirty;
+  $("settings-note").textContent = state.settingsMessage || (dirty ? "Có thay đổi chưa lưu. Lần chạy mới vẫn dùng cấu hình đã lưu cho tới khi bạn bấm Lưu." : "");
+}
+
+function readLocalSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+  } catch (_) {
+    return null;
+  }
+}
+
+async function loadSettings() {
+  let saved = null;
+  const messages = [];
+  try {
+    saved = state.repo ? await withTimeout(state.repo.loadSettings(), STORE_TIMEOUT_MS) : readLocalSettings();
+  } catch (error) {
+    messages.push(`Chưa tải được cấu hình đã lưu: ${dbErrorText(error)} Đang dùng mặc định.`);
+  }
+  if (saved) {
+    const { overrides, dropped } = cleanOverrides(state.bundle, saved.overrides);
+    if (dropped.length) messages.push(`Bỏ qua phần cấu hình không còn hợp lệ: ${dropped.join(", ")}.`);
+    state.settings = { schema: 1, preset: saved.preset || null, overrides };
+  } else {
+    state.settings = null;
+  }
+  state.settingsDraft = activeModels();
+  state.settingsMessage = messages.join(" ");
+  renderSettings();
+  renderAbSetup();
+  renderAll();
+}
+
+async function saveSettings(models) {
+  const overrides = overridesFrom(state.bundle, models);
+  const settings = { schema: 1, preset: matchingPreset(state.bundle, { overrides }), overrides };
+  state.settings = settings;
+  state.settingsDraft = activeModels();
+  try {
+    if (state.repo) {
+      await withTimeout(state.repo.saveSettings(settings), STORE_TIMEOUT_MS);
+    } else {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+    state.settingsMessage = state.repo
+      ? "Đã lưu vào tài khoản của bạn. Lần chạy mới sẽ dùng cấu hình này."
+      : "Đã lưu trong trình duyệt này (trang không có quyền lưu trữ). Lần chạy mới sẽ dùng cấu hình này.";
+  } catch (error) {
+    state.settingsMessage = `Chưa lưu được: ${dbErrorText(error)} Cấu hình vẫn áp dụng cho tới khi tải lại trang.`;
+  }
+  renderSettings();
+  renderAll();
+}
+
+// --- So sánh A/B mù (ART-6.1) ------------------------------------------------
+
+function abChoices() {
+  const saved = matchingPreset(state.bundle, state.settings);
+  return [
+    { value: "saved", label: `Cấu hình đang lưu (${presetLabel(saved)})` },
+    ...PRESETS.map((preset) => ({ value: `preset:${preset.id}`, label: preset.label })),
+  ];
+}
+
+function abConfig(value) {
+  if (value === "saved") {
+    const preset = matchingPreset(state.bundle, state.settings);
+    return { label: preset === "custom" ? "Cấu hình riêng của bạn" : presetLabel(preset), preset, models: activeModels() };
+  }
+  const id = value.slice("preset:".length);
+  return { label: presetLabel(id), preset: id, models: presetModels(state.bundle, id) };
+}
+
+function renderAbSetup() {
+  for (const [id, fallback] of [["ab-config-1", "saved"], ["ab-config-2", null]]) {
+    const select = $(id);
+    const previous = select.value;
+    select.replaceChildren(...abChoices().map((choice) => h("option", { value: choice.value, text: choice.label })));
+    if (previous && [...select.options].some((option) => option.value === previous)) select.value = previous;
+    else if (fallback) select.value = fallback;
+    else select.value = matchingPreset(state.bundle, state.settings) === "opus-medium" ? "preset:balanced" : "preset:opus-medium";
+  }
+  renderAbCost();
+}
+
+function renderAbCost() {
+  const steps = state.bundle.workflows[state.mode].stage_ids.length;
+  $("ab-cost").textContent = `Một lượt A/B gọi Claude ${steps * 2} lần (${steps} bước × 2 cấu hình), gấp đôi một lần chạy thường.`;
+}
+
+const letterOf = (session, index) => (session.letters.A === index ? "A" : "B");
+
+function abDrafts(ab) {
+  return ab.runs.map((run) => {
+    const primary = run && collectFinalOutputs(state.bundle.workflows[run.mode].definition, run).primary;
+    return primary ? { text: primary.text, words: primary.words } : null;
+  });
+}
+
+function renderAb() {
+  const ab = state.ab;
+  $("ab-view").hidden = !ab;
+  $("ab-note").textContent = state.abMessage;
+  $("ab-start").disabled = state.busy || !state.client;
+  for (const button of $("ab-list").querySelectorAll("button")) button.disabled = state.busy;
+  if (!ab) {
+    state.abRenderedKey = null;
+    return;
+  }
+  const { session } = ab;
+  const total = session.mode ? state.bundle.workflows[session.mode].stage_ids.length : 0;
+  let text;
+  if (state.busy && ab.progress) {
+    const [label] = AGENTS[ab.progress.stageId] || [ab.progress.stageId];
+    text = `Đang viết bài ${ab.progress.letter} · bước ${ab.progress.index + 1}/${total}: ${label}${ab.progress.chars ? ` (${ab.progress.chars} ký tự)` : ""}.`;
+  } else if (ab.error) {
+    text = ab.error;
+  } else if (session.status === "ready") {
+    text = "Đọc hai bài rồi chọn bài bạn thích hơn. Cấu hình của từng bài được giấu cho tới khi bạn chốt.";
+  } else if (session.status === "decided") {
+    text = session.choice === "tie" ? "Bạn thấy hai bài ngang nhau." : `Bạn chọn bài ${session.choice}.`;
+  } else {
+    text = "Đang chuẩn bị…";
+  }
+  $("ab-status").textContent = [text, ab.saveProblem].filter(Boolean).join(" ");
+  $("ab-stop").hidden = !state.busy;
+  $("ab-close").disabled = state.busy;
+  $("ab-resume").hidden = state.busy || !ab.error;
+  $("ab-choose").hidden = session.status !== "ready";
+  $("ab-decide").disabled = state.busy;
+
+  const key = `${session.id}:${session.status}`;
+  if (state.abRenderedKey !== key) {
+    state.abRenderedKey = key;
+    const drafts = abDrafts(ab);
+    const showDrafts = (session.status === "ready" || session.status === "decided") && drafts.every(Boolean);
+    $("ab-drafts").replaceChildren(
+      ...(showDrafts
+        ? blindDrafts(session, drafts).map((draft) =>
+            h(
+              "article",
+              { class: "ab-draft", "data-letter": draft.letter },
+              h("div", { class: "row", style: "justify-content:space-between" }, h("h3", { text: `Bài ${draft.letter}` }), h("span", { class: "meta", text: `${draft.words} từ` })),
+              h("pre", { class: "text", text: draft.text }),
+            ),
+          )
+        : []),
+    );
+    if (session.status === "ready") {
+      for (const input of document.querySelectorAll('input[name="ab-choice"]')) input.checked = false;
+      $("ab-reason").value = "";
+    }
+    $("ab-reveal").hidden = session.status !== "decided";
+    $("ab-reveal").replaceChildren(
+      ...(session.status === "decided"
+        ? [
+            h("h3", { text: "Bài nào của cấu hình nào" }),
+            h(
+              "ul",
+              { class: "ab-reveal-list" },
+              revealAb(session).map((row) =>
+                h(
+                  "li",
+                  { "data-letter": row.letter, class: row.chosen ? "chosen" : null },
+                  h("strong", { text: `Bài ${row.letter}` }),
+                  h("span", { text: row.label }),
+                  row.chosen ? h("span", { class: "ok", text: "bạn chọn" }) : null,
+                  row.run_id && state.repo
+                    ? h("button", { type: "button", class: "small", text: "Mở trong khung chính", onclick: () => openRun(row.run_id) })
+                    : null,
+                ),
+              ),
+            ),
+            session.note ? h("p", { class: "hint", text: `Ghi chú: ${session.note}` }) : null,
+          ]
+        : []),
+    );
+  }
+}
+
+function renderAbList() {
+  const items = state.abSessions.map((session) => {
+    const when = formatWhen(session.created_at);
+    let outcome;
+    if (session.status === "decided") {
+      outcome = session.choice === "tie" ? "Ngang nhau" : `Chọn: ${session.configs[session.chosen_config].label}`;
+    } else {
+      outcome = "Chưa chọn · mở để làm tiếp";
+    }
+    return h(
+      "li",
+      {},
+      h(
+        "button",
+        { type: "button", "data-ab": session.id, disabled: state.busy, onclick: () => openAbSession(session.id) },
+        h("span", { class: "h-title", text: outcome }),
+        h("span", { class: "h-meta" }, h("span", { text: when }), h("span", { text: `${session.mode} · ${session.style}` })),
+      ),
+    );
+  });
+  $("ab-list").replaceChildren(...items);
+  $("ab-list-note").textContent = state.repo
+    ? state.abSessions.length
+      ? ""
+      : "Chưa có phiên A/B nào."
+    : "Phiên A/B chỉ được lưu khi trang có quyền lưu trữ.";
+}
+
+async function loadAbSessions() {
+  if (!state.repo) {
+    state.abSessions = [];
+    renderAbList();
+    return;
+  }
+  try {
+    state.abSessions = await withTimeout(state.repo.listAbSessions(10), STORE_TIMEOUT_MS);
+  } catch (error) {
+    state.abMessage = `Chưa tải được các phiên A/B: ${dbErrorText(error)}`;
+  }
+  renderAbList();
+  renderAb();
+}
+
+async function saveAbState(runs = []) {
+  const ab = state.ab;
+  if (!state.repo) return;
+  try {
+    for (const run of runs) await state.repo.saveRun(run, saveExtras(run));
+    await state.repo.saveAbSession(ab.session);
+  } catch (error) {
+    ab.saveProblem = `Không lưu được phiên A/B: ${dbErrorText(error)}`;
+  }
+}
+
+async function startAb() {
+  if (state.busy || !state.client) return;
+  state.abMessage = "";
+  let authorInput;
+  let session;
+  try {
+    authorInput = buildAuthorInput(fields());
+    session = createAbSession({
+      mode: state.mode,
+      style: $("style").value,
+      authorInput,
+      configs: [abConfig($("ab-config-1").value), abConfig($("ab-config-2").value)],
+    });
+  } catch (error) {
+    state.abMessage = error.message || String(error);
+    renderAb();
+    return;
+  }
+  const runs = session.configs.map((config, index) => {
+    const run = createRun({ bundle: state.bundle, mode: session.mode, style: session.style, authorInput });
+    run.title = $("title").value.trim();
+    run.buildId = state.buildInfo.build_id || null;
+    run.models = config.models;
+    run.modelProfile = modelProfile(state.bundle, { overrides: overridesFrom(state.bundle, config.models) });
+    run.abSession = { id: session.id, slot: index, letter: letterOf(session, index), decided: false };
+    return run;
+  });
+  state.ab = { session, runs, error: "", saveProblem: "", progress: null };
+  if (state.repo) {
+    try {
+      for (const run of runs) await state.repo.createRun(run, saveExtras(run));
+    } catch (error) {
+      state.ab.saveProblem = `Không lưu được phiên A/B: ${dbErrorText(error)} Hai bài vẫn hiện trên trang.`;
+    }
+  }
+  for (const run of runs) if (!run.id) run.id = newRunId({ mode: run.mode, style: run.style });
+  session.run_ids = runs.map((run) => run.id);
+  if (state.repo && !state.ab.saveProblem) await saveAbState();
+  await advanceAb({ resume: false });
+}
+
+/** Chạy hai bài theo thứ tự A rồi B. Khi làm tiếp (`resume`), chạy lại bước lỗi một lần. */
+async function advanceAb({ resume }) {
+  const ab = state.ab;
+  if (!ab || state.busy) return;
+  state.busy = true;
+  state.controller = new AbortController();
+  ab.error = "";
+  renderAll();
+  try {
+    for (const letter of ["A", "B"]) {
+      const run = ab.runs[ab.session.letters[letter]];
+      const options = {
+        bundle: runBundle(run),
+        client: state.client,
+        signal: state.controller.signal,
+        // Chỉ báo số ký tự đã viết; nội dung đang viết không hiện để hai bài chỉ lộ ra cùng lúc.
+        onText: ({ text: partial }) => {
+          if (!ab.progress) return;
+          ab.progress.chars = partial.length;
+          renderAb();
+        },
+      };
+      let retryAllowed = resume;
+      for (;;) {
+        let index = nextStageIndex(run);
+        let retry = false;
+        if (index === -1) {
+          if (run.status === RUN_STATUS.COMPLETED) break;
+          index = run.stageIds.findIndex((id) => run.results[id] && run.results[id].status !== "completed");
+          if (!retryAllowed || index === -1) break;
+          retryAllowed = false;
+          retry = true;
+        }
+        const stageId = run.stageIds[index];
+        ab.progress = { letter, index, stageId };
+        renderAb();
+        if (retry) {
+          if (state.repo && run.persisted) await state.repo.deleteStagesFrom(run, index).catch(() => {});
+          await retryStage(run, index, options);
+        } else {
+          await runStage(run, index, options);
+        }
+        if (state.repo && run.persisted) {
+          await state.repo.saveStage(run, stageId, saveExtras(run)).catch((error) => {
+            ab.saveProblem = `Không lưu được bước ${stageId}: ${dbErrorText(error)}`;
+          });
+        }
+      }
+      if (run.status !== RUN_STATUS.COMPLETED) {
+        const failed = run.stageIds.map((id) => run.results[id]).find((result) => result && result.status !== "completed");
+        const cancelled = failed && failed.error_code === "cancelled";
+        const reason = cancelled ? "đã dừng." : `lỗi: ${failed ? errorText(failed).replace(/\.?$/, ".") : "chưa xong."}`;
+        ab.error = `Bài ${letter} ${reason} Bấm "Chạy tiếp" để làm nốt.`;
+        break;
+      }
+    }
+    if (!ab.error) {
+      ab.session.status = "ready";
+      await saveAbState();
+    }
+  } catch (error) {
+    ab.error = `Không chạy được A/B: ${error.message || error}`;
+  } finally {
+    state.busy = false;
+    state.controller = null;
+    ab.progress = null;
+    renderAll();
+    loadAbSessions();
+  }
+}
+
+async function decideAbChoice() {
+  const ab = state.ab;
+  if (!ab || state.busy) return;
+  const picked = document.querySelector('input[name="ab-choice"]:checked');
+  if (!picked) {
+    $("ab-choose-note").textContent = "Hãy chọn bài A, bài B hoặc ngang nhau.";
+    return;
+  }
+  $("ab-choose-note").textContent = "";
+  decideAb(ab.session, picked.value, $("ab-reason").value);
+  ab.runs.forEach((run, index) => {
+    run.abSession = { ...run.abSession, letter: letterOf(ab.session, index), decided: true, chosen: ab.session.chosen_config === index };
+  });
+  await saveAbState(state.repo ? ab.runs.filter((run) => run.persisted) : []);
+  renderAll();
+  loadHistory();
+  loadAbSessions();
+}
+
+async function openAbSession(id) {
+  if (state.busy || !state.repo) return;
+  const session = state.abSessions.find((item) => item.id === id);
+  if (!session) return;
+  state.abMessage = "Đang mở phiên A/B…";
+  renderAb();
+  try {
+    if (!session.run_ids.every(Boolean)) throw new Error("Phiên này chưa kịp lưu hai bài.");
+    const runs = [];
+    for (const runId of session.run_ids) {
+      const data = await withTimeout(state.repo.loadRun(runId), STORE_TIMEOUT_MS);
+      if (!data) throw new Error("Không còn tìm thấy một trong hai bài.");
+      const { run, resumable, problems } = restoreRun(state.bundle, data.runDoc, data.stageDocs);
+      if (!resumable && session.status !== "decided") throw new Error(problems.join(" "));
+      runs.push(run);
+    }
+    const copy = structuredClone(session);
+    const complete = runs.every((run) => run.status === RUN_STATUS.COMPLETED);
+    if (copy.status === "running" && complete) copy.status = "ready";
+    state.ab = { session: copy, runs, error: "", saveProblem: "", progress: null };
+    if (copy.status === "running") state.ab.error = 'Phiên này chưa xong. Bấm "Chạy tiếp" để làm nốt.';
+    state.abMessage = "";
+  } catch (error) {
+    state.abMessage = `Không mở được phiên A/B: ${error.message || dbErrorText(error)}`;
+  }
+  renderAll();
+}
+
 // --- Khởi động --------------------------------------------------------------
 
 async function connectClaude() {
@@ -809,6 +1338,8 @@ async function connectClaude() {
     state.storageMessage = "Lịch sử chỉ có khi mở trang trong claude.ai.";
     showBanner("Trang này cần được mở trong claude.ai để gọi Claude.");
     loadHistory();
+    loadSettings();
+    loadAbSessions();
     return;
   }
   const [sample, downloads, db, user] = await Promise.all(["sample", "downloads", "db", "user"].map((name) => window.claude.use(name)));
@@ -828,6 +1359,8 @@ async function connectClaude() {
   }
   renderAll();
   loadHistory();
+  loadSettings();
+  loadAbSessions();
 }
 
 function boot() {
@@ -857,6 +1390,9 @@ function boot() {
     if (draft.pace === "step") $("pace-step").checked = true;
   }
   setMode(draft && state.bundle.workflows[draft.mode] ? draft.mode : "moment", draft && draft.style);
+  buildSettingsTable();
+  renderSettings();
+  renderAbSetup();
 
   for (const button of document.querySelectorAll("[data-mode]")) {
     button.addEventListener("click", () => {
@@ -864,6 +1400,7 @@ function boot() {
       // Không xóa lần chạy đang xem: kết quả chỉ mất khi chủ động chạy mới (có bước xác nhận).
       setMode(button.dataset.mode);
       saveDraft();
+      renderAbCost();
       renderAll();
     });
   }
@@ -899,6 +1436,22 @@ function boot() {
     if (primary) saveFile(`${baseName()}.md`, primary.text.trim() + "\n");
   });
   $("download-run").addEventListener("click", () => saveFile(`${baseName()}-toan-bo.md`, buildRunMarkdown(state.run), showRunNote));
+  $("preset").addEventListener("change", (event) => {
+    state.settingsDraft = presetModels(state.bundle, event.target.value);
+    state.settingsMessage = "";
+    renderSettings();
+  });
+  $("settings-save").addEventListener("click", () => saveSettings(state.settingsDraft).then(renderAbSetup));
+  $("settings-reset").addEventListener("click", () => saveSettings(structuredClone(state.bundle.models)).then(renderAbSetup));
+  $("ab-start").addEventListener("click", startAb);
+  $("ab-stop").addEventListener("click", () => state.controller && state.controller.abort());
+  $("ab-resume").addEventListener("click", () => advanceAb({ resume: true }));
+  $("ab-decide").addEventListener("click", decideAbChoice);
+  $("ab-close").addEventListener("click", () => {
+    if (state.busy) return;
+    state.ab = null;
+    renderAb();
+  });
   renderAll();
   connectClaude();
 }

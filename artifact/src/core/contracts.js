@@ -31,6 +31,10 @@ export function validateBundle(bundle) {
   ensure(typeof bundle.content_hash === "string" && bundle.content_hash, "Bundle thiếu content_hash.");
   ensure(isObject(bundle.workflows) && isObject(bundle.styles) && isObject(bundle.models), "Bundle thiếu workflows/styles/models.");
   ensure(isObject(bundle.models.stages) && isObject(bundle.models.learning), "Bundle thiếu models.stages/learning.");
+  ensure(
+    isObject(bundle.model_catalog) && isObject(bundle.model_catalog.models) && Array.isArray(bundle.model_catalog.efforts),
+    "Bundle thiếu model_catalog.",
+  );
 
   for (const mode of MODES) {
     const workflow = bundle.workflows[mode];

@@ -100,6 +100,7 @@ def test_bundle_models_cover_every_stage_with_tier(bundle):
             assert entry["model_tier"] == tiers[entry["model"]]
             assert entry["effort"] in {"low", "medium", "high"}
     assert models["stages"]["writing_agent"] == {"model": "claude-opus-5-5", "effort": "high", "model_tier": "complex"}
+    assert bundle["model_catalog"] == {"models": tiers, "efforts": ["low", "medium", "high"]}
 
 
 def test_bundle_voice_lab_constants_match_engine(bundle):

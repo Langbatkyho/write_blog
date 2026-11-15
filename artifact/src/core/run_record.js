@@ -67,6 +67,9 @@ export function serializeRunDoc(run, extras = {}) {
     api_attempted: Boolean(run.apiAttempted),
     api_called: Boolean(run.apiCalled),
     primary_words: extras.primaryWords ?? null,
+    model_profile: run.modelProfile ?? null,
+    models: run.models ?? null,
+    ab_session: run.abSession ?? null,
     created_at: run.createdAt,
     updated_at: (extras.now || new Date()).toISOString(),
     completed_at: run.completedAt,
@@ -116,6 +119,9 @@ export function restoreRun(bundle, runDoc, stageDocs) {
     createdAt: runDoc.created_at,
     completedAt: runDoc.completed_at || null,
     persisted: true,
+    modelProfile: runDoc.model_profile || null,
+    models: runDoc.models || null,
+    abSession: runDoc.ab_session || null,
   };
   // Chỉ nhận các stage liên tiếp từ đầu; một bản ghi lẻ phía sau (do ghi dở) bị bỏ qua.
   for (const id of run.stageIds) {

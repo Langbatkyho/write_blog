@@ -28,7 +28,7 @@ if str(ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 
-from artifact.claude_config import validate_claude_config  # noqa: E402
+from artifact.claude_config import EFFORTS, VERIFIED_MODELS, validate_claude_config  # noqa: E402
 from engine.learning import _compact_skills, _compact_workflow  # noqa: E402
 from engine.style_contracts import validate_style_metadata  # noqa: E402
 from engine.style_manager import validate_style_contract  # noqa: E402
@@ -223,6 +223,8 @@ def build_bundle_content(config_path: Path = DEFAULT_CONFIG) -> Dict[str, Any]:
         "workflows": workflows,
         "styles": styles,
         "models": models,
+        # Lựa chọn hợp lệ cho bảng chỉnh model trên trang (ART-6.1): đúng những gì build chấp nhận.
+        "model_catalog": {"models": dict(VERIFIED_MODELS), "efforts": list(EFFORTS)},
         "learning": {
             "skill_yaml": dump_yaml(learning_skill),
             "compact_workflow_yaml": learning_workflow_yaml,

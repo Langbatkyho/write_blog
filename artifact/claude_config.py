@@ -18,6 +18,7 @@ VERIFIED_MODELS: Dict[str, str] = {
     "claude-sonnet-5-5": "default",
     "claude-opus-5-5": "complex",
 }
+EFFORTS = ("low", "medium", "high")  # giá trị effort mà capability `sample` chấp nhận
 LEARNING_STAGES = ("editorial_learning", "workflow_tuning")
 VOICE_LAB_STAGES = ("vl_analysis", "vl_synthesis", "vl_interview_patch", "vl_calibration")
 
@@ -30,7 +31,7 @@ class StageModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     model: str
-    effort: Literal["low", "medium", "high"]
+    effort: Literal[EFFORTS]
 
     @field_validator("model")
     @classmethod
