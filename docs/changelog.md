@@ -1,5 +1,12 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-6.1 cấu hình model riêng và A/B mù (2026-11-15)
+
+- Khung "Model cho từng bước": 4 preset (Cân bằng, Chất lượng tối đa, Nhanh, Mốc Opus 5.5 · medium), chỉnh model/effort từng bước cho workflow, learning và Voice Lab; lưu riêng từng tài khoản tại `data/users/<uid>/settings`; nút về mặc định.
+- Mỗi run lưu bảng model lúc tạo, chạy tiếp hoặc chạy lại vẫn đúng cấu hình. Bundle có `model_catalog`; effort giới hạn ở low/medium/high.
+- Khung "So sánh A/B mù": chạy cùng input bằng hai cấu hình, nhãn A/B gán ngẫu nhiên, cấu hình chỉ hiện sau khi chốt; phiên lưu tại `blog/ab/<id>`, chạy tiếp được sau gián đoạn.
+- Test: 7 case JS mới, 4 kịch bản Playwright mới (127 test JS/UI). Kiểm chứng: 174 test pass; 2 test lỗi có sẵn về đường dẫn kiểu Windows. Trang publish lại cùng URL (phiên bản 6).
+
 ## Claude Artifact: ART-5 bản cuối và learning loop (2026-11-14)
 
 - Khung "Bản cuối của bạn" (khởi tạo từ bản nháp AI, lưu vào `db`) và vòng học qua Claude (`editorial_learning`, `workflow_tuning`) hoặc offline; kết quả học gắn nhãn mode/style, tải về được, có trong zip theo bố cục `learning/<mode>/<timestamp>/` của engine.
