@@ -24,7 +24,7 @@ Kết quả cần đạt:
 - chạy đủ 6 stage của moment workflow;
 - dùng style `skills/moment/va-natural/`;
 - dùng Antigravity bridge qua `runs/temp_llm/`;
-- tạo output chính `moment_edited.md` và bản copy xuất bản `final_blog.md`;
+- tạo output chính `moment_edited.md`; tác giả chỉ tạo `final_blog.md` sau khi chọn hoặc chỉnh sửa bản AI;
 - nội dung bài cuối không vượt quá 300 từ.
 
 ## Điều kiện trước khi chạy
@@ -207,14 +207,20 @@ Nhiệm vụ:
 - không thêm insight mới;
 - bảo đảm bài cuối dưới 300 từ.
 
-Với style `va-natural`, artifact của stage này nên là chính bài cuối, không kèm edit log trong Artifact:
+Với style `va-natural`, Artifact chứa hai mục `Edited Blog` và `Edit Log`; engine tách chúng thành `moment_edited.md` và `edit_log.md`. Handoff tóm tắt việc chỉnh sửa:
 
 ```markdown
 ## Artifact
 
+## Edited Blog
+
 # Người vô sự
 
 <bài cuối dưới 300 từ>
+
+## Edit Log
+
+<các chỉnh sửa tối thiểu và lý do>
 
 ## Handoff
 
@@ -227,7 +233,7 @@ Sau stage này engine ghi output chính:
 moment_edited.md
 ```
 
-Nếu muốn có bản xuất bản rõ ràng, copy nội dung bài cuối sang:
+Sau khi tác giả xem và chọn hoặc chỉnh sửa bản AI, lưu bản được duyệt vào:
 
 ```text
 final_blog.md
@@ -460,8 +466,8 @@ Yêu cầu riêng:
 - không khởi động lại workflow nếu đã có prompt mới đang chờ response cho chính lần chạy hiện tại;
 - nếu có nhiều folder cùng slug, chỉ lấy kết quả từ run có `metadata.json` ghi `"status": "completed"`;
 - với `moment_writer` và `breath_editor`, giữ bài dưới 300 từ;
-- artifact của `breath_editor` chỉ nên chứa bài cuối, không kèm edit log;
-- sau khi hoàn tất, tạo hoặc xác nhận `final_blog.md`;
-- đếm từ `final_blog.md`;
+- artifact của `breath_editor` phải chứa `## Edited Blog` và `## Edit Log` để engine tách thành hai file;
+- sau khi tác giả duyệt, tạo hoặc xác nhận `final_blog.md`;
+- đếm từ `moment_edited.md` và, nếu đã có, `final_blog.md`;
 - báo lại run folder completed, output chính, số từ, mode/style, api_called, và các run cùng slug đang failed/running/stale nếu có.
 ````

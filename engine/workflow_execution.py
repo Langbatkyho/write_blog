@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import os
 import time
@@ -167,6 +168,11 @@ def run_workflow(
         "created_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "config_file": str(config_path),
         "workflow_file": str(workflow_file),
+        "workflow_sha256": hashlib.sha256(workflow_file.read_bytes()).hexdigest(),
+        "style_skill_sha256": {
+            stage_id: hashlib.sha256(path.read_bytes()).hexdigest()
+            for stage_id, (path, _) in skills.items()
+        },
         "input_file": str(input_path) if input_path is not None else None,
         "dry_run": dry_run,
         "run_source": effective_source,

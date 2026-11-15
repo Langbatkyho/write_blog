@@ -1,5 +1,20 @@
 # Mindful Blog Workflow
 
+## Thử nghiệm Moment trên Codex Cloud
+
+Repo có Skill `.agents/skills/mindful-moment-writing/SKILL.md`. Khởi chạy Codex với repo này làm thư mục làm việc để Skill được nhận diện. Với dữ liệu thật, tạo file input riêng; `examples/` chỉ là fixture. Giao diện stage không tự gọi model/API:
+
+```bash
+python -m engine.cloud_stage_cli create --input path/to/input.md --output-root path/to/safe-runs --mode moment --style va-natural
+python -m engine.cloud_stage_cli prepare --run-dir path/to/safe-runs/<run_id>
+python -m engine.cloud_stage_cli submit --run-dir path/to/safe-runs/<run_id> --stage-id <stage_id> --token <token> --response-file path/to/response.md
+python -m engine.cloud_stage_cli finalize --run-dir path/to/safe-runs/<run_id> --approved-file path/to/author-approved.md
+python -m engine.cloud_stage_cli export --run-dir path/to/safe-runs/<run_id> --archive path/to/run.zip
+python -m engine.cloud_stage_cli import --archive path/to/run.zip --output-root path/to/restored-runs
+```
+
+Lặp `prepare`/`submit` cho đến khi `prepare` báo `completed`. Nếu bị ngắt, dùng lại `prepare` trên run cũ. Sau khi tác giả chọn hoặc chỉnh sửa bài, `finalize` tạo `final_blog.md`. Tải riêng `final_blog.md` và `run_log.md` để lưu thành phẩm. Để tiếp tục run ở Cloud task khác, cần chuyển thêm ZIP chứa checkpoint; hai file Markdown không đủ để khôi phục các stage. Workspace mới không tự nhìn thấy file của task trước. Subagent có context hội thoại riêng nhưng vẫn có thể đọc workspace chung. Chưa dùng cơ chế này để khẳng định blind review của Deep mode.
+
 Dự án này dùng các file YAML trong thư mục `skills/` để vận hành hệ hai chế độ viết blog phản tư và khoảnh khắc có hỗ trợ AI:
 
 - **`deep_blog_mode`** (`--mode deep`): Viết dài (1000-1500 từ), phản tư sâu, chuyển hóa trải nghiệm.

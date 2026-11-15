@@ -56,21 +56,35 @@ def build_step_prompt(
     ]
     if step.get("needs_author_input", True):
         prompt_parts.append(f"Author input:\n```markdown\n{author_input}\n```")
+    handoff_target = (skill.get("output") or {}).get("handoff", {}).get("target_words")
+    handoff_rule = (
+        f"- Keep `## Handoff` around {handoff_target} Vietnamese words."
+        if handoff_target
+        else "- Keep `## Handoff` around 120-250 Vietnamese words."
+    )
+    output = skill.get("output") or {}
+    secondary_name = output.get("secondary_name") or output.get("secondary_artifact")
     prompt_parts.append(
         textwrap.dedent(
             """
             Instructions:
             - Follow the Skill YAML strictly.
+            - If the author's explicit length or content request is narrower than a style preference, follow the author request while preserving the workflow output contract.
             - Produce exactly two top-level sections: `## Artifact` and `## Handoff`.
             - `## Artifact` is the full output for this step's expected output file.
             - `## Handoff` is a compact structured summary for downstream agents.
-            - Keep `## Handoff` around 120-250 Vietnamese words, roughly 200-400 tokens.
             - Do not mention that you are an AI.
             - Do not include hidden reasoning or process notes.
             - Keep the writing language Vietnamese unless the author explicitly requests another language.
             """
         ).strip()
     )
+    prompt_parts.append(handoff_rule)
+    if secondary_name:
+        prompt_parts.append(
+            "- Within `## Artifact`, provide `## Edited Blog` with only the edited article "
+            f"and `## Edit Log` with the changes for `{secondary_name}`."
+        )
     prompt_parts.extend(
         [
             "---",

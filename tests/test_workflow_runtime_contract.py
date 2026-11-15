@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from engine.parser import StageResponseError, parse_stage_response
+from engine.parser import StageResponseError, count_words, parse_stage_response
+from engine.workflow_context import build_step_prompt
 from engine.parser import estimate_tokens
 from engine.learning import build_learning_prompt
 from engine.utils import read_text
@@ -18,6 +19,42 @@ from engine.workflow_persistence import RunRepository
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_handoff_length_uses_stage_contract():
+    prompt = build_step_prompt(
+        {"name": "moment"},
+        {"id": "breath_editor", "needs_author_input": False},
+        {"output": {"handoff": {"target_words": "30-50"}}},
+        "private author notes",
+        {"handoffs": {}, "artifacts": {}},
+    )
+    assert "30-50 Vietnamese words" in prompt
+    assert "120-250 Vietnamese words" not in prompt
+    assert "private author notes" not in prompt
+
+
+def test_handoff_length_has_legacy_default():
+    prompt = build_step_prompt(
+        {"name": "deep"}, {"id": "writer"}, {"output": {}},
+        "author notes", {"handoffs": {}, "artifacts": {}},
+    )
+    assert "120-250 Vietnamese words" in prompt
+
+
+def test_vietnamese_word_count_accepts_decomposed_accents():
+    assert count_words("người vô sự") == count_words("ngu\u0300o\u031bi vo\u0302 su\u031b\u0323")
+
+
+def test_editor_prompt_declares_secondary_output_format():
+    prompt = build_step_prompt(
+        {"name": "moment"}, {"id": "breath_editor"},
+        {"output": {"secondary_artifact": "edit_log.md"}},
+        "desired_length: dưới 300 từ", {"handoffs": {}, "artifacts": {}},
+    )
+    assert "`## Edited Blog`" in prompt
+    assert "`## Edit Log`" in prompt
+    assert "follow the author request" in prompt
 
 
 def _minimal_workflow(step: dict) -> dict:
