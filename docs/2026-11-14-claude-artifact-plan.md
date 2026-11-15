@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.9 | 2026-11-15 | ART-5 DONE (vòng học thật đạt) |
 | 3.8 | 2026-11-14 | ART-4 chuyển PENDING (AC2 để sau); ghi kết quả ART-5 |
 | 3.7 | 2026-11-14 | ART-4 AC3 đạt (lịch sử còn nguyên sau khi publish lại) |
 | 3.6 | 2026-11-14 | ART-3 DONE; ghi kết quả ART-4 và đường dẫn lưu trữ thực tế |
@@ -271,7 +272,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | ART-2 | Core engine JS | T2 | Agent | Owner | DONE (owner cho chuyển sang ART-3, 2026-11-14) |
 | ART-3 | MVP vertical slice | T3 | Agent | Owner | DONE (owner xác nhận 2026-11-14) |
 | ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | PENDING (AC3, AC4, AC5 đạt; AC1 một phần; AC2 để sau theo quyết định owner) |
-| ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | ON-GOING (AC1, AC3 đạt; chờ owner chạy một vòng học thật cho AC2) |
+| ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | DONE (owner chạy vòng học thật 2026-11-15) |
 | ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | BACKLOG |
 | ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | BACKLOG |
 | ART-7 | Gmail | T7 | Agent | Owner | BACKLOG |
@@ -438,7 +439,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - Mã: `core/learning.js` (learning prompt, tuning prompt, báo cáo và gợi ý offline, `runLearning`), `core/learning_templates.js` sinh từ f-string của `engine/learning.py` bằng `artifact/gen_learning_templates.py` (có test báo khi cũ), `core/pydifflib.js` (port `SequenceMatcher` có autojunk và `unified_diff` của CPython 3.13), thêm `pyDedent`/`pySplitlines`/`pyFormatFixed` (half-even)/`truncateWords`. Lưu bản cuối tại `runs/<runId>/production/current`, mỗi vòng học tại `runs/<runId>/learning/<learningId>`; zip có `production_blog.md` và `learning/<mode>/<timestamp>/` đúng bố cục engine. Trang publish lại cùng URL (phiên bản 5); lịch sử cũ còn nguyên.
   - AC1: learning prompt (4 case, gồm vượt ngân sách), tuning prompt (2 case), 5 báo cáo offline (gồm bản giống hệt, chuỗi dài kích hoạt autojunk, CRLF) và định dạng số khớp golden; fuzz `difflib` 300/300. Kiểm chứng chéo: learning loop offline của engine Python chạy trên run do Artifact xuất ra cho báo cáo và gợi ý giống hệt từng byte bản Artifact tạo.
   - AC3: nút học bị khóa kèm giải thích khi bản cuối trống; học qua Claude bị khóa khi bản cuối giống hệt bản nháp AI hoặc không có Claude, so sánh offline vẫn chạy (Playwright).
-  - AC2: chờ owner chạy một vòng học thật qua Claude trên claude.ai.
+  - AC2 (2026-11-15): owner chạy một vòng học thật qua Claude trên run Moment đã lưu. Bản ghi cho thấy: trạng thái completed, so với `moment_edited.md`, `editorial_learning` chạy `claude-opus-5-5` (high, 26,0 s) và `workflow_tuning` chạy `claude-sonnet-5-5` (medium, 16,7 s), cả hai đúng model, không bị cắt, `api_called: true`; báo cáo khoảng 10.300 ký tự, gợi ý khoảng 5.100 ký tự nhắc đủ 6 stage của Moment; bản cuối đã lưu trùng với bản dùng để học. Chỉ đọc thông tin kỹ thuật, không đọc nội dung; bản sao tạm đã xóa.
   - Cách hiểu đã chọn cho "diff offline vẫn chạy": so sánh offline luôn chạy được khi có bản cuối, kể cả khi không có Claude; cả hai cách học đều cần bản cuối.
   - Kiểm thử giao diện: `db` giả chuyển sang `window.name` vì Chromium ghi `localStorage`/`sessionStorage` bất đồng bộ khiến test tải lại trang chập chờn; sửa hai race chờ chữ đang viết. Sáu lượt toàn bộ 27 kịch bản đều pass.
 - **Issue dự kiến:** 2.

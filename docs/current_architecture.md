@@ -217,7 +217,7 @@ Giao diện Dark Theme được mở rộng tích hợp toàn bộ Trình quản
 Do Render.com sử dụng ephemeral filesystem, mọi thay đổi trên đĩa sẽ bị mất khi deploy mới. Giải pháp được chọn là dùng **Supabase PostgreSQL** làm nơi lưu trữ bền vững cho các Style (Phong cách viết).
 Mỗi khi ứng dụng khởi động, hệ thống gọi `restore_all_styles()` (qua REST API bằng urllib) để kéo toàn bộ Style ghi đè vào filesystem. Mọi thay đổi (sửa/xóa) trong runtime sẽ ngay lập tức được upsert/delete trên Supabase (thông qua `engine/supabase_client.py`), đảm bảo tính nhất quán dữ liệu mà không cần phụ thuộc Git Sync.
 
-### 2.9. Claude Artifact (đang xây dựng — ART-0 → ART-3 xong, ART-4 chờ AC2, ART-5 chờ nghiệm thu)
+### 2.9. Claude Artifact (đang xây dựng — ART-0 → ART-3 và ART-5 xong, ART-4 chờ AC2)
 
 Kế hoạch: `docs/2026-11-14-claude-artifact-plan.md`. Mỗi tác giả chạy workflow deep/moment và Voice Lab trong một Artifact riêng trên claude.ai; mỗi stage là một lần gọi `sample` độc lập với model Claude gọi theo tên.
 
