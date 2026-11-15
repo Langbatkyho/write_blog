@@ -364,6 +364,7 @@ function updateControls() {
   $("run-status").textContent = runStatusText();
   $("run-actions").hidden = !state.run;
   $("download-run").disabled = busy || !state.downloads;
+  $("download-runlog").disabled = busy || !state.downloads;
   if (state.run && !$("final").hidden) renderProduction();
   $("download-zip").disabled = busy || !state.downloads || !window.JSZip;
   $("persist-note").hidden = !state.persistNote;
@@ -643,6 +644,29 @@ async function saveFile(filename, data, showNote = showFinalNote) {
   }
 }
 
+// --- ART-7: tải final_blog.md và run_log.md (thay cho gửi Gmail) -----------------
+
+/** final_blog.md: đúng bài đang có trong khung "Bản cuối của bạn" (kể cả khi chưa lưu). */
+function downloadFinalBlog() {
+  const text = $("production").value;
+  if (!text.trim()) return;
+  saveFile("final_blog.md", text.endsWith("\n") ? text : text + "\n", (note) => {
+    state.learningMessage = note;
+    renderProduction();
+  });
+}
+
+/** run_log.md: cùng nội dung và định dạng với run_log.md trong zip (append_run_log của engine). */
+function downloadRunLog() {
+  if (!state.run) return;
+  try {
+    const { files } = exportRunFiles(state.bundle, state.run);
+    saveFile("run_log.md", files["run_log.md"], showRunNote);
+  } catch (error) {
+    showRunNote(`Không tạo được run_log.md: ${(error && error.message) || error}`);
+  }
+}
+
 function baseName() {
   return slugify($("title").value || (state.run && state.run.mode) || "blog");
 }
@@ -698,6 +722,7 @@ function renderProduction() {
   const unchanged = Boolean(primary) && text === primary.text;
   $("learn-claude").disabled = state.busy || !state.client || Boolean(blocker) || unchanged;
   $("learn-offline").disabled = state.busy || Boolean(blocker);
+  $("download-final").disabled = state.busy || !state.downloads || !text.trim();
   const hint = blocker || (unchanged ? "Bản cuối đang giống hệt bản nháp AI, chưa có gì để học. Sửa bài rồi bấm học." : !state.client ? "Học qua Claude cần mở trang trong claude.ai; vẫn so sánh offline được." : "");
   $("learning-note").textContent = state.learningMessage || hint;
 }
@@ -1430,6 +1455,8 @@ function boot() {
   });
   $("download-learning").addEventListener("click", downloadLearning);
   $("download-zip").addEventListener("click", downloadZip);
+  $("download-final").addEventListener("click", downloadFinalBlog);
+  $("download-runlog").addEventListener("click", downloadRunLog);
   $("copy-draft").addEventListener("click", copyDraft);
   $("download-draft").addEventListener("click", () => {
     const { primary } = collectFinalOutputs(state.bundle.workflows[state.run.mode].definition, state.run);

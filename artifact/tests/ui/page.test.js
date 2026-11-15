@@ -146,7 +146,7 @@ function fakeClaude(config) {
     },
   };
   const noSample = config.noSample || Boolean(window.__flag("noSample"));
-  const capabilities = { sample: noSample ? null : sample, downloads, db: config.noDb ? null : db, user };
+  const capabilities = { sample: noSample ? null : sample, downloads: config.noDownloads ? null : downloads, db: config.noDb ? null : db, user };
   window.claude = { use: async (name) => capabilities[name] ?? null };
 }
 
@@ -753,5 +753,59 @@ test("A/B bị gián đoạn: mở lại phiên và chạy tiếp; bấm Dừng 
   assert.equal(ids.filter((id) => id === "moment_writer").length, 3, "bài đầu: lần bị dừng + lần chạy lại; bài sau: một lần");
   await noHorizontalScroll(page);
   assert.deepEqual(errors, []);
+  await context.close();
+});
+
+// --- ART-7: tải final_blog.md và run_log.md -------------------------------------
+
+test("tải final_blog.md (bản cuối đang có, kể cả chưa lưu) và run_log.md đúng định dạng engine", { skip }, async () => {
+  const { context, page, errors } = await openPage({}, { width: 390 });
+  await finishRun(page);
+  assert.ok(await page.isEnabled("#download-final"), "bản cuối khởi tạo từ bản nháp AI nên tải được ngay");
+  await page.fill("#production", "");
+  assert.ok(await page.isDisabled("#download-final"), "bản cuối trống thì không tải");
+  await page.fill("#production", EDITED);
+  await page.click("#download-final");
+  await page.waitForFunction(() => window.__downloads.length === 1);
+  const final = (await page.evaluate(() => window.__downloads))[0];
+  assert.equal(final.filename, "final_blog.md");
+  assert.equal(final.data, EDITED.endsWith("\n") ? EDITED : EDITED + "\n");
+  assert.match(await page.textContent("#learning-note"), /Đã lưu final_blog\.md/);
+
+  await page.click("#download-runlog");
+  await page.waitForFunction(() => window.__downloads.length === 2);
+  const log = (await page.evaluate(() => window.__downloads))[1];
+  assert.equal(log.filename, "run_log.md");
+  const titles = [...log.data.matchAll(/^# (.+)$/gm)].map((m) => m[1]);
+  assert.deepEqual(titles.slice(0, 2), ["Run Metadata", "Author Input"]);
+  for (const [i, id] of bundle.workflows.moment.stage_ids.entries()) assert.ok(titles.includes(`${i + 1}. ${id} Artifact`), id);
+  assert.ok(!titles.some((t) => /Handoff/.test(t)), "run_log.md không chứa handoff (handoff ở handoff_log.md)");
+  assert.ok(log.data.endsWith("\n") && !log.data.endsWith("\n\n"));
+  assert.equal(JSON.parse(log.data.split("# Run Metadata\n\n")[1].split("\n\n# Author Input")[0]).mode, "moment");
+  await noHorizontalScroll(page);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("run_log.md tải riêng giống hệt run_log.md trong zip", { skip: skip || (jszipPath ? false : "Không tải được JSZip để test") }, async () => {
+  const { context, page } = await openPage();
+  await finishRun(page);
+  await page.click("#download-runlog");
+  await page.click("#download-zip");
+  await page.waitForFunction(() => window.__downloads.length === 2);
+  const [log, zip] = await page.evaluate(() => window.__downloads);
+  const zipPath = join(workDir, "runlog.zip");
+  writeFileSync(zipPath, Buffer.from(zip.base64, "base64"));
+  const folder = zip.filename.replace(/\.zip$/, "");
+  const inZip = execFileSync(process.env.PYTHON || "python3", ["-c", "import sys,zipfile;sys.stdout.write(zipfile.ZipFile(sys.argv[1]).read(sys.argv[2]).decode('utf-8'))", zipPath, `${folder}/run_log.md`], { encoding: "utf8" });
+  assert.equal(log.data, inZip);
+  await context.close();
+});
+
+test("không có quyền tải file: hai nút tải bị khóa", { skip }, async () => {
+  const { context, page } = await openPage({ noDownloads: true });
+  await finishRun(page);
+  assert.ok(await page.isDisabled("#download-final"));
+  assert.ok(await page.isDisabled("#download-runlog"));
   await context.close();
 });
