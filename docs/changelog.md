@@ -6,6 +6,7 @@
 - Mỗi run lưu bảng model lúc tạo, chạy tiếp hoặc chạy lại vẫn đúng cấu hình. Bundle có `model_catalog`; effort giới hạn ở low/medium/high.
 - Khung "So sánh A/B mù": chạy cùng input bằng hai cấu hình, nhãn A/B gán ngẫu nhiên, cấu hình chỉ hiện sau khi chốt; phiên lưu tại `blog/ab/<id>`, chạy tiếp được sau gián đoạn.
 - Test: 7 case JS mới, 4 kịch bản Playwright mới (127 test JS/UI). Kiểm chứng: 174 test pass; 2 test lỗi có sẵn về đường dẫn kiểu Windows. Trang publish lại cùng URL (phiên bản 6).
+- Nghiệm thu: owner chạy một phiên A/B thật (Moment, Cân bằng so với Mốc Opus 5.5 · medium); 12/12 bước đúng model và effort, phiên và hai run được lưu đầy đủ.
 
 ## Claude Artifact: ART-5 bản cuối và learning loop (2026-11-14)
 

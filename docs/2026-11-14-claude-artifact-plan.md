@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.11 | 2026-11-15 | ART-6.1 DONE (phiên A/B thật đạt); ghi cặp A/B thật đầu tiên cho ART-6.2 |
 | 3.10 | 2026-11-15 | Ghi kết quả ART-6.1 (AC1, AC2 đạt bằng test; chờ owner chạy một phiên A/B thật cho AC3); thêm preset mốc Opus 5.5 · medium |
 | 3.9 | 2026-11-15 | ART-5 DONE (vòng học thật đạt) |
 | 3.8 | 2026-11-14 | ART-4 chuyển PENDING (AC2 để sau); ghi kết quả ART-5 |
@@ -274,8 +275,8 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | ART-3 | MVP vertical slice | T3 | Agent | Owner | DONE (owner xác nhận 2026-11-14) |
 | ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | PENDING (AC3, AC4, AC5 đạt; AC1 một phần; AC2 để sau theo quyết định owner) |
 | ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | DONE (owner chạy vòng học thật 2026-11-15) |
-| ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | ON-GOING (AC1, AC2 đạt; chờ owner chạy một phiên A/B thật cho AC3) |
-| ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | BACKLOG |
+| ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | DONE (owner chạy phiên A/B thật 2026-11-15) |
+| ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | ON-GOING (1/3 cặp A/B thật) |
 | ART-7 | Gmail | T7 | Agent | Owner | BACKLOG |
 | ART-8.1 | Core Voice Lab JS | T8a | Agent | Owner | BACKLOG |
 | ART-8.2 | Voice Lab: phân tích và evidence | T8b | Agent | Owner | BACKLOG |
@@ -463,7 +464,8 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - Giao diện: khung "Model cho từng bước" (preset, chỉnh từng bước kèm giá trị mặc định để đối chiếu, Lưu, Về mặc định); khung "So sánh A/B mù" (chọn hai cấu hình, báo tốn gấp đôi lượt gọi, chạy A rồi B, chỉ hiện tiến độ và số ký tự, dừng, chạy tiếp, chốt kèm ghi chú, xem lại phiên cũ). Bài A/B chưa chốt bị ẩn khỏi lịch sử vì mở ra sẽ thấy model của từng bước.
   - AC1: Playwright kiểm tra cài đặt lưu đúng vùng riêng, chỉ chứa phần khác mặc định, lần chạy gọi đúng model/effort, tải lại vẫn còn, "Về mặc định" xóa hết ghi đè; trường hợp không có `db` lưu trong trình duyệt.
   - AC2: test JS kiểm tra cả hai cách gán nhãn; Playwright kiểm tra trước khi chốt khung A/B không chứa tên cấu hình hay tên model, sau khi chốt mới hiện đúng cấu hình của bài đã chọn.
-  - AC3 (chờ owner): test đã kiểm tra phiên được lưu, mở lại sau khi tải trang, chạy tiếp sau gián đoạn hoặc sau khi bấm Dừng. Cần owner chạy một phiên A/B thật trên claude.ai.
+  - AC3 (2026-11-15): owner chạy một phiên A/B thật, Moment/reflective, Cân bằng so với Mốc Opus 5.5 · medium. Bản ghi cho thấy: phiên ở trạng thái `decided` và đủ trường; nhãn đã xáo (A là cấu hình Mốc Opus 5.5 · medium, B là Cân bằng); hai run đều completed, mỗi run gắn `ab_session` đã chốt và lưu đúng bảng model của cấu hình mình. Cả 12 bước gọi đúng model và effort của cấu hình, không bị hạ hạng, không bị cắt, không có cảnh báo, `api_called: true`. Owner chọn bài A (Mốc Opus 5.5 · medium, 224 từ) thay vì bài B (Cân bằng, 197 từ), không ghi chú. Tổng thời gian các bước: Mốc Opus 57,6 s, Cân bằng 66,6 s. Chỉ đọc thông tin kỹ thuật, không đọc bài, ghi chú thô hay ghi chú; bản sao tạm đã xóa.
+  - Test đã kiểm tra thêm: phiên được lưu, mở lại sau khi tải trang, chạy tiếp sau gián đoạn hoặc sau khi bấm Dừng.
   - Trang publish lại cùng URL (phiên bản 6), capability giữ nguyên; run cũ còn nguyên.
 - **Issue dự kiến:** 1.
 
@@ -477,6 +479,8 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-6.2-AC1: có ít nhất 3 cặp A/B.
   - ART-6.2-AC2: ADR ghi bảng cuối và lý do.
   - ART-6.2-AC3: bundle mới được publish.
+- **Dữ liệu đã có:**
+  - Cặp 1 (2026-11-15, Moment/reflective): owner chọn Mốc Opus 5.5 · medium thay vì Cân bằng; không ghi chú. Một cặp chưa đủ để kết luận.
 - **Nếu chậm:** ghi PENDING ("chờ dữ liệu A/B"); Artifact vẫn dùng phương án Cân bằng.
 - **Issue dự kiến:** 1.
 
