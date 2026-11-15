@@ -112,6 +112,18 @@ def test_bundle_voice_lab_constants_match_engine(bundle):
     for name in ("analysis_payload", "synthesis_payload", "interview_patch_payload", "calibration_payload", "style_profile"):
         assert vl["schemas"][name]["type"] == "object"
     assert vl["calibration"]["min_words"] < vl["calibration"]["max_words"]
+    # ART-8.1: nhãn tiếng Việt, tham số chia mẫu và chuỗi schema dựng sẵn cho prompt.
+    from engine.voice_lab import analyzer as vl_analyzer
+    from engine.voice_lab.interview_routing import DIMENSION_VI
+    from engine.voice_lab.overrides import IR_LEVEL_INVARIANTS
+
+    assert vl["dimension_labels"] == DIMENSION_VI
+    assert vl["analysis"]["chunk_overlap_chars"] == vl_analyzer.CHUNK_OVERLAP_CHARS
+    assert vl["analysis"]["max_analysis_batches"] == vl_analyzer.MAX_ANALYSIS_BATCHES
+    assert vl["ir_level_invariants"] == sorted(IR_LEVEL_INVARIANTS)
+    for name, schema in vl["schemas"].items():
+        assert vl["schema_texts"][name] == json.dumps(schema, ensure_ascii=False)
+    assert '"maximum": 1.0' in vl["schema_texts"]["analysis_payload"]
 
 
 def test_bundle_base_hash_matches_compiler_golden(bundle):

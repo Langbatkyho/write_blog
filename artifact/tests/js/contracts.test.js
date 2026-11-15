@@ -52,3 +52,14 @@ test("core không dùng DOM, window, capability của Artifact hay module ngoài
     }
   }
 });
+
+test("lõi Voice Lab (src/vl) là hàm thuần: không DOM, không capability, chỉ import core hoặc vl", () => {
+  const vlDir = join(ARTIFACT_DIR, "src", "vl");
+  for (const file of readdirSync(vlDir).filter((name) => name.endsWith(".js"))) {
+    const source = readFileSync(join(vlDir, file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    assert.doesNotMatch(source, /\b(window|document|localStorage|claude\.use|fetch)\b/, file);
+    for (const [, target] of source.matchAll(/from\s+"([^"]+)"/g)) {
+      assert.match(target, /^(\.\/[a-z_]+\.js|\.\.\/core\/[a-z_]+\.js)$/, `${file} import ngoài phạm vi: ${target}`);
+    }
+  }
+});

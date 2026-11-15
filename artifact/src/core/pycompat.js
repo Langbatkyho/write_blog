@@ -99,3 +99,94 @@ export function truncateWords(text, maxWords = 220) {
   if (words.length <= maxWords) return pyStrip(text);
   return pyStrip(words.slice(0, maxWords).join(" ")) + "\n\n[Fallback handoff truncated locally.]";
 }
+
+// --- Bổ sung cho Voice Lab (ART-8.1) ----------------------------------------
+
+/** round(x, n) của Python: làm tròn half-even trên giá trị nhị phân chính xác. */
+export function pyRound(x, digits) {
+  return Number(pyFormatFixed(x, digits));
+}
+
+/** str.split() không tham số của Python: tách theo khoảng trắng Unicode, bỏ phần rỗng. */
+export function pySplitWhitespace(text) {
+  return String(text).match(PY_NON_SPACE_RE) || [];
+}
+
+/** Số code point (len() của Python), không phải số đơn vị UTF-16. */
+export function pyLen(text) {
+  let count = 0;
+  for (const _ of String(text)) count += 1;
+  return count;
+}
+
+/** str.find() của Python: chỉ số tính theo code point, -1 nếu không có. */
+export function pyFind(haystack, needle) {
+  const index = String(haystack).indexOf(needle);
+  return index < 0 ? -1 : pyLen(String(haystack).slice(0, index));
+}
+
+/** So sánh chuỗi theo code point như sorted() của Python (JS mặc định so theo UTF-16). */
+export function pyCompare(a, b) {
+  const x = [...String(a)];
+  const y = [...String(b)];
+  for (let i = 0; i < Math.min(x.length, y.length); i += 1) {
+    const d = x[i].codePointAt(0) - y[i].codePointAt(0);
+    if (d) return d < 0 ? -1 : 1;
+  }
+  return x.length === y.length ? 0 : x.length < y.length ? -1 : 1;
+}
+
+/**
+ * str.casefold() của Python, gần đúng: lower() cộng các trường hợp gập đặc biệt hay gặp
+ * (ß, ẞ, ς, ſ, ligature). Chỉ dùng để phát hiện rule trùng giữa do và avoid.
+ */
+export function pyCasefold(text) {
+  const SPECIAL = { "ß": "ss", "ẞ": "ss", "ς": "σ", "ſ": "s", "ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "st", "ﬆ": "st" };
+  return String(text)
+    .toLowerCase()
+    .replace(/[ßẞςſﬀ-ﬆ]/g, (ch) => SPECIAL[ch] ?? ch);
+}
+
+/** repr() của float trong Python: "1.0", "0.5", "1e-05", "1e+16". */
+export function pyFloatRepr(x) {
+  if (Number.isNaN(x)) return "NaN";
+  if (x === Infinity) return "Infinity";
+  if (x === -Infinity) return "-Infinity";
+  if (x === 0) return Object.is(x, -0) ? "-0.0" : "0.0";
+  const [mantissa, expText] = x.toExponential().split("e");
+  const exponent = Number(expText);
+  if (exponent < -4 || exponent >= 16) {
+    return `${mantissa}e${exponent < 0 ? "-" : "+"}${String(Math.abs(exponent)).padStart(2, "0")}`;
+  }
+  const negative = mantissa.startsWith("-");
+  const digits = mantissa.replace("-", "").replace(".", "");
+  let text;
+  if (exponent >= digits.length - 1) text = digits + "0".repeat(exponent - digits.length + 1) + ".0";
+  else if (exponent >= 0) text = digits.slice(0, exponent + 1) + "." + digits.slice(exponent + 1);
+  else text = "0." + "0".repeat(-exponent - 1) + digits;
+  return (negative ? "-" : "") + text;
+}
+
+/**
+ * json.dumps(value, ensure_ascii=False) của Python (separators ", " và ": ").
+ * JS không phân biệt 1 và 1.0, nên số dưới các key trong `floatKeys` luôn in kiểu float
+ * của Python (giống trường float của Pydantic); số không nguyên luôn là float.
+ */
+export function pyJsonDumps(value, floatKeys = new Set()) {
+  const render = (item, isFloat) => {
+    if (item === null || item === undefined) return "null";
+    if (typeof item === "boolean") return item ? "true" : "false";
+    if (typeof item === "number") return isFloat || !Number.isInteger(item) ? pyFloatRepr(item) : String(item);
+    if (typeof item === "string") return JSON.stringify(item);
+    if (Array.isArray(item)) return "[" + item.map((entry) => render(entry, isFloat)).join(", ") + "]";
+    return "{" + Object.entries(item).map(([key, entry]) => `${JSON.stringify(key)}: ${render(entry, floatKeys.has(key))}`).join(", ") + "}";
+  };
+  return render(value, false);
+}
+
+/** Thời điểm UTC theo định dạng JSON của Pydantic: "2026-11-14T09:05:07Z" hoặc ".042000Z". */
+export function pyIsoUtc(date) {
+  const iso = date.toISOString();
+  const ms = date.getUTCMilliseconds();
+  return iso.slice(0, 19) + (ms ? `.${String(ms * 1000).padStart(6, "0")}` : "") + "Z";
+}

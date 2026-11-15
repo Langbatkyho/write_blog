@@ -46,7 +46,10 @@ from engine.voice_lab.compiler import (  # noqa: E402
     SKILL_LEVEL_INVARIANTS,
     stable_skill_hash,
 )
+from engine.voice_lab import analyzer as vl_analyzer  # noqa: E402
+from engine.voice_lab.interview_routing import DIMENSION_VI  # noqa: E402
 from engine.voice_lab.models import SCHEMA_VERSION, VOICE_DIMENSIONS, StyleProfile  # noqa: E402
+from engine.voice_lab.overrides import IR_LEVEL_INVARIANTS  # noqa: E402
 from engine.voice_lab.prompts import (  # noqa: E402
     analysis_schema,
     calibration_schema,
@@ -218,6 +221,7 @@ def build_bundle_content(config_path: Path = DEFAULT_CONFIG) -> Dict[str, Any]:
     models = validate_claude_config(config.get("claude"), workflow_stage_ids=all_stage_ids)
 
     learning_skill = load_yaml(resolve_path("skills/editorial_learning.yaml"))
+    schemas = _export_schemas()
     return {
         "bundle_format": BUNDLE_FORMAT,
         "workflows": workflows,
@@ -242,7 +246,20 @@ def build_bundle_content(config_path: Path = DEFAULT_CONFIG) -> Dict[str, Any]:
                 "direct_user_confirmation_confidence": DIRECT_USER_CONFIRMATION_CONFIDENCE,
                 "default_content_brief": DEFAULT_CONTENT_BRIEF,
             },
-            "schemas": _export_schemas(),
+            "dimension_labels": dict(DIMENSION_VI),
+            # Tham số chia mẫu văn của analyzer.py; Artifact còn chặn thêm theo số byte của prompt.
+            "analysis": {
+                "default_context_tokens": vl_analyzer.DEFAULT_CONTEXT_TOKENS,
+                "input_budget_ratio": vl_analyzer.INPUT_BUDGET_RATIO,
+                "chunk_overlap_chars": vl_analyzer.CHUNK_OVERLAP_CHARS,
+                "max_analysis_batches": vl_analyzer.MAX_ANALYSIS_BATCHES,
+                "ascii_chars_per_token": vl_analyzer.ASCII_CHARS_PER_TOKEN,
+                "non_ascii_chars_per_token": vl_analyzer.NON_ASCII_CHARS_PER_TOKEN,
+            },
+            "ir_level_invariants": sorted(IR_LEVEL_INVARIANTS),
+            "schemas": schemas,
+            # Chuỗi schema dựng sẵn bằng json.dumps của Python (giữ "1.0") để nhúng vào prompt (ART-0).
+            "schema_texts": {name: json.dumps(schema, ensure_ascii=False) for name, schema in schemas.items()},
         },
     }
 

@@ -438,12 +438,397 @@ def golden_voicelab_logic() -> Dict[str, Any]:
     }
 
 
+# --- Voice Lab: luồng phân tích, phỏng vấn, calibration (ART-8.1) -----------
+
+TIME_KEYS = {"created_at", "updated_at", "confirmed_at"}
+
+
+def _scrub(value: Any) -> Any:
+    """Thời điểm do utc_now() sinh nên không cố định: thay bằng '<time>'."""
+    if isinstance(value, dict):
+        return {k: ("<time>" if k in TIME_KEYS and v is not None else _scrub(v)) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_scrub(v) for v in value]
+    return value
+
+
+class _Ids:
+    """uuid4 thay thế: id-0001, id-0002… theo thứ tự tạo."""
+
+    def __init__(self) -> None:
+        self.count = 0
+
+    def __call__(self) -> str:
+        self.count += 1
+        return f"id-{self.count:04d}"
+
+
+class _FixedRandom:
+    def __init__(self, value: float) -> None:
+        self.value = value
+
+    def random(self) -> float:
+        return self.value
+
+
+def _patched_ids():
+    import contextlib
+    import engine.voice_lab.models as vl_models
+    from unittest import mock
+
+    ids = _Ids()
+
+    @contextlib.contextmanager
+    def ctx():
+        with mock.patch.object(vl_models.uuid, "uuid4", side_effect=ids):
+            yield ids
+
+    return ctx()
+
+
+def _recording_client(responses):
+    """Gemini giả: trả lần lượt các phản hồi (chuỗi hoặc hàm của prompt) và ghi lại lời gọi."""
+    calls: List[Dict[str, Any]] = []
+
+    def client(prompt: str, *, stage_id: str, **_: Any) -> str:
+        item = responses[len(calls)]
+        text = item(prompt) if callable(item) else item
+        calls.append({"stage_id": stage_id, "prompt": prompt, "response": text})
+        return text
+
+    return client, calls
+
+
+def _analysis_error(fn) -> Dict[str, Any]:
+    from engine.voice_lab.models import AnalysisError
+
+    try:
+        fn()
+    except AnalysisError as exc:
+        return {"code": exc.code, "user_message": exc.user_message}
+    raise AssertionError("expected AnalysisError")
+
+
+def _value_error(fn) -> str:
+    try:
+        fn()
+    except ValueError as exc:
+        return str(exc)
+    raise AssertionError("expected ValueError")
+
+
+def golden_voicelab_flow() -> Dict[str, Any]:
+    import os
+    from unittest import mock
+
+    import engine.voice_lab.analyzer as vl_analyzer
+    from engine.voice_lab.calibration import apply_calibration_selection, calibrate_ab
+    from engine.voice_lab.interview_routing import generate_interview
+    from engine.voice_lab.models import StyleProfile as Profile
+    from engine.voice_lab.overrides import apply_conflict_resolutions, merge_overrides
+    from engine.voice_lab.profile_patch import apply_interview_patch, propose_interview_patch
+    from engine.voice_lab.prompts import (
+        CalibrationPayload,
+        InterviewPatchPayload,
+        ModelAnalysisPayload,
+        ModelSynthesisPayload,
+    )
+
+    out: Dict[str, Any] = {
+        "description": "Luồng Voice Lab của engine với Gemini giả: estimate_tokens, _chunk_samples, analyze_samples (một lượt, nhiều lượt, lỗi), generate_interview, propose/apply_interview_patch, calibrate_ab, apply_calibration_selection, merge_overrides, kiểm tra schema. uuid4 thay bằng id-0001…; thời điểm thay bằng '<time>'.",
+    }
+
+    estimate_inputs = ["", "abc", "abcde", "Mình", "🌿", "Sáng nay 🌿 mình ra ban công.\nHoa cứ là hoa.", LONG_TEXT[:500]]
+    out["estimate_tokens"] = [{"text": t, "tokens": vl_analyzer.estimate_tokens(t)} for t in estimate_inputs]
+
+    long_vi = ("Sáng nay mình ra ban công 🌿, nghe chim hót và thấy lòng nhẹ hơn. " * 40).strip()
+    chunk_samples = [
+        {"sample_id": "sample_1", "content": "Short ascii sample."},
+        {"sample_id": "sample_2", "content": long_vi},
+        {"sample_id": "sample_3", "content": "Một đoạn trung bình, có emoji 😇 và xuống dòng.\nDòng thứ hai." * 6},
+    ]
+    out["chunk"] = [
+        {"budget": budget, "batches": vl_analyzer._chunk_samples(chunk_samples, budget)}
+        for budget in (300, 1000, 5000)
+    ]
+    out["chunk_inputs"] = chunk_samples
+
+    # Phân tích một lượt.
+    single_samples = [
+        "Sáng nay 🌿 mình ra ban công.\r\nHoa cứ là hoa. Mình biết vậy.",
+        "   ",
+        "Còn bạn thì sao? Mình thì vẫn chưa biết. 😇",
+    ]
+    single_response = json.dumps(
+        {
+            "dna": {
+                "tone": {"description": "Giọng tâm tình", "strength": 0.7, "do": ["Thừa nhận điểm yếu"], "avoid": []},
+                "rhythm": {"description": "Câu ngắn đứng riêng", "strength": 0.8, "do": ["Tách câu"], "avoid": ["Câu dài"]},
+                "emoji": {"description": "Emoji cuối câu", "strength": 1, "do": [], "avoid": ["Rải emoji"]},
+                "humor": {"description": "Không có evidence", "strength": 0.3},
+            },
+            "evidence": [
+                {"sample_id": "sample_1", "dimension": "rhythm", "claim": "Câu ngắn", "exact_quote": "Hoa cứ là hoa."},
+                {"sample_id": "sample_1", "dimension": "tone", "claim": "Qua CRLF", "exact_quote": "ban công.\r\nHoa"},
+                {"sample_id": "sample_3", "dimension": "emoji", "claim": "Emoji cuối", "exact_quote": "chưa biết. 😇"},
+                {"sample_id": "sample_3", "dimension": "rhythm", "claim": "Mâu thuẫn", "exact_quote": "Mình thì vẫn chưa biết.", "stance": "contradict"},
+                {"sample_id": "sample_3", "dimension": "tone", "claim": "Diễn đạt lại", "exact_quote": "Bạn thì sao?"},
+                {"sample_id": "sample_2", "dimension": "tone", "claim": "Mẫu rỗng bị bỏ nên sample_2 không tồn tại", "exact_quote": "Hoa"},
+            ],
+            "warnings": ["Mẫu ngắn"],
+        },
+        ensure_ascii=False,
+    )
+    with _patched_ids(), mock.patch.dict(os.environ, {"VOICE_LAB_GEMINI_CONTEXT_TOKENS": "200000"}):
+        client, calls = _recording_client([single_response])
+        with mock.patch.object(vl_analyzer, "call_gemini", client):
+            single = vl_analyzer.analyze_samples(single_samples, slug="golden-voice", mode="deep")
+    single_profile = single.profile
+    out["analyze_single"] = {
+        "inputs": {"samples": single_samples, "slug": "golden-voice", "mode": "deep", "token_budget": int(200000 * vl_analyzer.INPUT_BUDGET_RATIO)},
+        "calls": calls,
+        "result": _scrub(single.model_dump(mode="json")),
+    }
+
+    # Phân tích nhiều lượt: ngân sách context 20.000 token (đủ chỗ cho prompt + output) với 4 bài mẫu thật.
+    va = [read_text(resolve_path(p)) for p in VA_SAMPLES]
+    # Lặp lại để vượt ngân sách: mẫu cuối dài hơn ngân sách nên bị cắt có gối đầu (CHUNK_OVERLAP_CHARS).
+    multi_samples = [va[0] + "\n\n" + va[0], va[1] + "\r\n\r\n" + va[1], va[2], va[3], "\n\n".join(va * 5)]
+
+    def batch_response(prompt: str) -> str:
+        data = json.loads(prompt.split("SAMPLE_DATA\n", 1)[1])
+        evidence = []
+        for unit in data:
+            content = unit["content"]
+            evidence.append({"sample_id": unit["sample_id"], "dimension": "tone", "claim": "Mở đoạn", "exact_quote": content[:40]})
+            evidence.append({"sample_id": unit["sample_id"], "dimension": "tone", "claim": "Trùng", "exact_quote": content[:40]})
+            evidence.append({"sample_id": unit["sample_id"], "dimension": "rhythm", "claim": "Kết đoạn", "exact_quote": content[-25:]})
+            evidence.append({"sample_id": unit["sample_id"], "dimension": "emoji", "claim": "Bịa", "exact_quote": "không có trong bài ✨"})
+        return json.dumps(
+            {"dna": {"tone": {"description": f"Giọng của lô {len(data)}", "strength": 0.6}}, "evidence": evidence, "warnings": []},
+            ensure_ascii=False,
+        )
+
+    synthesis_response = json.dumps(
+        {
+            "dna": {
+                "tone": {"description": "Giọng tâm tình, tự trào", "strength": 0.75, "do": ["Viết như tâm sự"], "avoid": ["Giảng đạo"]},
+                "rhythm": {"description": "Kết đoạn bằng câu ngắn", "strength": 0.55},
+            },
+            "warnings": ["Tổng hợp từ nhiều lô"],
+        },
+        ensure_ascii=False,
+    )
+    with _patched_ids(), mock.patch.dict(os.environ, {"VOICE_LAB_GEMINI_CONTEXT_TOKENS": "20000"}):
+        prepared = vl_analyzer._prepare_samples(multi_samples)
+        batches = vl_analyzer._chunk_samples(prepared, int(20000 * vl_analyzer.INPUT_BUDGET_RATIO))
+        client, calls = _recording_client([batch_response] * len(batches) + [synthesis_response])
+        with mock.patch.object(vl_analyzer, "call_gemini", client):
+            multi = vl_analyzer.analyze_samples(multi_samples, slug="golden-multi", mode="moment")
+    out["analyze_multi"] = {
+        "inputs": {"samples": multi_samples, "slug": "golden-multi", "mode": "moment", "token_budget": int(20000 * vl_analyzer.INPUT_BUDGET_RATIO)},
+        "calls": calls,
+        "result": _scrub(multi.model_dump(mode="json")),
+    }
+
+    def run_error(samples, responses):
+        def go():
+            client, _ = _recording_client(responses)
+            with mock.patch.object(vl_analyzer, "call_gemini", client), mock.patch.dict(os.environ, {"VOICE_LAB_GEMINI_CONTEXT_TOKENS": "200000"}):
+                vl_analyzer.analyze_samples(samples)
+        return go
+
+    ok_samples = ["Hoa cứ là hoa."]
+    out["analyze_errors"] = [
+        {"name": name, "samples": samples, "responses": responses, "error": _analysis_error(run_error(samples, responses))}
+        for name, samples, responses in (
+            ("not_json", ok_samples, ["không phải JSON"]),
+            ("extra_field", ok_samples, ['{"dna": {}, "evidence": [], "warnings": [], "score": 1}']),
+            ("bad_stance", ok_samples, ['{"evidence": [{"sample_id": "sample_1", "dimension": "tone", "claim": "x", "exact_quote": "Hoa", "stance": "maybe"}]}']),
+            ("no_valid_evidence", ok_samples, ['{"dna": {"tone": {"description": "x"}}, "evidence": [{"sample_id": "sample_1", "dimension": "tone", "claim": "x", "exact_quote": "Hoa là hoa"}]}']),
+            ("empty_samples", ["", "  \n "], []),
+        )
+    ]
+
+    # Phỏng vấn.
+    with _patched_ids():
+        questions = generate_interview(single_profile)
+    out["interview_questions"] = {"profile": _scrub(single_profile.model_dump(mode="json")), "questions": [q.model_dump(mode="json") for q in questions]}
+    answers = {questions[0].id: "  Mình muốn giữ, nhưng nhẹ hơn 🌿  ", questions[1].id: "   ", questions[2].id: "Đổi hẳn: kể chậm lại."}
+    patch_response = json.dumps(
+        {
+            "changes": [
+                {"dimension": questions[0].dimension, "description": "Nhẹ hơn", "strength": 0.4, "do": ["Giữ"], "avoid": []},
+                {"dimension": questions[2].dimension, "description": "Kể chậm", "strength": 0.25, "avoid": ["Vội"]},
+                {"dimension": "tone" if questions[0].dimension != "tone" else "rhythm", "description": "Không được hỏi", "strength": 0.9},
+            ]
+        },
+        ensure_ascii=False,
+    )
+    client, calls = _recording_client([patch_response])
+    patch = propose_interview_patch(single_profile, questions, answers, gemini_client=client)
+    empty_client, empty_calls = _recording_client([])
+    empty_patch = propose_interview_patch(single_profile, questions, {}, gemini_client=empty_client)
+    bad_client, _ = _recording_client(['{"changes": [{"dimension": "tone", "description": "x"}]}'])
+    try:
+        propose_interview_patch(single_profile, questions, answers, gemini_client=bad_client)
+        bad_patch = None
+    except Exception as exc:  # AnalysisError
+        bad_patch = {"code": exc.code, "user_message": exc.user_message}
+    patch_with_stranger = InterviewPatchPayload.model_validate(
+        {"changes": [*patch.model_dump()["changes"], {"dimension": "mood", "description": "x", "strength": 0.5}]}
+    )
+    with _patched_ids():
+        applied = apply_interview_patch(single_profile, patch_with_stranger, questions, answers, confirmed=True)
+        follow_up = generate_interview(applied)
+    out["interview_patch"] = {
+        "answers": answers,
+        "calls": calls,
+        "patch": patch.model_dump(mode="json"),
+        "empty_patch": empty_patch.model_dump(mode="json"),
+        "empty_calls": len(empty_calls),
+        "invalid_patch_error": bad_patch,
+        "apply_patch_input": patch_with_stranger.model_dump(mode="json"),
+        "applied_profile": _scrub(applied.model_dump(mode="json")),
+        "unconfirmed_error": _value_error(lambda: apply_interview_patch(single_profile, patch, questions, answers, confirmed=False)),
+        "follow_up_questions": [q.model_dump(mode="json") for q in follow_up],
+    }
+
+    # Calibration.
+    amplified = " ".join(["Mình", "thả", "emoji", "🌿", "khắp", "nơi"] * 20)
+    restrained = " ".join(["Mình", "giữ", "câu", "chữ", "thật", "yên"] * 18)
+    cal_response = json.dumps({"variant_amplified": f"  {amplified}  ", "variant_restrained": restrained}, ensure_ascii=False)
+    sessions = []
+    with _patched_ids():
+        for value in (0.3, 0.7):
+            client, calls = _recording_client([cal_response])
+            session = calibrate_ab("emoji", single_profile, rng=_FixedRandom(value), gemini_client=client)
+            sessions.append({"random": value, "calls": calls, "session": _scrub(session.model_dump(mode="json"))})
+        session = calibrate_ab("emoji", single_profile, rng=_FixedRandom(0.3), gemini_client=_recording_client([cal_response])[0])
+        selected = apply_calibration_selection(single_profile, session, "B")
+
+    def cal_error(response, dimension="emoji"):
+        def go():
+            calibrate_ab(dimension, single_profile, rng=_FixedRandom(0.1), gemini_client=_recording_client([response])[0])
+        return go
+
+    short = json.dumps({"variant_amplified": "Quá ngắn", "variant_restrained": restrained}, ensure_ascii=False)
+    same = json.dumps({"variant_amplified": restrained, "variant_restrained": restrained}, ensure_ascii=False)
+    out["calibration"] = {
+        "sessions": sessions,
+        "apply": {"session": _scrub(session.model_dump(mode="json")), "selected": "B", "profile": _scrub(selected.model_dump(mode="json"))},
+        "reapply_error": _value_error(lambda: apply_calibration_selection(selected, session, "A")),
+        "bad_label_error": _value_error(lambda: apply_calibration_selection(single_profile, session, "C")),
+        "errors": [
+            {"name": "too_short", "response": short, "error": _analysis_error(cal_error(short))},
+            {"name": "identical", "response": same, "error": _analysis_error(cal_error(same))},
+            {"name": "missing_field", "response": '{"variant_amplified": "x"}', "error": _analysis_error(cal_error('{"variant_amplified": "x"}'))},
+        ],
+        "value_errors": [
+            {"dimension": "mood", "error": _value_error(cal_error(cal_response, "mood"))},
+            {"dimension": "humor", "error": _value_error(cal_error(cal_response, "humor"))},
+        ],
+    }
+
+    # Merge ba chiều của Canonical IR.
+    full_dna = VoiceDNA.model_validate({"tone": {"description": "Giọng tâm tình", "strength": 0.85, "do": ["Viết như tâm sự"]}})
+    compiled = compile_style(Profile(slug="m", mode="deep", dna=full_dna, created_at=FIXED_TIME, updated_at=FIXED_TIME), "deep")
+    base_ir = compiled["writing_agent.yaml"]
+    current_ir = json.loads(json.dumps(base_ir))
+    current_ir["style_overlays"] = {"tone": ["Mô tả: bản đang chạy"]}
+    override_ir = json.loads(json.dumps(base_ir))
+    override_ir["style_overlays"] = {"tone": ["Mô tả: bản người dùng sửa"]}
+    only_override = json.loads(json.dumps(base_ir))
+    only_override["context_policy"] = {"reference": "đổi phía override"}
+    bad_invariant = json.loads(json.dumps(base_ir))
+    bad_invariant["base_hash"] = "x"
+    merges = []
+    for name, current, override in (
+        ("unchanged", base_ir, base_ir),
+        ("override_only", base_ir, only_override),
+        ("current_only", current_ir, base_ir),
+        ("both_changed", current_ir, override_ir),
+        ("invariant_modified", base_ir, bad_invariant),
+    ):
+        merges.append({"name": name, "current": current, "override": override, "result": merge_overrides(base_ir, current, override).model_dump(mode="json")})
+    conflict = merge_overrides(base_ir, current_ir, override_ir)
+    resolved = apply_conflict_resolutions(conflict, {"style_overlays": override_ir["style_overlays"]})
+    out["merge"] = {
+        "base": base_ir,
+        "cases": merges,
+        "resolved": resolved,
+        "missing_resolution_error": _value_error(lambda: apply_conflict_resolutions(conflict, {})),
+        "unknown_resolution_error": _value_error(lambda: apply_conflict_resolutions(conflict, {"style_overlays": [], "x": 1})),
+        "invariant_error": _value_error(lambda: apply_conflict_resolutions(merge_overrides(base_ir, base_ir, bad_invariant), {})),
+        "mismatched_id_error": _value_error(lambda: merge_overrides(base_ir, {**base_ir, "id": "khác"}, base_ir)),
+    }
+
+    # Kiểm tra schema: kết luận của Pydantic với từng payload.
+    def verdicts(model, payloads):
+        rows = []
+        for payload in payloads:
+            text = json.dumps(payload, ensure_ascii=False)
+            try:
+                rows.append({"payload": payload, "valid": True, "value": model.model_validate_json(text).model_dump(mode="json")})
+            except Exception:
+                rows.append({"payload": payload, "valid": False})
+        return rows
+
+    fixed_profile = {**single_profile.model_dump(mode="json"), "created_at": "2026-11-14T00:00:00Z", "updated_at": "2026-11-14T00:00:00Z"}
+    out["schema_cases"] = {
+        "analysis_payload": verdicts(ModelAnalysisPayload, [
+            {},
+            {"dna": {"tone": {"description": "x"}}, "evidence": [{"sample_id": "s", "dimension": "tone", "claim": "c", "exact_quote": "q"}]},
+            {"dna": {"tone": {"description": "x", "strength": 1}}, "warnings": ["w"]},
+            {"dna": {"tone": {"description": "x", "strength": 1.5}}},
+            {"dna": {"tone": {"description": "x", "strength": -0.1}}},
+            {"dna": {"tone": {"description": "x", "confidence": 0.9}}},
+            {"dna": {"tone": "x"}},
+            {"evidence": [{"sample_id": "s", "dimension": "tone", "claim": "c"}]},
+            {"evidence": [{"sample_id": "s", "dimension": "tone", "claim": "c", "exact_quote": "q", "stance": "neutral"}]},
+            {"evidence": [{"sample_id": "s", "dimension": "tone", "claim": "c", "exact_quote": 5}]},
+            {"warnings": "w"},
+            {"warnings": [1]},
+            {"evidence": {}},
+            {"dna": {}, "extra": True},
+            {"dna": {"tone": {"do": "x"}}},
+            {"dna": None},
+        ]),
+        "synthesis_payload": verdicts(ModelSynthesisPayload, [
+            {"dna": {"rhythm": {"description": "y", "strength": 0.0}}},
+            {"dna": {"rhythm": {"description": "y"}}, "evidence": []},
+        ]),
+        "interview_patch_payload": verdicts(InterviewPatchPayload, [
+            {"changes": [{"dimension": "tone", "description": "x", "strength": 0.5}]},
+            {"changes": [{"dimension": "tone", "description": "x"}]},
+            {"changes": [{"dimension": "tone", "description": "x", "strength": 0.5, "examples": []}]},
+            {},
+        ]),
+        "calibration_payload": verdicts(CalibrationPayload, [
+            {"variant_amplified": "a", "variant_restrained": "b"},
+            {"variant_amplified": "a"},
+            {"variant_amplified": "a", "variant_restrained": None},
+        ]),
+        "style_profile": verdicts(Profile, [
+            fixed_profile,
+            {**fixed_profile, "schema_version": 1},
+            {**fixed_profile, "confidence": 2},
+            {**fixed_profile, "created_at": "hôm qua"},
+            {"slug": "x", "mode": "deep", "created_at": "2026-11-14T00:00:00Z", "updated_at": "2026-11-14T00:00:00Z"},
+            {"slug": "x", "mode": "poem", "created_at": "2026-11-14T00:00:00Z", "updated_at": "2026-11-14T00:00:00Z"},
+        ]),
+    }
+    out["schema_cases"]["style_profile"] = [{**row, "value": _scrub(row["value"])} if row["valid"] else row for row in out["schema_cases"]["style_profile"]]
+    return out
+
+
 GOLDEN_BUILDERS = {
     "workflow_prompts.json": golden_workflow_prompts,
     "parser_cases.json": golden_parser_cases,
     "learning_prompts.json": golden_learning_prompts,
     "voicelab_prompts.json": golden_voicelab_prompts,
     "voicelab_logic.json": golden_voicelab_logic,
+    "voicelab_flow.json": golden_voicelab_flow,
 }
 
 
