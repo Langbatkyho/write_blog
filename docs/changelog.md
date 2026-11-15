@@ -1,5 +1,12 @@
 # Lịch sử Thay đổi (Changelog)
 
+## Claude Artifact: ART-8.1 lõi Voice Lab JS, ART-7 tải file, đóng ART-6.2 (2026-11-15)
+
+- ART-8.1: `artifact/src/vl/` port hàm thuần Voice Lab (prompt, kiểm tra schema fail-closed, chia mẫu theo token và byte, quote nguyên văn, Voice DNA/confidence, phỏng vấn, patch có xác nhận, calibration một chiều, compiler, merge overrides). Golden mới `voicelab_flow.json`; 15 test JS mới. Bundle thêm nhãn chiều, tham số chia mẫu, `schema_texts`.
+- ART-7 đổi phạm vi theo quyết định owner: bỏ Gmail; trang có nút "Tải final_blog.md" và "Tải run_log.md" (giống bản trong zip). 3 kịch bản Playwright mới.
+- ART-6.2 đóng sau 1 cặp A/B; ADR `docs/2026-11-15-adr-claude-model-table.md` giữ bảng Cân bằng làm mặc định.
+- Kiểm chứng: 145 test JS/UI pass; Python 174 pass, 2 test lỗi có sẵn về đường dẫn kiểu Windows. Trang publish lại cùng URL (phiên bản 7).
+
 ## Claude Artifact: ART-6.1 cấu hình model riêng và A/B mù (2026-11-15)
 
 - Khung "Model cho từng bước": 4 preset (Cân bằng, Chất lượng tối đa, Nhanh, Mốc Opus 5.5 · medium), chỉnh model/effort từng bước cho workflow, learning và Voice Lab; lưu riêng từng tài khoản tại `data/users/<uid>/settings`; nút về mặc định.

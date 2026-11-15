@@ -12,6 +12,7 @@
 | 1 | 2026-11-14 | Bản nháp đầu tiên; D1–D7 còn mở |
 | 2 | 2026-11-14 | Chốt D1–D7:<br>• Thêm track Voice Lab (ART-8.1 → 8.4)<br>• Thêm phạm vi team (D2)<br>• Gmail chuyển thành ART-7, bỏ dictation<br>• Model gọi theo tên<br>• Thêm bước cập nhật quy tắc Voice Lab vào ART-1<br>• Làm rõ D3 thành D3a |
 | 3 | 2026-11-14 | D2 đổi sang **mỗi tác giả một Artifact riêng**; đồng đội tự clone (publish lại bản build dưới tài khoản của họ):<br>• Bỏ thư viện style dùng chung và quy tắc `db` cho team<br>• Thư viện style (D3a) thành riêng của từng tác giả<br>• Thêm gói clone và tem phiên bản vào ART-4<br>• D3a được chốt; ART-8.4 sang BACKLOG<br>• Chỉ định tài khoản kiểm tra thứ hai cho ART-0 |
+| 3.12 | 2026-11-15 | Owner đóng ART-6.2 (giữ bảng Cân bằng, ADR); ART-7 đổi từ Gmail sang tải `final_blog.md` và `run_log.md`; ghi kết quả ART-8.1 và ART-7 |
 | 3.11 | 2026-11-15 | ART-6.1 DONE (phiên A/B thật đạt); ghi cặp A/B thật đầu tiên cho ART-6.2 |
 | 3.10 | 2026-11-15 | Ghi kết quả ART-6.1 (AC1, AC2 đạt bằng test; chờ owner chạy một phiên A/B thật cho AC3); thêm preset mốc Opus 5.5 · medium |
 | 3.9 | 2026-11-15 | ART-5 DONE (vòng học thật đạt) |
@@ -35,7 +36,7 @@ Một Artifact trên claude.ai, **mỗi tác giả dùng một bản riêng**. �
 1. **Chạy hai workflow viết blog** (`deep`, `moment`) với mọi style.
    - Mỗi stage là một lần gọi `sample` độc lập, ngữ cảnh chỉ gồm những gì `context_policy` cho phép.
    - Mỗi stage dùng model Claude được gọi **theo tên**, kèm effort riêng.
-2. **Lưu lịch sử run**, cho sửa bản cuối, chạy learning loop, và gửi kết quả qua Gmail.
+2. **Lưu lịch sử run**, cho sửa bản cuối, chạy learning loop, và tải `final_blog.md`, `run_log.md` (D5, đổi ngày 2026-11-15: bỏ Gmail).
 3. **Có Voice Lab đủ 5 bước**, chạy bằng Claude, để tác giả tạo style giọng văn của riêng mình.
 
 Repo vẫn là nguồn chân lý cho flow, skill hệ thống, bảng model và các hằng số Voice Lab. Artifact dùng một bundle được build và kiểm tra từ repo.
@@ -49,7 +50,7 @@ Repo vẫn là nguồn chân lý cho flow, skill hệ thống, bảng model và 
 Hệ quả:
 
 - **Không có dữ liệu dùng chung giữa người.** Mỗi bản clone bắt đầu với `db` trống.
-- Mỗi tác giả tiêu quota Claude Team và dùng Gmail của chính mình.
+- Mỗi tác giả tiêu quota Claude Team của chính mình.
 - **Clone** = publish lại cùng file `dist/index.html` (build từ repo) thành một Artifact mới dưới tài khoản của đồng đội. Cách này không phụ thuộc việc claude.ai có nút "nhân bản" hay không.
 - Khi owner cập nhật bundle, mỗi đồng đội phải publish lại bản của mình lên **đúng URL cũ của họ** để giữ dữ liệu. Trang hiện tem phiên bản để dễ biết bản nào đã cũ.
 
@@ -63,7 +64,7 @@ claude.ai Artifact, runtime contract `0.2.96`.
 | `db` | Run, hồ sơ Voice Lab, thư viện style riêng của tác giả |
 | `user` | Định danh tác giả để lưu vào `data/users/<id>/` (không xin scope `profile` hay `email`) |
 | `downloads` | Xuất `.md`/`.zip` |
-| `mcp` | Kết nối Gmail: `create_draft`, `send_message` |
+| `mcp` | Không dùng (ART-7 đổi sang tải file, 2026-11-15) |
 
 ### 1.4. Ngoài phạm vi
 
@@ -106,8 +107,8 @@ claude.ai Artifact, runtime contract `0.2.96`.
 | D1 | **Có** đưa Voice Lab vào Artifact | Track ART-8.1 → 8.4. Voice Lab trong Artifact dùng **Claude**. ART-1 cập nhật quy tắc Gemini-only (xem bên dưới) |
 | D2 | Mỗi tác giả một Artifact riêng; đồng đội tự clone | Gói clone + tem phiên bản (ART-4); kiểm tra bằng tài khoản thứ hai |
 | D3 | Skill sửa trong repo rồi build lại; Artifact chỉ đọc | Style hệ thống trong bundle là read-only và được bảo vệ |
-| D4 | Bảng model phương án Cân bằng | Khối `claude:` (mục 2.3); chốt lại sau ART-6.2 |
-| D5 | Có Gmail, không có dictation | ART-7 (Gmail); bỏ dictation |
+| D4 | Bảng model phương án Cân bằng | Khối `claude:` (mục 2.3); giữ nguyên sau ART-6.2 (`docs/2026-11-15-adr-claude-model-table.md`) |
+| D5 | Không làm Gmail (đổi ngày 2026-11-15), không có dictation | ART-7 tải `final_blog.md` và `run_log.md`; bỏ dictation |
 | D6 | Mã nguồn ở `artifact/` trong repo | — |
 | D7 | Gọi model theo tên | `sample({ model, effort, modelTier })`; ART-0 xác nhận trên tài khoản của owner và tài khoản kiểm tra thứ hai |
 
@@ -143,7 +144,7 @@ artifact/src/*.js (core thuần) ───────────────�
                                    sample (theo tên model) ◄───────────────────────────┤
                                    db: data/users/<id>/… (runs, voicelab, library) ◄───┤
                                    downloads (.md/.zip) ◄──────────────────────────────┤
-                                   mcp Gmail: create_draft / send_message ◄────────────┘
+                                   downloads: final_blog.md / run_log.md ◄────────────┘
 ```
 
 ### 2.1. Module JS — workflow
@@ -159,7 +160,7 @@ artifact/src/*.js (core thuần) ───────────────�
 | `client_sample.js` / `client_fake.js` | `LlmClient` | Gọi Claude / phản hồi giả cho test (được inject) |
 | `repository_db.js` / `repository_memory.js` | `RunRepository` | Lưu run; Run ID = timestamp + UUID |
 | `export.js` | — | Zip bố cục `runs/`; zip style theo định dạng `archive.py` |
-| `gmail.js` | `email_sender.py` | Dựng nội dung và file đính kèm; gọi `create_draft` / `send_message` |
+| ~~`gmail.js`~~ | `email_sender.py` | Bỏ (2026-11-15); ART-7 tải `final_blog.md` và `run_log.md` qua `downloads` |
 
 ### 2.2. Module JS — Voice Lab
 
@@ -233,7 +234,7 @@ Style hệ thống trong bundle không bao giờ bị ghi đè. Slug trùng vớ
 | O-11 | Sửa bản cuối + learning loop + diff offline | Golden + run thật | O-09, O-05 |
 | O-12 | Bảng chỉnh model/effort, 3 preset, A/B mù | Test render + phiên thử | O-09 |
 | O-13 | ADR chốt bảng model | Kết quả A/B thật | O-12 |
-| O-14 | Gửi kết quả qua Gmail (tạo nháp mặc định; gửi ngay có xác nhận; đính kèm `.txt` như `email_sender.py`) | Bản nháp/email thật | O-11 |
+| O-14 | Tải `final_blog.md` (bản cuối đang có trên trang) và `run_log.md` (định dạng engine) | File tải về thật | O-11 |
 | O-15 | Core JS Voice Lab + test so khớp với Python | Log `node --test` | O-04, O-05 |
 | O-16 | Voice Lab bước 1–2 (phân tích có bằng chứng, xem lại evidence) | Hồ sơ nháp thật | O-15, O-09 |
 | O-17 | Voice Lab bước 3–4 (phỏng vấn, A/B calibration) | Phiên thật | O-16 |
@@ -257,7 +258,7 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | T5 | ART-5 | Bản cuối và learning loop | Build |
 | T6a | ART-6.1 | Công cụ chỉnh model và A/B | Build |
 | T6b | ART-6.2 | Bảng model chốt bằng dữ liệu thật | **Owner chờ dữ liệu nhiều ngày**, chạy cùng lúc với T7–T8 |
-| T7 | ART-7 | Gửi kết quả qua Gmail | Build |
+| T7 | ART-7 | Tải final_blog.md và run_log.md | Build |
 | T8a | ART-8.1 | Core JS Voice Lab khớp Python | Build |
 | T8b | ART-8.2 | Voice Lab: phân tích và xem lại evidence | Build |
 | T8c | ART-8.3 | Voice Lab: phỏng vấn và A/B calibration | Build |
@@ -276,9 +277,9 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
 | ART-4 | Lưu trữ, xuất file, gói clone | T4 | Agent | Owner | PENDING (AC3, AC4, AC5 đạt; AC1 một phần; AC2 để sau theo quyết định owner) |
 | ART-5 | Bản cuối và learning loop | T5 | Agent | Owner | DONE (owner chạy vòng học thật 2026-11-15) |
 | ART-6.1 | Cấu hình model và A/B | T6a | Agent | Owner | DONE (owner chạy phiên A/B thật 2026-11-15) |
-| ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | ON-GOING (1/3 cặp A/B thật) |
-| ART-7 | Gmail | T7 | Agent | Owner | BACKLOG |
-| ART-8.1 | Core Voice Lab JS | T8a | Agent | Owner | BACKLOG |
+| ART-6.2 | Đánh giá A/B, chốt bảng model | T6b | Owner | Owner | CLOSED (owner đóng 2026-11-15 với 1 cặp A/B; giữ bảng Cân bằng, xem ADR) |
+| ART-7 | Tải final_blog.md và run_log.md | T7 | Agent | Owner | ON-GOING (AC1, AC2, AC4 đạt bằng test; chờ owner tải thật cho AC3) |
+| ART-8.1 | Core Voice Lab JS | T8a | Agent | Owner | ON-GOING (AC1–AC5 đạt bằng test; chờ owner duyệt) |
 | ART-8.2 | Voice Lab: phân tích và evidence | T8b | Agent | Owner | BACKLOG |
 | ART-8.3 | Voice Lab: phỏng vấn và A/B calibration | T8c | Agent | Owner | BACKLOG |
 | ART-8.4 | Voice Lab: compile, publish, sử dụng | T8d | Agent | Owner | BACKLOG |
@@ -481,26 +482,28 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-6.2-AC3: bundle mới được publish.
 - **Dữ liệu đã có:**
   - Cặp 1 (2026-11-15, Moment/reflective): owner chọn Mốc Opus 5.5 · medium thay vì Cân bằng; không ghi chú. Một cặp chưa đủ để kết luận.
+- **Kết quả (2026-11-15):** owner đóng ART-6.2 sau 1 cặp. ADR `docs/2026-11-15-adr-claude-model-table.md`: giữ bảng Cân bằng làm mặc định; ai muốn dùng mốc Opus 5.5 · medium thì tự chọn preset trong ART-6.1. AC1 bị bỏ qua theo quyết định owner; AC2 đạt bằng ADR; AC3 không phát sinh vì bundle không đổi.
 - **Nếu chậm:** ghi PENDING ("chờ dữ liệu A/B"); Artifact vẫn dùng phương án Cân bằng.
 - **Issue dự kiến:** 1.
 
-### ART-7 — Gmail
+### ART-7 — Tải final_blog.md và run_log.md (thay cho Gmail)
 
-- **Mục tiêu:** thay `email_sender.py` (Resend) bằng Gmail của chính người dùng.
+- **Đổi phạm vi (2026-11-15, quyết định owner):** không làm Gmail nữa. Thay vào đó là hai nút tải file trên trang. Phạm vi Gmail cũ (khai báo `mcp`, file `.txt` như `email_sender._build_attachments`, tạo nháp, gửi có xác nhận) bị bỏ.
 - **Phạm vi:**
-  - Khai báo `mcp: { servers: [{ server: "Gmail", tools: ["create_draft", "send_message"] }] }`.
-  - Nội dung và file đính kèm `.txt` như `email_sender._build_attachments`:
-    - Deep: `final_blog.txt`, `coaching_report.txt`, `future_reflection.txt`.
-    - Moment: `final_moment.txt`, `witness_report.txt`.
-  - Mặc định **tạo bản nháp**. "Gửi ngay" chỉ chạy sau hộp xác nhận hiện rõ người nhận và danh sách file.
-  - Người nhận do người dùng nhập, nhớ ở `data/users/<id>/settings`. Không xin scope email của `user`.
-  - Người xem chưa kết nối Gmail hoặc tổ chức chưa bật kết nối → nút bị ẩn hoặc vô hiệu, kèm hướng dẫn.
-- **Dependency:** O-11 (cần bản cuối do người viết sửa).
+  - "Tải final_blog.md": đúng bài đang có trong khung "Bản cuối của bạn", kể cả khi chưa lưu. Đây là bài người viết hoàn thiện, giống `human_final: final_blog.md` của flow.
+  - "Tải run_log.md": cùng nội dung với `run_log.md` trong zip, theo định dạng `append_run_log` của engine (metadata, input, artifact của từng bước, lỗi nếu có).
+  - Dùng capability `downloads` đã có; không thêm capability mới.
+- **Dependency:** O-11.
 - **AC:**
-  - ART-7-AC1: bản nháp có đủ file đính kèm xuất hiện trong Gmail của owner.
-  - ART-7-AC2: "Gửi ngay" chỉ chạy sau xác nhận.
-  - ART-7-AC3: trong bản clone của tài khoản thứ hai, email đi từ Gmail của chính người đó.
-  - ART-7-AC4: lỗi `tool_error` hoặc thiếu quyền được hiển thị rõ, không tự thử lại.
+  - ART-7-AC1: `final_blog.md` tải về đúng bài đang có trên trang; bản cuối trống thì nút bị khóa.
+  - ART-7-AC2: `run_log.md` tải riêng giống hệt `run_log.md` trong zip.
+  - ART-7-AC3: owner tải thật cả hai file trên claude.ai.
+  - ART-7-AC4: không có quyền tải file thì hai nút bị khóa.
+- **Kết quả (2026-11-15):**
+  - Mã: `downloadFinalBlog` và `downloadRunLog` trong `src/ui/app.js`. `run_log.md` lấy từ `exportRunFiles` nên không có bản dựng thứ hai.
+  - `final_blog.md` **không** được thêm vào zip, vì learning loop của engine ưu tiên `human_final` khi có file này. Nếu thêm, engine sẽ so `final_blog.md` với `production_blog.md` (hai bản của người viết) thay vì so bản nháp AI với bản cuối.
+  - AC1, AC2, AC4: 3 kịch bản Playwright (nội dung và tên file, so khớp từng byte với zip, khóa nút khi không có `downloads`). Trang publish lại cùng URL (phiên bản 7).
+  - AC3: chờ owner.
 - **Issue dự kiến:** 1.
 
 ### ART-8.1 — Core Voice Lab JS
@@ -513,6 +516,23 @@ Nguồn lực: một agent build (Claude Code) và owner (duyệt, nghiệm thu,
   - ART-8.1-AC3: chọn tối đa 3 chiều phỏng vấn giống `interview_routing`; patch chỉ áp dụng khi có cờ xác nhận.
   - ART-8.1-AC4: calibration chỉ thay đúng một chiều; `shuffle_mapping` không lộ ra dữ liệu hiển thị.
   - ART-8.1-AC5: dữ liệu không qua schema v2 → lỗi; không có nhánh tự bịa dữ liệu.
+- **Kết quả (2026-11-15):**
+  - Mã `artifact/src/vl/`:
+    - `prompts.js`: 4 prompt giống từng byte. Bản Claude nối JSON Schema do Python dựng sẵn (`bundle.voice_lab.schema_texts`), đúng cách spike ART-0.
+    - `schema.js`: kiểm tra JSON Schema xuất từ Pydantic. Gặp từ khóa chưa hỗ trợ thì báo lỗi (fail-closed). Điền mặc định giống `model_dump`.
+    - `analyzer.js`: chia mẫu theo ngân sách token tính theo code point; kiểm tra quote nguyên văn; khử trùng; tính Voice DNA và confidence bằng code. Ngoài ngân sách token, mỗi prompt còn phải vừa giới hạn byte của `sample`; quá thì giảm nửa ngân sách và chia lại (tất định). Prompt vừa ngân sách thì cách chia giống hệt Python.
+    - `interview.js`, `calibration.js`, `compiler.js` (kèm merge overrides), `models.js`.
+  - `pycompat.js` thêm: `pyJsonDumps` (giữ `1.0` cho trường float), `pyFloatRepr`, `pyRound`, `pyFind`/`pyLen` theo code point, `pyCasefold`, `pyCompare`.
+  - Bundle thêm: nhãn tiếng Việt của 12 chiều, tham số chia mẫu, `ir_level_invariants`, `schema_texts`.
+  - Golden mới `voicelab_flow.json`, sinh bằng Gemini giả và uuid tất định. Gồm: phân tích một lượt và nhiều lượt (4 lời gọi, mẫu dài bị cắt có gối đầu), 5 lỗi, phỏng vấn, patch, calibration, merge, 31 trường hợp schema có kết luận của Pydantic.
+  - AC1: `compile_style` giống hệt cho deep (7 agent), moment (6 agent), moment không DNA, compile một phần và lỗi rule trùng do/avoid.
+  - AC2: quote không khớp bị loại, lưu kèm lý do; confidence khớp Python.
+  - AC3: chọn tối đa 3 chiều giống `interview_routing`; patch chỉ áp dụng khi `confirmed`, hồ sơ cũ không đổi.
+  - AC4: calibration chỉ đổi đúng một chiều; `blindCalibrationView` không có `shuffle_mapping`.
+  - AC5: sai JSON, sai schema, hoặc không có quote hợp lệ thì báo lỗi và không tạo hồ sơ.
+  - Tổng cộng 15 test JS mới (gồm test hàm thuần cho `src/vl`).
+  - Khác bản Python có chủ đích: mã lỗi `gemini_unavailable` đổi thành `model_unavailable`, thông báo nói "Claude"; kiểm tra "token prompt + token output > context" của Gemini thay bằng kiểm tra byte.
+  - `publisher.js` (mục 2.2) chuyển sang ART-8.4, vì publish dùng `db` (phiên bản bất biến, con trỏ, rollback), không phải hàm thuần.
 - **Ghi chú từ ART-1:** prompt Voice Lab nhúng payload bằng `json.dumps` của Python (separators `", "`/`": "`, giữ `1.0`); `quote_start`/`quote_end` tính theo code point, không theo UTF-16; 10 skill có số thực (`version: 3.0`) mà JSON làm mất dạng (thành `3`), nên JS không tự tính được `stable_skill_hash`: dùng `base_hash` do Python tính sẵn trong `styles[mode][slug].files[file].base_hash`.
 - **Issue dự kiến:** 2.
 
@@ -593,7 +613,7 @@ Sau mỗi chặng có code, báo cáo theo AGENTS §9: test pass/fail, có gọi
 | R10 | Hai nguồn chân lý cho style | 11 | D3a: mỗi style chỉ ở một nơi; chuyển vào repo bằng zip |
 | R11 | Ngoại lệ Voice Lab bị hiểu rộng ra | Skill kiến trúc | O-02 ghi rõ phạm vi: chỉ Artifact; Python giữ Gemini |
 | R12 | Kiến thức giữa các mode nhiễm chéo | 13 | Gắn nhãn mode/style |
-| R13 | Prompt injection trong ghi chú hoặc mẫu văn | — | Giữ câu "dữ liệu không đáng tin" trong prompt; Gmail mặc định chỉ tạo nháp, gửi phải xác nhận |
+| R13 | Prompt injection trong ghi chú hoặc mẫu văn | — | Giữ câu "dữ liệu không đáng tin" trong prompt |
 | R14 | Vá client ở tầng thấp | 6 | Client được inject |
 | R15 | Run test lẫn vào dữ liệu nghiệp vụ | 17 | Không ghi `runs/`; test dùng `tmp_path`; `run_source` phân biệt |
 | R16 | Hai tab cùng publish một slug (không có transaction) | 15 | Kiểm tra trùng trước và sau khi ghi con trỏ; xung đột → báo và giữ phiên bản thắng |
