@@ -6,6 +6,7 @@ import pytest
 
 from engine.cloud_stages import create_run, finalize_blog, prepare_stage, submit_stage
 from engine.cloud_transfer import export_run, import_run
+from engine.moment_length import check_moment_article_length
 
 
 def test_moment_stage_resume_and_idempotency(tmp_path):
@@ -46,7 +47,7 @@ def test_cloud_editor_rejects_missing_edit_log(tmp_path):
 def test_moment_six_stages_complete_without_provider(tmp_path):
     config = Path("engine/config.example.yaml")
     author_input = tmp_path / "input.md"
-    author_input.write_text("raw_notes: Mưa nhỏ.", encoding="utf-8")
+    author_input.write_text("raw_notes: Mưa nhỏ.\ndesired_length: dưới 30 từ", encoding="utf-8")
     run_dir = create_run(config, author_input, tmp_path / "runs")
     stages = []
     while True:
@@ -86,6 +87,40 @@ def test_finalize_requires_author_input_and_completed_run(tmp_path):
     with pytest.raises(ValueError, match="Complete every stage"):
         finalize_blog(run_dir, config, author_input)
     assert not (run_dir / "final_blog.md").exists()
+
+
+def test_moment_editor_rejects_295_words_before_witness(tmp_path):
+    config = Path("engine/config.example.yaml")
+    author_input = tmp_path / "input.md"
+    author_input.write_text("raw_notes: Mưa nhỏ.\ndesired_length:\n300-600 từ\n", encoding="utf-8")
+    run_dir = create_run(config, author_input, tmp_path / "runs")
+    for _ in range(4):
+        task = prepare_stage(run_dir, config)
+        submit_stage(run_dir, config, task["stage_id"], task["token"], "## Artifact\n\nMưa nhỏ.\n\n## Handoff\n\nMưa.")
+    task = prepare_stage(run_dir, config)
+    assert task["stage_id"] == "breath_editor"
+    short_article = " ".join(["mưa"] * 295)
+    response = f"## Artifact\n\n## Edited Blog\n\n{short_article}\n\n## Edit Log\n\nRút gọn.\n\n## Handoff\n\nMưa."
+    with pytest.raises(ValueError, match="295 words.*300–600"):
+        submit_stage(run_dir, config, task["stage_id"], task["token"], response)
+    assert prepare_stage(run_dir, config) == task
+    assert not (run_dir / "moment_edited.md").exists()
+    assert "breath_editor" not in json.loads((run_dir / "step_outputs.json").read_text(encoding="utf-8"))
+
+    corrected = response.replace(short_article, short_article + " mưa" * 5)
+    submit_stage(run_dir, config, task["stage_id"], task["token"], corrected)
+    assert prepare_stage(run_dir, config)["stage_id"] == "gentle_witness"
+
+
+@pytest.mark.parametrize("count,valid", [(295, False), (300, True), (600, True), (601, False)])
+def test_moment_length_range_boundaries(count, valid):
+    flow = {"input": {"desired_length": {"default": "300-600 words"}}}
+    article = " ".join(["mưa"] * count)
+    if valid:
+        assert check_moment_article_length(article, "raw_notes: Mưa", flow) == count
+    else:
+        with pytest.raises(ValueError, match=f"{count} words"):
+            check_moment_article_length(article, "raw_notes: Mưa", flow)
 
 
 def test_export_import_resumes_in_new_root(tmp_path):

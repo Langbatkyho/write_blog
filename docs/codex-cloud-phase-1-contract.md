@@ -13,4 +13,6 @@ Một response stage gồm đúng hai heading cấp hai `## Artifact` và `## Ha
 
 Khi kiểm tra độ dài, `engine.parser.count_words()` chuẩn hóa Unicode NFC rồi đếm các cụm `\w+`. Đây là quy ước đếm có thể lặp lại bằng code, không phải phép tách từ ngữ nghĩa tiếng Việt. Với giới hạn “dưới 300 từ”, kết quả phải nhỏ hơn 300 theo quy ước này.
 
+Trên Codex Cloud, `submit` kiểm tra độ dài bài sau khi tách `Edited Blog` ở stage `breath_editor`, trước khi lưu artifact hoặc checkpoint. Mức giới hạn lấy từ `desired_length` của input, hoặc giá trị mặc định trong flow khi input không khai báo. Response ngoài giới hạn bị từ chối và có thể gửi lại cùng token với nội dung đã sửa. Kiểm tra này không sửa các run đã hoàn tất bằng phiên bản cũ; với run đó, phải báo số từ thực tế nếu `witness_report.md` nhận xét sai.
+
 Metadata của run mới ghi SHA-256 cho flow và từng file stage YAML đã dùng. Hash phục vụ truy vết phiên bản thực thi; nó không tự lưu bản sao YAML hoặc bảo đảm file còn tồn tại về sau.

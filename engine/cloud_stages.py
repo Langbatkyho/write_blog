@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from engine.parser import build_context_package, parse_stage_response
+from engine.moment_length import check_moment_article_length
 from engine.utils import load_yaml
 from engine.workflow_artifacts import derive_artifact_file_contents, extract_markdown_section
 from engine.workflow_context import build_step_prompt
@@ -99,6 +100,12 @@ def submit_stage(run_dir: Path, config_path: Path, stage_id: str, token: str, re
             raise ValueError("Editor artifact requires nonempty Edited Blog and Edit Log sections")
     files = derive_artifact_file_contents(skills[stage_id], artifact)
     output = next(step for step in flow["steps"] if step["id"] == stage_id)
+    if metadata["mode"] == "moment" and stage_id == "breath_editor":
+        check_moment_article_length(
+            files[output["output"]],
+            (run_dir / "input.md").read_text(encoding="utf-8"),
+            flow,
+        )
     repository = RunRepository(run_dir.parent)
     for name, content in files.items():
         repository.write_artifact(run_dir, name, content)
