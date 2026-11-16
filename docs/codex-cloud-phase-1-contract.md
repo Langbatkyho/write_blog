@@ -13,7 +13,11 @@ Một response stage gồm đúng hai heading cấp hai `## Artifact` và `## Ha
 
 Khi kiểm tra độ dài, `engine.parser.count_words()` chuẩn hóa Unicode NFC rồi đếm các cụm `\w+`. Đây là quy ước đếm có thể lặp lại bằng code, không phải phép tách từ ngữ nghĩa tiếng Việt. Với giới hạn “dưới 300 từ”, kết quả phải nhỏ hơn 300 theo quy ước này.
 
-Trên Codex Cloud, `submit` kiểm tra độ dài bài sau khi tách `Edited Blog` ở stage `breath_editor`, trước khi lưu artifact hoặc checkpoint. Mức giới hạn lấy từ `desired_length` của input, hoặc giá trị mặc định trong flow khi input không khai báo. Response ngoài giới hạn bị từ chối và có thể gửi lại cùng token với nội dung đã sửa. Kiểm tra này không sửa các run đã hoàn tất bằng phiên bản cũ; với run đó, phải báo số từ thực tế nếu `witness_report.md` nhận xét sai.
+Trên Codex Cloud, `submit` kiểm tra độ dài bài sau khi tách `Edited Blog` ở stage tạo `final_output.primary_ai_draft`: `breath_editor` cho Moment, `editor_agent` cho Deep. Mức giới hạn lấy từ `desired_length` của input, hoặc giá trị mặc định trong flow khi input không khai báo (Moment 300–600 từ, Deep 1200–1800 từ). Response ngoài giới hạn bị từ chối trước khi lưu artifact/checkpoint và có thể gửi lại cùng token với nội dung đã sửa. Kiểm tra này không sửa các run đã hoàn tất bằng phiên bản cũ; với run đó, phải báo số từ thực tế nếu báo cáo nhận xét sai.
+
+`desired_length` chấp nhận khoảng số (`1200-1800 từ`), `dưới N`, `tối đa N` hoặc `tối thiểu N` (cùng các cách viết tiếng Anh tương ứng). Giá trị không xác định được sẽ bị từ chối ngay khi tạo run, trước khi ghi file.
+
+Deep `reader_experience` nhận prompt chỉ có bản nháp từ `writing_agent` và YAML của reader, không có input tác giả hay handoff từ các stage trước. Skill yêu cầu một subagent mới, không thừa hưởng hội thoại và không tự đọc các file khác. Các subagent vẫn có thể đọc cùng workspace; vì vậy ranh giới này chỉ kiểm soát context được gửi, không bảo đảm cách ly bằng quyền truy cập.
 
 Bàn giao ưu tiên hai file Markdown có thể tải riêng. Khi client chỉ cho phép tải từ thư mục output chỉ đọc, không được giả định một liên kết tới file trong workspace sẽ hoạt động. Bàn giao nguyên văn từng file kèm SHA-256 và số byte để tác giả tự lưu và kiểm tra; run gốc vẫn chỉ đọc sau khi hoàn tất.
 

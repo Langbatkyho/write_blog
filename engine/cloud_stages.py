@@ -7,9 +7,9 @@ import json
 from pathlib import Path
 
 from engine.parser import build_context_package, parse_stage_response
-from engine.moment_length import check_moment_article_length
+from engine.article_length import check_article_length, requested_word_range, word_range_label
 from engine.utils import load_yaml
-from engine.workflow_artifacts import derive_artifact_file_contents, extract_markdown_section
+from engine.workflow_artifacts import derive_artifact_file_contents, extract_markdown_section, extract_markdown_section_before
 from engine.workflow_context import build_step_prompt
 from engine.workflow_contracts import WorkflowDefinition, validate_step_skill_contract, validate_workflow_artifact_set
 from engine.workflow_persistence import RunRepository, atomic_write_text
@@ -37,6 +37,7 @@ def _contract(config_path: Path, mode: str, style: str):
 def create_run(config_path: Path, input_path: Path, output_root: Path, *, mode: str = "moment", style: str = "reflective") -> Path:
     flow, definition, style, skills, hashes = _contract(config_path, mode, style)
     author_input = input_path.read_text(encoding="utf-8")
+    requested_word_range(author_input, flow)
     repository = RunRepository(output_root)
     run_dir = repository.create(author_input, style, mode)
     repository.write_internal(run_dir, "input.md", author_input)
@@ -77,7 +78,16 @@ def prepare_stage(run_dir: Path, config_path: Path) -> dict:
             {key: results[key]["artifact"] for key in needed},
             {key: results[key]["handoff"] for key in needed},
         )
-        prompt = build_step_prompt(flow, step, skills[stage_id], (run_dir / "input.md").read_text(encoding="utf-8"), context)
+        author_input = (run_dir / "input.md").read_text(encoding="utf-8")
+        prompt = build_step_prompt(flow, step, skills[stage_id], author_input, context)
+        if step.get("needs_author_input", True):
+            minimum, maximum = requested_word_range(author_input, flow)
+            prompt += (
+                "\n\nFinal edited article length contract: "
+                f"{word_range_label(minimum, maximum)} words, counted with "
+                "engine.parser.count_words(). This applies to the edited article, "
+                "not to this stage's handoff or report."
+            )
         token = hashlib.sha256((stage_id + prompt).encode("utf-8")).hexdigest()
         return {"stage_id": stage_id, "token": token, "prompt": prompt}
     return {"status": "completed"}
@@ -96,12 +106,13 @@ def submit_stage(run_dir: Path, config_path: Path, stage_id: str, token: str, re
     artifact, handoff, _ = parse_stage_response(response, strict=True)
     output_contract = skills[stage_id].get("output") or {}
     if output_contract.get("secondary_name") or output_contract.get("secondary_artifact"):
-        if not extract_markdown_section(artifact, "Edited Blog") or not extract_markdown_section(artifact, "Edit Log"):
+        edited_blog = extract_markdown_section_before(artifact, "Edited Blog", ["Edit Log", "edit_log"])
+        if not edited_blog or not extract_markdown_section(artifact, "Edit Log"):
             raise ValueError("Editor artifact requires nonempty Edited Blog and Edit Log sections")
     files = derive_artifact_file_contents(skills[stage_id], artifact)
     output = next(step for step in flow["steps"] if step["id"] == stage_id)
-    if metadata["mode"] == "moment" and stage_id == "breath_editor":
-        check_moment_article_length(
+    if output["output"] == definition.final_output["primary_ai_draft"]:
+        check_article_length(
             files[output["output"]],
             (run_dir / "input.md").read_text(encoding="utf-8"),
             flow,

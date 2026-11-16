@@ -1,4 +1,4 @@
-"""Deterministic length check for the Moment article, using the flow's default."""
+"""Deterministic article length check using the author's input or flow default."""
 
 from __future__ import annotations
 
@@ -33,12 +33,19 @@ def requested_word_range(author_input: str, flow: dict) -> tuple[int | None, int
     raise ValueError(f"Cannot enforce desired_length: {value!r}")
 
 
-def check_moment_article_length(article: str, author_input: str, flow: dict) -> int:
+def word_range_label(minimum: int | None, maximum: int | None) -> str:
+    if minimum is not None and maximum is not None:
+        return f"{minimum}–{maximum}"
+    if minimum is not None:
+        return f"at least {minimum}"
+    return f"at most {maximum}"
+
+
+def check_article_length(article: str, author_input: str, flow: dict) -> int:
     minimum, maximum = requested_word_range(author_input, flow)
     count = count_words(article)
     if (minimum is not None and count < minimum) or (maximum is not None and count > maximum):
-        expected = f"{minimum}–{maximum}" if minimum is not None and maximum is not None else (
-            f"at least {minimum}" if minimum is not None else f"at most {maximum}"
-        )
-        raise ValueError(f"Moment article has {count} words; desired_length requires {expected} words")
+        expected = word_range_label(minimum, maximum)
+        mode = str(flow["mode"]).capitalize()
+        raise ValueError(f"{mode} article has {count} words; desired_length requires {expected} words")
     return count
