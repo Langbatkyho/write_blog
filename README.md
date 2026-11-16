@@ -13,7 +13,7 @@ python -m engine.cloud_stage_cli export --run-dir path/to/safe-runs/<run_id> --a
 python -m engine.cloud_stage_cli import --archive path/to/run.zip --output-root path/to/restored-runs
 ```
 
-Lặp `prepare`/`submit` cho đến khi `prepare` báo `completed`. Nếu bị ngắt, dùng lại `prepare` trên run cũ. Sau khi tác giả chọn hoặc chỉnh sửa bài, `finalize` tạo `final_blog.md`. Tải riêng `final_blog.md` và `run_log.md` để lưu thành phẩm. Để tiếp tục run ở Cloud task khác, cần chuyển thêm ZIP chứa checkpoint; hai file Markdown không đủ để khôi phục các stage. Workspace mới không tự nhìn thấy file của task trước. Subagent có context hội thoại riêng nhưng vẫn có thể đọc workspace chung. Chưa dùng cơ chế này để khẳng định blind review của Deep mode.
+Lặp `prepare`/`submit` cho đến khi `prepare` báo `completed`. Nếu bị ngắt, dùng lại `prepare` trên run cũ. Sau khi tác giả chọn hoặc chỉnh sửa bài, `finalize` tạo `final_blog.md`. Tải riêng `final_blog.md` và `run_log.md` để lưu thành phẩm. Nếu Codex web chặn liên kết tải do thư mục output chỉ đọc, task phải cung cấp nguyên văn từng file kèm SHA-256 và số byte để tác giả lưu, kiểm tra thủ công; không báo rằng file tải được. Để tiếp tục run ở Cloud task khác, cần chuyển thêm ZIP chứa checkpoint; hai file Markdown không đủ để khôi phục các stage. Workspace mới không tự nhìn thấy file của task trước. Subagent có context hội thoại riêng nhưng vẫn có thể đọc workspace chung. Chưa dùng cơ chế này để khẳng định blind review của Deep mode.
 
 Dự án này dùng các file YAML trong thư mục `skills/` để vận hành hệ hai chế độ viết blog phản tư và khoảnh khắc có hỗ trợ AI:
 
