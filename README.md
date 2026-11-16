@@ -2,6 +2,8 @@
 
 ## Thử nghiệm Blog trên Codex Cloud
 
+Hướng dẫn từng bước cho **task mới**: [docs/codex-cloud-new-task-guide.md](docs/codex-cloud-new-task-guide.md).
+
 Repo có Skill `.agents/skills/mindful-moment-writing/SKILL.md` cho Moment và `.agents/skills/deep-blog-writing/SKILL.md` cho Deep. Khởi chạy Codex với repo này làm thư mục làm việc; nếu Skill chưa được tự nhận diện, đọc trực tiếp file `SKILL.md` tương ứng. Với dữ liệu thật, tạo file input riêng; `examples/` chỉ là fixture. Giao diện stage không tự gọi model/API:
 
 ```bash
