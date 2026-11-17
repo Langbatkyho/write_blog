@@ -1,5 +1,23 @@
 # Mindful Blog Workflow
 
+## Thử nghiệm Blog trên Codex Cloud
+
+Hướng dẫn từng bước cho **task mới**: [docs/codex-cloud-new-task-guide.md](docs/codex-cloud-new-task-guide.md).
+
+Repo có Skill `.agents/skills/mindful-moment-writing/SKILL.md` cho Moment và `.agents/skills/deep-blog-writing/SKILL.md` cho Deep. Khởi chạy Codex với repo này làm thư mục làm việc; nếu Skill chưa được tự nhận diện, đọc trực tiếp file `SKILL.md` tương ứng. Với dữ liệu thật, tạo file input riêng; `examples/` chỉ là fixture. Giao diện stage không tự gọi model/API:
+
+```bash
+python -m engine.cloud_stage_cli create --input path/to/input.md --output-root path/to/safe-runs --mode moment --style va-natural
+python -m engine.cloud_stage_cli create --input path/to/deep-input.md --output-root path/to/safe-runs --mode deep --style reflective
+python -m engine.cloud_stage_cli prepare --run-dir path/to/safe-runs/<run_id>
+python -m engine.cloud_stage_cli submit --run-dir path/to/safe-runs/<run_id> --stage-id <stage_id> --token <token> --response-file path/to/response.md
+python -m engine.cloud_stage_cli finalize --run-dir path/to/safe-runs/<run_id> --approved-file path/to/author-approved.md
+python -m engine.cloud_stage_cli export --run-dir path/to/safe-runs/<run_id> --archive path/to/run.zip
+python -m engine.cloud_stage_cli import --archive path/to/run.zip --output-root path/to/restored-runs
+```
+
+Lặp `prepare`/`submit` cho đến khi `prepare` báo `completed` (6 stage Moment, 7 stage Deep). Nếu bị ngắt, dùng lại `prepare` trên run cũ. Với Deep, stage `reader_experience` chỉ nhận bản nháp trong prompt; subagent vẫn có thể đọc workspace chung, nên đây là cách ly context, chưa phải blind review được bảo đảm bằng quyền truy cập. Engine kiểm tra độ dài bài AI đã biên tập theo input hoặc mặc định của flow trước khi lưu stage editor. Sau khi tác giả chọn hoặc chỉnh sửa bài, `finalize` tạo `final_blog.md`. Tải riêng `final_blog.md` và `run_log.md` để lưu thành phẩm. Nếu Codex web chặn liên kết tải do thư mục output chỉ đọc, task phải cung cấp nguyên văn từng file kèm SHA-256 và số byte để tác giả lưu, kiểm tra thủ công; không báo rằng file tải được. Để tiếp tục run ở Cloud task khác, cần chuyển thêm ZIP chứa checkpoint; hai file Markdown không đủ để khôi phục các stage. Workspace mới không tự nhìn thấy file của task trước.
+
 Dự án này dùng các file YAML trong thư mục `skills/` để vận hành hệ hai chế độ viết blog phản tư và khoảnh khắc có hỗ trợ AI:
 
 - **`deep_blog_mode`** (`--mode deep`): Viết dài (1000-1500 từ), phản tư sâu, chuyển hóa trải nghiệm.

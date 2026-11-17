@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from typing import Any
 
 
@@ -33,7 +34,7 @@ def _parse_strict_stage_response(response_text: str) -> tuple[str, str]:
 
 
 def count_words(text: str) -> int:
-    return len(re.findall(r"\w+", text, flags=re.UNICODE))
+    return len(re.findall(r"\w+", unicodedata.normalize("NFC", text), flags=re.UNICODE))
 
 def count_paragraphs(text: str) -> int:
     return len([part for part in re.split(r"\n\s*\n", text.strip()) if part.strip()])

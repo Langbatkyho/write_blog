@@ -32,7 +32,7 @@ do_not:
 output:
   artifact: moment_draft.md
   limits:
-    target_words: 450-600_when_desired_length_is_under_500_otherwise_180-600
+    target_words: "180-600; follow the author's desired_length when narrower"
     max_words: 600
   structure:
   - everyday_pressure
@@ -54,7 +54,7 @@ style_rules:
 - mix_short_lines_with_social_post_paragraphs
 - preserve_author_slang_and_playful_self_awareness
 - preserve_author_spoken_metaphors_and_raw_expressions
-- when_desired_length_is_under_500_do_not_collapse_the_draft_to_around_250_words
+- when_desired_length_is_under_500_follow_the_author_limit_before_style_length_preferences
 - preserve_va_natural_voice_markers_such_as_emoji_nguoi_oi_exclamations_and_playful_metaphors
 - allow_playful_metaphors_like_dopamine_tuoi_tam_cay_tu_tin_or_khu_vuon_ben_trong_when_grounded
 - build_arc_from_pressure_to_scene_to_social_reflection_to_open_question

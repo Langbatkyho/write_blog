@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Literal
 
 
@@ -21,9 +21,13 @@ RUN_INTERNAL_PATHS = frozenset(
 
 def validate_relative_output_path(value: str, *, field_name: str) -> str:
     candidate = Path(value)
+    windows_candidate = PureWindowsPath(value)
     if (
         not value.strip()
         or candidate.is_absolute()
+        or windows_candidate.is_absolute()
+        or windows_candidate.drive
+        or "\\" in value
         or any(part in {"", ".", ".."} for part in candidate.parts)
         or candidate.drive
     ):
