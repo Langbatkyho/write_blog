@@ -22,3 +22,9 @@ Deep `reader_experience` nhận prompt chỉ có bản nháp từ `writing_agent
 Bàn giao ưu tiên hai file Markdown có thể tải riêng. Khi client chỉ cho phép tải từ thư mục output chỉ đọc, không được giả định một liên kết tới file trong workspace sẽ hoạt động. Bàn giao nguyên văn từng file kèm SHA-256 và số byte để tác giả tự lưu và kiểm tra; run gốc vẫn chỉ đọc sau khi hoàn tất.
 
 Metadata của run mới ghi SHA-256 cho flow và từng file stage YAML đã dùng. Hash phục vụ truy vết phiên bản thực thi; nó không tự lưu bản sao YAML hoặc bảo đảm file còn tồn tại về sau.
+
+## Phục hồi checkpoint Cloud (P0)
+
+`step_outputs.json` là nguồn chuẩn cho các stage đã commit; các khóa phải là một đoạn đầu đúng thứ tự của flow. `verify --run-dir` chỉ đọc và đối chiếu artifact, handoff, log, metadata với checkpoint. Stage cuối đã commit nhưng metadata còn `running` hoặc log còn đúng bản của checkpoint trước được báo `needs_recovery`. `prepare`, `submit`, `finalize` dừng với thông báo cần phục hồi trong trạng thái này.
+
+`recover --run-dir` tái tạo file thiếu, cập nhật log cũ đã xác minh và sửa metadata dẫn xuất từ checkpoint. Nội dung hiện có khác bản có thể tái dựng là xung đột và không bị ghi đè. File của stage chưa commit trong checkpoint không được coi là stage hoàn tất; có thể gửi lại response của stage đó. Chỉ gọi `recover` trên run được phép sửa; run nghiệp vụ đã hoàn tất mặc định chỉ đọc theo `.agents/AGENTS.md`. Hash input/artifact và dấu vết tác giả duyệt thuộc giai đoạn P1.

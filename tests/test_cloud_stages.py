@@ -4,7 +4,7 @@ import zipfile
 
 import pytest
 
-from engine.cloud_stages import create_run, finalize_blog, prepare_stage, submit_stage
+from engine.cloud_stages import create_run, finalize_blog, prepare_stage, submit_stage, verify_run, recover_run
 from engine.cloud_transfer import export_run, import_run
 from engine.article_length import check_article_length
 
@@ -216,3 +216,83 @@ def test_import_rejects_corrupt_file_without_creating_run(tmp_path):
     with pytest.raises(ValueError, match="checksum"):
         import_run(archive, tmp_path / "destination")
     assert not (tmp_path / "destination" / run_id).exists()
+
+
+@pytest.mark.parametrize("failure_point", ["artifact", "checkpoint", "log", "metadata"])
+def test_recover_interrupted_last_stage(tmp_path, monkeypatch, failure_point):
+    import engine.cloud_stages as cloud
+    from engine.workflow_persistence import RunRepository
+
+    config = Path("engine/config.example.yaml")
+    source = tmp_path / "input.md"
+    source.write_text("raw_notes: Mưa.\ndesired_length: dưới 30 từ", encoding="utf-8")
+    run = create_run(config, source, tmp_path / "runs")
+    response = "## Artifact\n\nMưa.\n\n## Handoff\n\nMưa."
+    for _ in range(6):
+        task = prepare_stage(run, config)
+        current = ("## Artifact\n\n## Edited Blog\n\nMưa.\n\n## Edit Log\n\nSửa.\n\n## Handoff\n\nMưa."
+                   if task["stage_id"] == "breath_editor" else response)
+        if task["stage_id"] == "gentle_witness":
+            original = {
+                "artifact": RunRepository.write_artifact,
+                "checkpoint": RunRepository.write_internal,
+                "log": cloud.atomic_write_text,
+                "metadata": RunRepository.write_metadata,
+            }[failure_point]
+            def fail_once(*args, **kwargs):
+                monkeypatch.setattr(RunRepository if failure_point != "log" else cloud,
+                                    {"artifact": "write_artifact", "checkpoint": "write_internal", "log": "atomic_write_text", "metadata": "write_metadata"}[failure_point], original)
+                raise OSError("injected interruption")
+            monkeypatch.setattr(RunRepository if failure_point != "log" else cloud,
+                                {"artifact": "write_artifact", "checkpoint": "write_internal", "log": "atomic_write_text", "metadata": "write_metadata"}[failure_point], fail_once)
+            with pytest.raises(OSError, match="injected interruption"):
+                submit_stage(run, config, task["stage_id"], task["token"], current)
+            report = verify_run(run, config)
+            if failure_point in {"artifact", "checkpoint"}:
+                assert report["status"] == "ok"
+                submit_stage(run, config, task["stage_id"], task["token"], current)
+            else:
+                assert report["status"] == "needs_recovery"
+                with pytest.raises(ValueError, match="needs recovery"):
+                    prepare_stage(run, config)
+                assert recover_run(run, config)["status"] == "ok"
+            break
+        submit_stage(run, config, task["stage_id"], task["token"], current)
+    assert prepare_stage(run, config) == {"status": "completed"}
+    approved = tmp_path / "approved.md"
+    approved.write_text("Mưa.", encoding="utf-8")
+    assert finalize_blog(run, config, approved).exists()
+
+
+def test_recovery_does_not_overwrite_conflicting_log(tmp_path):
+    config = Path("engine/config.example.yaml")
+    source = tmp_path / "input.md"
+    source.write_text("raw_notes: Mưa.", encoding="utf-8")
+    run = create_run(config, source, tmp_path / "runs")
+    task = prepare_stage(run, config)
+    submit_stage(run, config, task["stage_id"], task["token"], "## Artifact\n\nMưa.\n\n## Handoff\n\nMưa.")
+    (run / "run_log.md").write_text("Human content", encoding="utf-8")
+    assert verify_run(run, config)["conflicts"] == ["run_log.md"]
+    with pytest.raises(ValueError, match="conflicts"):
+        recover_run(run, config)
+    assert (run / "run_log.md").read_text(encoding="utf-8") == "Human content"
+
+
+def test_recovery_can_resume_after_its_own_interruption(tmp_path, monkeypatch):
+    import engine.cloud_stages as cloud
+    config = Path("engine/config.example.yaml")
+    source = tmp_path / "input.md"
+    source.write_text("raw_notes: Mưa.", encoding="utf-8")
+    run = create_run(config, source, tmp_path / "runs")
+    task = prepare_stage(run, config)
+    submit_stage(run, config, task["stage_id"], task["token"], "## Artifact\n\nMưa.\n\n## Handoff\n\nMưa.")
+    (run / "sensory_notes.md").unlink()
+    (run / "sensory_handoff.md").unlink()
+    original = cloud.atomic_write_text
+    def fail_once(*args, **kwargs):
+        monkeypatch.setattr(cloud, "atomic_write_text", original)
+        raise OSError("recover interrupted")
+    monkeypatch.setattr(cloud, "atomic_write_text", fail_once)
+    with pytest.raises(OSError, match="recover interrupted"):
+        recover_run(run, config)
+    assert recover_run(run, config)["status"] == "ok"

@@ -63,8 +63,74 @@ def _state(run_dir: Path, config_path: Path):
     return metadata, flow, definition, skills, results
 
 
+def _expected_files(run_dir: Path, flow: dict, definition, skills: dict, results: dict, style: str) -> dict[str, str]:
+    order = list(definition.stage_ids)
+    if list(results) != order[:len(results)]:
+        raise ValueError("Checkpoint stages are not an ordered prefix of the flow")
+    author_input = (run_dir / "input.md").read_text(encoding="utf-8")
+    log = [f"# Run {run_dir.name}", f"Mode: {flow['mode']}", f"Style: {style}",
+           "## Author Input", author_input.strip()]
+    expected = {}
+    for step in flow["steps"][:len(results)]:
+        stage_id = step["id"]
+        result = results[stage_id]
+        if result.get("status") != "completed" or not all(isinstance(result.get(k), str) and result[k] for k in ("artifact", "handoff", "token", "response_sha256")):
+            raise ValueError(f"Invalid checkpoint for stage {stage_id}")
+        files = derive_artifact_file_contents(skills[stage_id], result["artifact"])
+        for name, content in files.items():
+            if name in expected and expected[name] != content:
+                raise ValueError(f"Conflicting checkpoint artifact: {name}")
+            expected[name] = content
+        expected[step["handoff_output"]] = result["handoff"]
+        log.extend([f"## {stage_id} Artifact", result["artifact"],
+                    f"## {stage_id} Handoff", result["handoff"]])
+    expected["run_log.md"] = "\n\n".join(log).strip() + "\n"
+    return expected
+
+
+def verify_run(run_dir: Path, config_path: Path) -> dict:
+    metadata, flow, definition, skills, results = _state(run_dir, config_path)
+    expected = _expected_files(run_dir, flow, definition, skills, results, metadata["style"])
+    missing, conflicts, stale = [], [], []
+    for name, content in expected.items():
+        path = run_dir / name
+        if not path.exists():
+            missing.append(name)
+        elif path.read_text(encoding="utf-8") != content:
+            if name == "run_log.md" and any(
+                path.read_text(encoding="utf-8") == _expected_files(run_dir, flow, definition, skills, dict(list(results.items())[:count]), metadata["style"])["run_log.md"]
+                for count in range(len(results))
+            ):
+                stale.append(name)
+            else:
+                conflicts.append(name)
+    complete = len(results) == len(definition.steps)
+    correct_status = "completed" if complete else "running"
+    return {"status": "ok" if not missing and not stale and not conflicts and metadata["status"] == correct_status else "needs_recovery",
+            "missing": missing, "stale": stale, "conflicts": conflicts, "metadata_expected": correct_status,
+            "metadata_actual": metadata["status"], "completed_stages": len(results), "total_stages": len(definition.steps)}
+
+
+def recover_run(run_dir: Path, config_path: Path) -> dict:
+    report = verify_run(run_dir, config_path)
+    if report["conflicts"]:
+        raise ValueError(f"Recovery conflicts with existing files: {report['conflicts']}")
+    if report["metadata_actual"] == "completed" and report["metadata_expected"] != "completed":
+        raise ValueError("Completed metadata conflicts with incomplete checkpoint")
+    metadata, flow, definition, skills, results = _state(run_dir, config_path)
+    expected = _expected_files(run_dir, flow, definition, skills, results, metadata["style"])
+    for name in report["missing"] + report["stale"]:
+        atomic_write_text(run_dir / name, expected[name])
+    if metadata["status"] != report["metadata_expected"]:
+        metadata["status"] = report["metadata_expected"]
+        RunRepository(run_dir.parent).write_metadata(run_dir, metadata)
+    return verify_run(run_dir, config_path)
+
+
 def prepare_stage(run_dir: Path, config_path: Path) -> dict:
     metadata, flow, definition, skills, results = _state(run_dir, config_path)
+    if verify_run(run_dir, config_path)["status"] != "ok":
+        raise ValueError("Run needs recovery; call verify then recover")
     for step in flow["steps"]:
         stage_id = step["id"]
         if stage_id in results:
@@ -95,6 +161,8 @@ def prepare_stage(run_dir: Path, config_path: Path) -> dict:
 
 def submit_stage(run_dir: Path, config_path: Path, stage_id: str, token: str, response: str) -> dict:
     metadata, flow, definition, skills, results = _state(run_dir, config_path)
+    if verify_run(run_dir, config_path)["status"] != "ok":
+        raise ValueError("Run needs recovery; call verify then recover")
     if stage_id in results:
         existing = results[stage_id]
         if existing["token"] == token and existing["response_sha256"] == hashlib.sha256(response.encode("utf-8")).hexdigest():
@@ -143,6 +211,8 @@ def submit_stage(run_dir: Path, config_path: Path, stage_id: str, token: str, re
 def finalize_blog(run_dir: Path, config_path: Path, approved_file: Path) -> Path:
     """Save the author's selected/edited version after a completed run."""
     metadata, flow, definition, skills, results = _state(run_dir, config_path)
+    if verify_run(run_dir, config_path)["status"] != "ok":
+        raise ValueError("Run needs recovery; call verify then recover")
     if metadata["status"] != "completed" or len(results) != len(definition.steps):
         raise ValueError("Complete every stage before author approval")
     final_path = run_dir / definition.final_output["human_final"]
