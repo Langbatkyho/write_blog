@@ -47,11 +47,11 @@ def main() -> None:
     elif args.action == "export":
         if args.run_dir is None or args.archive is None:
             parser.error("export requires --run-dir and --archive")
-        result = {"archive": str(export_run(args.run_dir, args.archive))}
+        result = {"archive": str(export_run(args.run_dir, args.archive, args.config))}
     else:
         if args.archive is None or args.output_root is None:
             parser.error("import requires --archive and --output-root")
-        result = {"run_dir": str(import_run(args.archive, args.output_root))}
+        result = {"run_dir": str(import_run(args.archive, args.output_root, args.config))}
     print(json.dumps(result, ensure_ascii=False))
 
 

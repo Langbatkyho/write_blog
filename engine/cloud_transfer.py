@@ -11,13 +11,16 @@ import zipfile
 from pathlib import Path
 
 from engine.workflow_contracts import validate_relative_output_path
+from engine.cloud_stages import verify_run
 
 
-def export_run(run_dir: Path, archive: Path) -> Path:
+def export_run(run_dir: Path, archive: Path, config_path: Path = Path("engine/config.example.yaml")) -> Path:
     if not (run_dir / "metadata.json").is_file() or not (run_dir / "step_outputs.json").is_file():
         raise ValueError("Run lacks checkpoint files")
     if archive.exists():
         raise FileExistsError(archive)
+    if verify_run(run_dir, config_path)["status"] != "ok":
+        raise ValueError("Run needs recovery before export")
     files = {}
     for path in run_dir.rglob("*"):
         if path.is_symlink():
@@ -37,11 +40,17 @@ def export_run(run_dir: Path, archive: Path) -> Path:
             bundle.writestr(name, data)
         bundle.writestr("_manifest.json", json.dumps(manifest, ensure_ascii=False))
     archive.parent.mkdir(parents=True, exist_ok=True)
-    archive.write_bytes(payload.getvalue())
+    with tempfile.NamedTemporaryFile(prefix=".export-", suffix=".zip", dir=archive.parent, delete=False) as temporary:
+        temporary.write(payload.getvalue())
+        staged_archive = Path(temporary.name)
+    try:
+        os.link(staged_archive, archive)
+    finally:
+        staged_archive.unlink(missing_ok=True)
     return archive
 
 
-def import_run(archive: Path, output_root: Path) -> Path:
+def import_run(archive: Path, output_root: Path, config_path: Path = Path("engine/config.example.yaml")) -> Path:
     with zipfile.ZipFile(archive) as bundle:
         names = bundle.namelist()
         if len(names) != len(set(names)) or "_manifest.json" not in names:
@@ -82,6 +91,8 @@ def import_run(archive: Path, output_root: Path) -> Path:
             destination = staged / name
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(data)
+        if verify_run(staged, config_path)["status"] != "ok":
+            raise ValueError("Imported run needs recovery")
         # Rename only after every file has been written. A collision must never
         # replace an existing run, including one created during staging.
         if target.exists():

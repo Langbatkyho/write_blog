@@ -65,6 +65,8 @@ def test_moment_six_stages_complete_without_provider(tmp_path):
     assert (run_dir / "edit_log.md").read_text(encoding="utf-8") == "Bỏ từ thừa."
     metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["status"] == "completed"
+    assert metadata["protocol_version"] == 2
+    assert len(metadata["runtime_sha256"]) == 64
     assert metadata["api_called"] is False
     assert set(metadata["contract_hashes"]) == set(stages) | {"flow"}
     log = (run_dir / "run_log.md").read_text(encoding="utf-8")
@@ -75,8 +77,10 @@ def test_moment_six_stages_complete_without_provider(tmp_path):
     approved_file.write_text("# Mưa\n\nBản tác giả đã chọn.", encoding="utf-8")
     final_path = finalize_blog(run_dir, config, approved_file)
     assert final_path.read_text(encoding="utf-8") == "# Mưa\n\nBản tác giả đã chọn.\n"
-    with pytest.raises(FileExistsError):
-        finalize_blog(run_dir, config, approved_file)
+    assert finalize_blog(run_dir, config, approved_file) == final_path
+    metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["author_approval"]["final_sha256"]
+    assert "## Author Approval" in (run_dir / "run_log.md").read_text(encoding="utf-8")
 
 
 def test_finalize_requires_author_input_and_completed_run(tmp_path):
@@ -296,3 +300,65 @@ def test_recovery_can_resume_after_its_own_interruption(tmp_path, monkeypatch):
     with pytest.raises(OSError, match="recover interrupted"):
         recover_run(run, config)
     assert recover_run(run, config)["status"] == "ok"
+
+
+def test_v2_detects_input_and_checkpoint_tampering(tmp_path):
+    config = Path("engine/config.example.yaml")
+    source = tmp_path / "input.md"
+    source.write_text("raw_notes: Mưa.", encoding="utf-8")
+    run = create_run(config, source, tmp_path / "runs")
+    task = prepare_stage(run, config)
+    submit_stage(run, config, task["stage_id"], task["token"], "## Artifact\n\nMưa.\n\n## Handoff\n\nMưa.")
+    checkpoint = run / "step_outputs.json"
+    original = checkpoint.read_text(encoding="utf-8")
+    checkpoint.write_text(original.replace('"artifact": "Mưa."', '"artifact": "Giả."'), encoding="utf-8")
+    with pytest.raises(ValueError, match="checksum mismatch"):
+        verify_run(run, config)
+    checkpoint.write_text(original, encoding="utf-8")
+    (run / "input.md").write_text("raw_notes: Khác.", encoding="utf-8")
+    with pytest.raises(ValueError, match="Input checksum mismatch"):
+        verify_run(run, config)
+
+
+def test_finalize_resumes_after_file_or_log_interruption(tmp_path, monkeypatch):
+    import engine.cloud_stages as cloud
+    from engine.workflow_persistence import RunRepository
+    config = Path("engine/config.example.yaml")
+    source = tmp_path / "input.md"
+    source.write_text("raw_notes: Mưa.\ndesired_length: dưới 30 từ", encoding="utf-8")
+    run = create_run(config, source, tmp_path / "runs")
+    while (task := prepare_stage(run, config)).get("stage_id"):
+        artifact = "## Edited Blog\n\nMưa.\n\n## Edit Log\n\nSửa." if task["stage_id"] == "breath_editor" else "Mưa."
+        submit_stage(run, config, task["stage_id"], task["token"], f"## Artifact\n\n{artifact}\n\n## Handoff\n\nMưa.")
+    approved = tmp_path / "approved.md"
+    approved.write_text("Tác giả duyệt.", encoding="utf-8")
+    stage_log = (run / "run_log.md").read_text(encoding="utf-8")
+    original = RunRepository.write_metadata
+    def fail_receipt(*args, **kwargs):
+        monkeypatch.setattr(RunRepository, "write_metadata", original)
+        raise OSError("receipt interrupted")
+    monkeypatch.setattr(RunRepository, "write_metadata", fail_receipt)
+    with pytest.raises(OSError, match="receipt interrupted"):
+        finalize_blog(run, config, approved)
+    assert (run / "final_blog.md").exists()
+    assert finalize_blog(run, config, approved).exists()
+    assert verify_run(run, config)["status"] == "ok"
+    (run / "run_log.md").write_text(stage_log, encoding="utf-8")
+    assert verify_run(run, config)["stale"] == ["run_log.md"]
+    assert recover_run(run, config)["status"] == "ok"
+    other = tmp_path / "other.md"
+    other.write_text("Bản khác.", encoding="utf-8")
+    with pytest.raises(ValueError, match="Different article"):
+        finalize_blog(run, config, other)
+
+
+def test_export_rejects_inconsistent_run(tmp_path):
+    config = Path("engine/config.example.yaml")
+    source = tmp_path / "input.md"
+    source.write_text("raw_notes: Mưa.", encoding="utf-8")
+    run = create_run(config, source, tmp_path / "runs")
+    (run / "run_log.md").write_text("corrupt", encoding="utf-8")
+    archive = tmp_path / "run.zip"
+    with pytest.raises(ValueError, match="needs recovery"):
+        export_run(run, archive)
+    assert not archive.exists()
