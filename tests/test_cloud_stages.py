@@ -4,7 +4,7 @@ import zipfile
 
 import pytest
 
-from engine.cloud_stages import create_run, finalize_blog, prepare_stage, submit_stage, verify_run, recover_run
+from engine.cloud_stages import audit_run, create_run, finalize_blog, prepare_stage, submit_stage, verify_run, recover_run
 from engine.cloud_transfer import export_run, import_run
 from engine.article_length import check_article_length
 
@@ -49,6 +49,10 @@ def test_moment_six_stages_complete_without_provider(tmp_path):
     author_input = tmp_path / "input.md"
     author_input.write_text("raw_notes: Mưa nhỏ.\ndesired_length: dưới 30 từ", encoding="utf-8")
     run_dir = create_run(config, author_input, tmp_path / "runs")
+    initial_audit = audit_run(run_dir, config)
+    assert initial_audit["integrity"]["status"] == "ok"
+    assert initial_audit["completed_stage_ids"] == []
+    assert initial_audit["article_words"] is None
     stages = []
     while True:
         task = prepare_stage(run_dir, config)
@@ -81,6 +85,10 @@ def test_moment_six_stages_complete_without_provider(tmp_path):
     metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["author_approval"]["final_sha256"]
     assert "## Author Approval" in (run_dir / "run_log.md").read_text(encoding="utf-8")
+    final_audit = audit_run(run_dir, config)
+    assert final_audit["approved"] is True
+    assert final_audit["article_within_range"] is True
+    assert set(final_audit["deliverables"]) == {"final_blog.md", "run_log.md"}
 
 
 def test_finalize_requires_author_input_and_completed_run(tmp_path):

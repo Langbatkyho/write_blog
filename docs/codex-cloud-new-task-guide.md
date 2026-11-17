@@ -33,7 +33,7 @@ Sau khi SHA đã đúng, dán prompt sau và thay phần trong ngoặc vuông b�
 > desired_length: 300-600 từ
 > ```
 >
-> Sau stage cuối, kiểm tra `metadata.json` có `status: completed`, `step_outputs.json` có đủ 6 stage, và đếm `moment_edited.md` bằng `engine.parser.count_words()`. Đọc `witness_report.md` nhưng dùng số đếm của code nếu báo cáo nhận xét sai. Trình bày bản bài và nhận xét cho tôi duyệt. **Chưa chạy `finalize`, chưa tạo `final_blog.md` trước khi tôi chọn bài.** Báo đường dẫn run và các file đã có.
+> Chạy `python -m engine.cloud_stage_cli audit --run-dir <run_dir>` sau `create` và sau stage cuối. Xác nhận checkpoint lành mạnh, metadata `completed`, đủ 6 stage và số từ `moment_edited.md` nằm trong giới hạn. Đọc `witness_report.md` nhưng dùng số đếm của code nếu báo cáo nhận xét sai. Trình bày bản bài và nhận xét cho tôi duyệt. **Chưa chạy `finalize`, chưa tạo `final_blog.md` trước khi tôi chọn bài.** Báo đường dẫn run và các file đã có.
 
 `run_log.md` xuất hiện từ lúc tạo run; **sự tồn tại của file này chưa chứng minh workflow đã hoàn tất**. Nếu `breath_editor` gửi bài ngoài giới hạn, `submit` sẽ từ chối trước khi ghi `moment_edited.md`; task cần giữ nguyên run và sửa đúng response của stage đó. Không khởi động run mới chỉ vì một response bị từ chối.
 
@@ -55,7 +55,7 @@ Sau khi SHA đã đúng, dán prompt sau và thay phần trong ngoặc vuông b�
 > desired_length: 1200-1800 từ
 > ```
 >
-> Sau stage cuối, kiểm tra `metadata.json` có `status: completed`, `step_outputs.json` có đủ 7 stage, `edited_blog.md` và `edit_log.md` đã được tách. Đếm `edited_blog.md` bằng `engine.parser.count_words()`. Trình bày bài đã sửa cùng `reader_report.md`, `coaching_report.md`, `future_reflection.md` cho tôi duyệt. **Chưa chạy `finalize`, chưa tạo `final_blog.md` trước khi tôi chọn bài.** Báo đường dẫn run và các file đã có.
+> Chạy `python -m engine.cloud_stage_cli audit --run-dir <run_dir>` sau `create` và sau stage cuối. Xác nhận checkpoint lành mạnh, metadata `completed`, đủ 7 stage, `edited_blog.md` và `edit_log.md` đã được tách, và số từ nằm trong giới hạn. Trình bày bài đã sửa cùng `reader_report.md`, `coaching_report.md`, `future_reflection.md` cho tôi duyệt. **Chưa chạy `finalize`, chưa tạo `final_blog.md` trước khi tôi chọn bài.** Báo đường dẫn run và các file đã có.
 
 Deep `reader_experience` được cách ly bằng **nội dung prompt**, không phải quyền truy cập filesystem. Việc agent mới nhận riêng prompt chưa đủ để khẳng định một phép đọc mù được bảo đảm kỹ thuật. `editor_agent` phải trả `## Edited Blog` và `## Edit Log` bên trong `## Artifact`; engine sẽ tách file và chặn bản `edited_blog.md` ngoài giới hạn độ dài.
 
@@ -73,6 +73,8 @@ Với trường hợp duyệt nguyên văn, có thể gửi ngay trong **cùng t
 Lệnh đầy đủ là `python -m engine.cloud_stage_cli finalize --run-dir <run_dir> --approved-file <path>`. `finalize` chuẩn hóa khoảng trắng ở hai đầu và thêm một newline cuối file; hãy kiểm tra nội dung thật trước khi nói “khớp nguyên văn”. Không ghi đè `final_blog.md` nếu nó đã tồn tại. Bản tác giả duyệt có thể là ngoại lệ về độ dài; validator kiểm tra bản AI đã biên tập ở stage editor, không thay tác giả quyết định bản cuối.
 
 ## 5. Lưu `final_blog.md` và `run_log.md`
+
+Sau `finalize`, chạy `python -m engine.cloud_stage_cli audit --run-dir <run_dir>` và xác nhận `approved: true`, `integrity.status: ok` cùng hash của hai file bàn giao.
 
 Trong task đã tạo run, yêu cầu kiểm tra lại cả hai file, báo **SHA-256** và **số byte** bằng `sha256sum` và `wc -c`. Nếu client cho tải file, tải **riêng từng file Markdown**. Trên Codex web đã gặp trường hợp chỉ thư mục `/codex/.../output` được phép làm liên kết tải nhưng thư mục này chỉ đọc; đường dẫn `/workspace/...` khi đó **không phải link tải** dù file tồn tại. Đừng yêu cầu task tạo một link mà client chặn.
 

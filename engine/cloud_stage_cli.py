@@ -4,13 +4,13 @@ import argparse
 import json
 from pathlib import Path
 
-from engine.cloud_stages import create_run, finalize_blog, prepare_stage, submit_stage, verify_run, recover_run
+from engine.cloud_stages import audit_run, create_run, finalize_blog, prepare_stage, submit_stage, verify_run, recover_run
 from engine.cloud_transfer import export_run, import_run
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["create", "prepare", "submit", "finalize", "export", "import", "verify", "recover"])
+    parser.add_argument("action", choices=["create", "prepare", "submit", "finalize", "export", "import", "verify", "recover", "audit"])
     parser.add_argument("--config", type=Path, default=Path("engine/config.example.yaml"))
     parser.add_argument("--input", type=Path)
     parser.add_argument("--run-dir", type=Path)
@@ -40,10 +40,10 @@ def main() -> None:
             parser.error("finalize requires --run-dir and --approved-file")
         result = {"final_blog": str(finalize_blog(args.run_dir, args.config, args.approved_file)),
                   "run_log": str(args.run_dir / "run_log.md")}
-    elif args.action in {"verify", "recover"}:
+    elif args.action in {"verify", "recover", "audit"}:
         if args.run_dir is None:
             parser.error(f"{args.action} requires --run-dir")
-        result = verify_run(args.run_dir, args.config) if args.action == "verify" else recover_run(args.run_dir, args.config)
+        result = {"verify": verify_run, "recover": recover_run, "audit": audit_run}[args.action](args.run_dir, args.config)
     elif args.action == "export":
         if args.run_dir is None or args.archive is None:
             parser.error("export requires --run-dir and --archive")

@@ -8,7 +8,7 @@ import datetime as dt
 import subprocess
 from pathlib import Path
 
-from engine.parser import build_context_package, parse_stage_response
+from engine.parser import build_context_package, count_words, parse_stage_response
 from engine.article_length import check_article_length, requested_word_range, word_range_label
 from engine.utils import load_yaml
 from engine.workflow_artifacts import derive_artifact_file_contents, extract_markdown_section, extract_markdown_section_before
@@ -152,6 +152,34 @@ def verify_run(run_dir: Path, config_path: Path) -> dict:
     return {"status": "ok" if not missing and not stale and not conflicts and metadata["status"] == correct_status else "needs_recovery",
             "missing": missing, "stale": stale, "conflicts": conflicts, "metadata_expected": correct_status,
             "metadata_actual": metadata["status"], "completed_stages": len(results), "total_stages": len(definition.steps)}
+
+
+def audit_run(run_dir: Path, config_path: Path) -> dict:
+    """Read-only acceptance facts for an active or completed Cloud run."""
+    integrity = verify_run(run_dir, config_path)
+    metadata, flow, definition, _skills, results = _state(run_dir, config_path)
+    minimum, maximum = requested_word_range((run_dir / "input.md").read_text(encoding="utf-8"), flow)
+    article = run_dir / definition.final_output["primary_ai_draft"]
+    article_stage = next(step.id for step in definition.steps if step.output == article.name)
+    words = count_words(article.read_text(encoding="utf-8")) if article_stage in results and article.is_file() else None
+    deliverables = {}
+    for name in (definition.final_output["human_final"], "run_log.md"):
+        path = run_dir / name
+        if path.is_file():
+            data = path.read_bytes()
+            deliverables[name] = {"bytes": len(data), "sha256": _sha(data)}
+    return {
+        "integrity": integrity,
+        "mode": metadata["mode"], "style": metadata["style"],
+        "completed_stage_ids": list(results), "expected_stage_ids": list(definition.stage_ids),
+        "article_file": article.name, "article_words": words,
+        "desired_words": {"minimum": minimum, "maximum": maximum},
+        "article_within_range": None if words is None else (
+            (minimum is None or words >= minimum) and (maximum is None or words <= maximum)
+        ),
+        "approved": bool(metadata.get("author_approval")),
+        "deliverables": deliverables,
+    }
 
 
 def recover_run(run_dir: Path, config_path: Path) -> dict:
